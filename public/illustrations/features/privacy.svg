@@ -1,0 +1,19 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="transparent"/>
+  <g opacity="0.9">
+    <!-- Shield background -->
+    <path d="M200 80L160 100V140C160 180 200 220 200 220C200 220 240 180 240 140V100L200 80Z" 
+          fill="#16B8A6" fill-opacity="0.1" stroke="#16B8A6" stroke-width="2.5"/>
+    
+    <!-- Lock icon inside shield -->
+    <rect x="190" y="135" width="20" height="15" rx="2" stroke="#2F6BFF" stroke-width="2" fill="#2F6BFF" fill-opacity="0.2"/>
+    <path d="M194 135V130C194 126.686 196.686 124 200 124C203.314 124 206 126.686 206 130V135" 
+          stroke="#2F6BFF" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="200" cy="142" r="2" fill="#2F6BFF"/>
+    
+    <!-- Privacy text -->
+    <text x="200" y="250" font-family="Inter, sans-serif" font-size="16" font-weight="600" fill="#0B1220" text-anchor="middle">
+      Privacy-First Tracking
+    </text>
+  </g>
+</svg>

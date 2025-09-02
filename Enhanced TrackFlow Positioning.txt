@@ -1,0 +1,505 @@
+Enhanced TrackFlow Positioning: THE Digital Marketing Time Tracker
+
+🎯 Core Positioning: Marketing-First Time Tracking
+Landing Page Hero - Refined Messaging
+
+// Primary headline
+"Time Tracking Built for Digital Marketing Workflows"
+
+// Subheadline
+"Track time by campaign, channel, and client. From PPC optimization to SEO audits, 
+TrackFlow understands how digital marketers actually work."
+
+// Trust indicators
+"Trusted by 2,000+ agencies managing $50M+ in monthly ad spend"
+
+// Primary headline
+"Time Tracking That Speaks Marketing"
+
+// Subheadline
+"Track by client, channel and campaign—with privacy-first auto-detect and marketer-native templates for PPC optimisation, SEO audits, email and more."
+
+// Trust indicators
+"Trusted by leading agencies and in-house teams."
+
+📊 Comprehensive Marketing Channel Schema
+Consistent Channel Structure:
+
+type Channel = {
+  integrations: string[];            // platforms/tools
+  activities: string[];              // things you do
+  stages?: string[];                 // optional workflow stages
+  autoDetect?: AutoDetectRule[];    // URL/app detection
+};
+
+type AutoDetectRule = {
+  urlPatterns?: string[];           // ["ads.google.com/*"]
+  titlePatterns?: string[];         // ["Google Ads - *"]
+  requireConfirmation: boolean;     // privacy-first approach
+};
+
+export const MARKETING_CHANNELS: Record<string, Channel> = {
+  "PPC": {
+    integrations: ["Google Ads", "Meta Ads", "LinkedIn Ads", "TikTok Ads", "Microsoft Ads", "Amazon Ads"],
+    activities: [
+      "Account Structure",
+      "Campaign Setup",
+      "Ad Copy Creation",
+      "Bid Management",
+      "Budget Pacing",
+      "Audience Building",
+      "Feed Management",
+      "Landing Page QA",
+      "Performance Analysis",
+      "Client Reporting"
+    ],
+    stages: ["Plan", "Build", "QA", "Launch", "Optimize", "Report"],
+    autoDetect: [{
+      urlPatterns: ["ads.google.com/*", "business.facebook.com/*", "advertising.amazon.com/*"],
+      requireConfirmation: true
+    }]
+  },
+  
+  "SEO": {
+    integrations: ["Search Console", "Ahrefs", "SEMrush", "Screaming Frog", "Moz", "PageSpeed Insights"],
+    activities: [
+      "Keyword Research",
+      "Competitor Analysis",
+      "On-Page Optimization",
+      "Technical Audit",
+      "Content Brief Creation",
+      "Internal Linking",
+      "Schema Markup",
+      "Core Web Vitals",
+      "Link Building",
+      "Rank Tracking"
+    ],
+    stages: ["Research", "Implement", "QA", "Monitor", "Iterate"],
+    autoDetect: [{
+      urlPatterns: ["search.google.com/search-console/*", "ahrefs.com/*", "app.semrush.com/*"],
+      requireConfirmation: true
+    }]
+  },
+  
+  "Social Media": {
+    integrations: ["Meta Business Suite", "X (Twitter)", "LinkedIn", "TikTok", "Hootsuite", "Sprout Social"],
+    activities: [
+      "Content Creation",
+      "Content Calendar",
+      "Community Management",
+      "Influencer Outreach",
+      "Social Listening",
+      "Paid Social Setup",
+      "Analytics Review",
+      "Crisis Management"
+    ],
+    autoDetect: [{
+      urlPatterns: ["business.facebook.com/*", "studio.youtube.com/*", "ads.tiktok.com/*"],
+      requireConfirmation: true
+    }]
+  },
+  
+  "Email Marketing": {
+    integrations: ["Klaviyo", "Mailchimp", "ActiveCampaign", "HubSpot", "Braze", "SendGrid"],
+    activities: [
+      "List Management",
+      "Segmentation",
+      "Template Design",
+      "Copy Writing",
+      "Flow/Automation Setup",
+      "A/B Testing",
+      "Deliverability Monitoring",
+      "Performance Analysis"
+    ],
+    autoDetect: [{
+      urlPatterns: ["*.klaviyo.com/*", "*.mailchimp.com/*", "app.hubspot.com/*"],
+      requireConfirmation: true
+    }]
+  },
+  
+  "Content Marketing": {
+    integrations: ["WordPress", "Webflow", "Contentful", "Google Docs", "Notion", "Canva"],
+    activities: [
+      "Content Strategy",
+      "Topic Research",
+      "Writing",
+      "Editing",
+      "Graphic Design",
+      "Video Production",
+      "Publishing",
+      "Content Promotion",
+      "Repurposing"
+    ],
+    stages: ["Brief", "Draft", "Edit", "Design", "Publish", "Promote"]
+  },
+  
+  "CRO/Experimentation": {
+    integrations: ["Optimizely", "VWO", "Google Optimize", "Hotjar", "FullStory", "Convert"],
+    activities: [
+      "Hypothesis Development",
+      "Test Design",
+      "Variant Creation",
+      "QA Testing",
+      "Test Launch",
+      "Data Analysis",
+      "Results Documentation",
+      "Implementation"
+    ],
+    stages: ["Hypothesis", "Design", "Build", "QA", "Run", "Analyze", "Implement"]
+  },
+  
+  "Analytics & Tracking": {
+    integrations: ["GA4", "GTM", "Adobe Analytics", "Mixpanel", "Amplitude", "Segment"],
+    activities: [
+      "Tracking Plan",
+      "Tag Implementation",
+      "Event Setup",
+      "Debugging",
+      "Dashboard Creation",
+      "Custom Reports",
+      "Attribution Modeling",
+      "Privacy Compliance"
+    ]
+  },
+  
+  "Programmatic": {
+    integrations: ["DV360", "The Trade Desk", "Amazon DSP", "Adobe Advertising"],
+    activities: [
+      "Deal Setup",
+      "Audience Building",
+      "Creative Trafficking",
+      "Brand Safety Setup",
+      "Bid Strategy",
+      "Pacing Monitoring",
+      "Performance Analysis"
+    ]
+  },
+  
+  "Marketplace/Retail": {
+    integrations: ["Amazon Ads", "Walmart Connect", "Target Plus", "Instacart", "Criteo"],
+    activities: [
+      "Product Feed Management",
+      "Campaign Setup",
+      "Bid Optimization",
+      "Promotion Planning",
+      "Review Management",
+      "Buy Box Optimization"
+    ]
+  }
+};
+
+
+📝 Enhanced Time Entry Data Model
+interface TimeEntry {
+  // Core fields
+  id: string;
+  userId: string;
+  startTime: Date;
+  endTime: Date | null;
+  duration: number; // seconds
+  
+  // Marketing context
+  channel: keyof typeof MARKETING_CHANNELS;
+  activity: string;
+  stage?: string;
+  
+  // Client/Project hierarchy
+  clientId: string;
+  projectId?: string;
+  campaignId?: string;    // External campaign ID
+  accountId?: string;      // Ad account ID
+  
+  // Billing
+  billable: boolean;
+  hourlyRate: number;
+  rateCardItem?: string;   // Which service from rate card
+  poNumber?: string;        // Purchase order ref
+  
+  // Metadata
+  description: string;
+  notes?: string;
+  tags: string[];          // ["Black Friday", "Q4", "Urgent"]
+  attachments?: string[];
+  
+  // Auto-detection
+  autoDetected: boolean;
+  autoDetectConfidence?: number;
+  detectionSource?: 'url' | 'title' | 'manual';
+  
+  // QA/Process
+  peerReviewed?: boolean;
+  checklistCompleted?: boolean;
+  checklistId?: string;
+}
+
+// Separate table for performance data (optional feature)
+interface CampaignPerformance {
+  id: string;
+  timeEntryId: string;
+  platform: string;
+  metrics: {
+    spend?: number;
+    impressions?: number;
+    clicks?: number;
+    conversions?: number;
+    revenue?: number;
+  };
+  fetchedAt: Date;
+  manual: boolean; // true if manually entered vs API
+}
+
+🚀 MVP vs Later Features
+MVP (Launch Ready)
+const MVP_FEATURES = {
+  // Core Time Tracking
+  timer: {
+    basic: true,
+    multiple: true,
+    keyboard_shortcuts: true,
+    idle_detection: true,
+    manual_entry: true
+  },
+  
+  // Marketing Features
+  channels: MARKETING_CHANNELS, // All channels available
+  quickTemplates: [
+    "Client reporting call - 30 min",
+    "PPC optimization - 45 min",
+    "Content creation - 2 hours",
+    "SEO audit - 90 min",
+    "Campaign setup - 3 hours"
+  ],
+  
+  // Client Management
+  retainers: {
+    tracking: true,
+    alerts: [75, 90, 100], // % used
+    overage_flags: true
+  },
+  
+  // Reports (Simple)
+  reports: [
+    "Time by Channel",
+    "Client Utilization",
+    "Billable vs Non-billable",
+    "Weekly Timesheet"
+  ],
+  
+  // Integrations
+  integrations: {
+    csv_import: true,
+    csv_export: true,
+    invoice_generation: true
+  }
+};
+
+
+Phase 2 Features (Post-Launch)
+const PHASE_2_FEATURES = {
+  // Advanced Tracking
+  autoDetection: {
+    browser_extension: true,
+    url_matching: true,
+    confirmation_required: true
+  },
+  
+  // Performance Integration
+  campaignData: {
+    manual_entry: true,
+    csv_import: true,
+    basic_roi: true // hours vs revenue
+  },
+  
+  // Advanced Reports
+  reports: [
+    "Campaign Profitability",
+    "Channel Efficiency (EHR)",
+    "Service Line Analysis",
+    "Pitch Win/Loss Time"
+  ],
+  
+  // Team Features
+  team: {
+    approval_workflows: true,
+    capacity_planning: true,
+    resource_allocation: true
+  }
+};
+
+Phase 3 Features (Scale)
+
+const PHASE_3_FEATURES = {
+  // API Integrations
+  connectors: {
+    google_ads: true,
+    meta_ads: true,
+    analytics_platforms: true
+  },
+  
+  // AI/ML Features
+  insights: {
+    time_predictions: true,
+    anomaly_detection: true,
+    industry_benchmarks: true
+  },
+  
+  // Enterprise
+  enterprise: {
+    sso: true,
+    custom_integrations: true,
+    api_access: true,
+    white_label: true
+  }
+};
+
+
+💰 Realistic Pricing & Feature Gates
+
+const PRICING_TIERS = {
+  'Freelancer': {
+    price: '$15/month',
+    annual: '$150/year',
+    features: [
+      'Unlimited clients & projects',
+      'All marketing channels',
+      'Quick templates',
+      'Basic reports',
+      'CSV import/export',
+      'Invoice generation',
+      'Email support'
+    ],
+    limits: {
+      users: 1,
+      api_calls: 0,
+      custom_reports: 0
+    }
+  },
+  
+  'Agency Starter': {
+    price: '$29/user/month',
+    annual: '$290/user/year',
+    features: [
+      'Everything in Freelancer',
+      'Team collaboration (up to 10)',
+      'Retainer management & alerts',
+      'Client portal access',
+      'White-label reports',
+      'Priority support',
+      'Bulk operations'
+    ],
+    limits: {
+      users: 10,
+      api_calls: 1000,
+      custom_reports: 5
+    }
+  },
+  
+  'Agency Growth': {
+    price: '$49/user/month',
+    annual: '$490/user/year',
+    features: [
+      'Everything in Agency Starter',
+      'Unlimited team members',
+      'API access',
+      'Custom integrations',
+      'Advanced analytics',
+      'Capacity planning',
+      'SSO (add-on)',
+      'Dedicated support'
+    ],
+    limits: {
+      users: 'unlimited',
+      api_calls: 10000,
+      custom_reports: 'unlimited'
+    }
+  }
+};
+
+// Add-ons (Phase 2+)
+const ADD_ONS = {
+  'Platform Connectors': '$10/month per platform',
+  'SSO': '$50/month',
+  'Advanced Analytics': '$20/month',
+  'API Access': '$30/month'
+};
+
+There should free tier for just basic time tracking, 1 client, 1 project only.
+
+🎯 Honest Competitor Comparison
+
+const COMPARISON = {
+  'TrackFlow': {
+    'Marketing channels': '✅ Built-in',
+    'Campaign tracking': '✅ Native fields',
+    'Platform detection': '⚠️ Phase 2',
+    'Retainer management': '✅ With alerts',
+    'Marketing reports': '✅ Channel-specific',
+    'White-label': '✅ Agency tier',
+    'Industry focus': '✅ Digital marketing only'
+  },
+  'Generic Trackers': {
+    'Marketing channels': '⚠️ Manual tags',
+    'Campaign tracking': '❌ Not available',
+    'Platform detection': '❌ Not available',
+    'Retainer management': '⚠️ Basic',
+    'Marketing reports': '❌ Generic only',
+    'White-label': '⚠️ Enterprise only',
+    'Industry focus': '❌ Generic'
+  }
+};
+
+🔐 Privacy-First Auto-Detection (Phase 2)
+const AUTO_DETECTION_RULES = {
+  // URL matching only, no DOM scraping
+  detection: {
+    method: 'url_and_title_only',
+    no_content_scanning: true,
+    requires_user_confirmation: true
+  },
+  
+  // User controls
+  privacy: {
+    domain_blacklist: true,     // Never track on these domains
+    title_redaction: true,      // Option to hide page titles
+    local_processing: true,      // Detection happens client-side
+    manual_override: true        // Always allow manual correction
+  },
+  
+  // Confirmation flow
+  flow: {
+    toast_notification: "Detected: Google Ads - Confirm?",
+    quick_edit: true,            // Change channel/activity inline
+    remember_choice: true        // Remember for this URL pattern
+  }
+};
+
+🎯 Key Differentiators
+"Built by marketers who actually track time" - We understand the pain
+"Channel-first time tracking" - Not retrofitted with tags
+"Retainer-smart from day one" - Alerts before you go over
+"No feature creep" - Marketing workflows only, done right
+"Privacy-first tracking" - Your client data stays yours
+
+🏷️ Effective Hourly Rate Formulas
+// Clear metrics for marketers
+const MARKETING_METRICS = {
+  // Time efficiency
+  effectiveHourlyRate: (billings, hours) => billings / hours,
+  
+  // Cost per managed spend
+  timePerThousandSpend: (hours, adSpend) => hours / (adSpend / 1000),
+  
+  // Blended cost (what client pays vs internal cost)
+  blendedCostPerHour: (clientRate, internalCost) => ({
+    margin: clientRate - internalCost,
+    marginPercent: ((clientRate - internalCost) / clientRate) * 100
+  }),
+  
+  // Service profitability
+  serviceProfitability: (revenue, deliveryCost, toolCost) => 
+    ((revenue - deliveryCost - toolCost) / revenue) * 100
+};
+
+
+
+

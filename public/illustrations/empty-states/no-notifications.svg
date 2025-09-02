@@ -1,0 +1,14 @@
+<svg width="640" height="360" viewBox="0 0 640 360" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="360" fill="none"/>
+  <g opacity="0.1">
+    <circle cx="120" cy="180" r="72" stroke="#2F6BFF" stroke-width="10" fill="none"/>
+    <path d="M120 124 A72 72 0 0 1 168 142" stroke="#16B8A6" stroke-width="12" stroke-linecap="round" fill="none"/>
+    <path d="M64 180 A72 72 0 0 1 88 142" stroke="#7C3AED" stroke-width="12" stroke-linecap="round" fill="none"/>
+    <path d="M168 218 A72 72 0 0 1 120 236" stroke="#F59E0B" stroke-width="12" stroke-linecap="round" fill="none"/>
+  </g>
+  <rect x="220" y="120" width="360" height="18" rx="9" fill="#e5e7eb"/>
+  <rect x="260" y="160" width="280" height="10" rx="5" fill="#e5e7eb"/>
+  <rect x="280" y="180" width="240" height="10" rx="5" fill="#e5e7eb"/>
+  <text x="240" y="160" fill="#111827" font-family="Inter, system-ui" font-size="18">No notifications</text>
+  <text x="240" y="200" fill="#6b7280" font-family="Inter, system-ui" font-size="14">You’re all caught up for now.</text>
+</svg>

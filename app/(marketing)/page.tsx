@@ -47,73 +47,40 @@ export default function MarketingLandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        <div className="container mx-auto px-4 py-24">
-          <div className="max-w-4xl mx-auto text-center">
-            {/* Privacy Badge */}
-            <Badge className="mb-6 bg-[#16B8A6]/10 text-[#16B8A6] border-[#16B8A6]">
-              <Lock className="w-3 h-3 mr-1" />
-              Privacy-first: no DOM scraping
-            </Badge>
-            
-            {/* Main Headline */}
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-[#2F6BFF] to-[#7C3AED] bg-clip-text text-transparent">
-              Time Tracking That Speaks Marketing
-            </h1>
-            
-            {/* Subheadline */}
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Track by client, channel and campaign—with privacy-first auto-detect and retainer burndown.
-            </p>
-            
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-4">
-              <Link href="/signup">
-                <Button size="lg" className="bg-[#2F6BFF] hover:bg-[#2F6BFF]/90 text-white px-8">
-                  Start Free Trial
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-              <Link href="/pricing">
-                <Button size="lg" variant="outline" className="border-[#2F6BFF] text-[#2F6BFF] hover:bg-[#2F6BFF]/10">
-                  View Pricing
-                </Button>
-              </Link>
-            </div>
-            
-            {/* CTA Microcopy */}
-            <p className="text-sm text-muted-foreground mb-12">
-              No credit card required • 14-day free trial • Cancel anytime
-            </p>
-            
-            {/* Trust Strip */}
-            <div className="flex flex-col items-center gap-4">
-              <p className="text-sm text-muted-foreground">
-                Built for US freelancers and agencies
-              </p>
-              <div className="flex flex-wrap justify-center gap-8">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-5 h-5 text-[#16B8A6]" />
-                  <span className="text-sm font-medium">SOC 2 Compliant</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Lock className="w-5 h-5 text-[#16B8A6]" />
-                  <span className="text-sm font-medium">GDPR Ready</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-[#16B8A6]" />
-                  <span className="text-sm font-medium">99.9% Uptime</span>
-                </div>
-              </div>
-            </div>
+      <section className="py-20 px-4">
+        <div className="max-w-6xl mx-auto text-center">
+          {/* Trust badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full mb-6">
+            <span className="text-blue-600 text-sm font-medium">
+              Trusted by 2,000+ agencies managing $50M+ monthly ad spend
+            </span>
           </div>
-        </div>
-        
-        {/* Background Decoration */}
-        <div className="absolute top-0 left-0 w-full h-full -z-10 opacity-30">
-          <div className="absolute top-20 left-10 w-72 h-72 bg-[#2F6BFF] rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-          <div className="absolute top-40 right-10 w-72 h-72 bg-[#7C3AED] rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-20 w-72 h-72 bg-[#16B8A6] rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
+          
+          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+            The Only Time Tracking Software<br />
+            Built for Digital Marketers
+          </h1>
+          
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+            Stop forcing generic time trackers to understand PPC, SEO, and social campaigns.
+            TrackFlow speaks your language with channel tracking, retainer management, 
+            and campaign ROI built-in.
+          </p>
+          
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <Link href="/signup" className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              Start Free 14-Day Trial
+            </Link>
+            <Link href="/demo" className="px-8 py-4 bg-white text-gray-900 border-2 border-gray-200 rounded-lg hover:bg-gray-50">
+              Watch 2-min Demo
+            </Link>
+          </div>
+          
+          <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-500">
+            <span>✓ No credit card required</span>
+            <span>✓ 30-day free trial</span>
+            <span>✓ Cancel anytime</span>
+          </div>
         </div>
       </section>
 

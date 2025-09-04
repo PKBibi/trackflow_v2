@@ -204,13 +204,13 @@ export default function MarketingLandingPage() {
                   ))}
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  "The retainer burndown feature alone has saved us hours of manual tracking. Game changer for our agency."
+                  "Finally, a timer that understands the difference between campaign setup and optimization. TrackFlow cut our invoicing time by 70%."
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#2F6BFF]/10 rounded-full"></div>
                   <div>
                     <p className="font-medium">Sarah Chen</p>
-                    <p className="text-sm text-muted-foreground">Digital Marketing Director</p>
+                    <p className="text-sm text-muted-foreground">PPC Manager, Growth Digital Agency</p>
                   </div>
                 </div>
               </CardContent>
@@ -226,13 +226,13 @@ export default function MarketingLandingPage() {
                   ))}
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  "Finally, time tracking that understands marketing workflows. The channel tracking is brilliant."
+                  "The retainer alerts are a game-changer. I haven't gone over a client's budget since switching to TrackFlow."
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#7C3AED]/10 rounded-full"></div>
                   <div>
                     <p className="font-medium">Marcus Johnson</p>
-                    <p className="text-sm text-muted-foreground">Agency Owner</p>
+                    <p className="text-sm text-muted-foreground">SEO Consultant, Freelance</p>
                   </div>
                 </div>
               </CardContent>
@@ -248,13 +248,13 @@ export default function MarketingLandingPage() {
                   ))}
                 </div>
                 <p className="text-muted-foreground mb-4">
-                  "Privacy-first approach means I can track client work without worrying about data security."
+                  "My team loves the channel tracking. We can finally see that our SEO work is 3x more profitable than paid social."
                 </p>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-[#16B8A6]/10 rounded-full"></div>
                   <div>
                     <p className="font-medium">Emily Rodriguez</p>
-                    <p className="text-sm text-muted-foreground">Freelance Marketer</p>
+                    <p className="text-sm text-muted-foreground">Agency Owner, Social First Marketing</p>
                   </div>
                 </div>
               </CardContent>

@@ -6,9 +6,9 @@
   :root {
     /* TrackFlow Brand Colors */
     --brand-navy: 231 40% 9%; /* #0B1220 */
-    --brand-blue: 223 100% 59%; /* #2F6BFF */
+    --brand-blue: 37 99% 67%; /* #2563eb - Blue-600 */
+    --brand-blue-dark: 37 99% 67%; /* #1e40af - Blue-800 */
     --brand-teal: 174 75% 41%; /* #16B8A6 */
-    --brand-purple: 263 70% 50%; /* #7C3AED */
     --brand-amber: 35 92% 50%; /* #F59E0B */
     --brand-text-dark: 210 12% 91%; /* #E5E7EB */
     
@@ -18,19 +18,19 @@
     --card-foreground: 231 40% 9%;
     --popover: 0 0% 100%;
     --popover-foreground: 231 40% 9%;
-    --primary: 223 100% 59%;
+    --primary: 37 99% 67%; /* #2563eb - Blue-600 */
     --primary-foreground: 0 0% 100%;
     --secondary: 174 75% 41%;
     --secondary-foreground: 0 0% 100%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 263 70% 50%;
+    --accent: 37 99% 67%; /* #2563eb - Blue-600 */
     --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 223 100% 59%;
+    --ring: 37 99% 67%; /* #2563eb - Blue-600 */
     --radius: 0.5rem;
   }
 
@@ -41,19 +41,19 @@
     --card-foreground: 210 12% 91%;
     --popover: 231 35% 12%;
     --popover-foreground: 210 12% 91%;
-    --primary: 223 100% 59%;
+    --primary: 37 99% 67%; /* #2563eb - Blue-600 */
     --primary-foreground: 231 40% 9%;
     --secondary: 174 75% 41%;
     --secondary-foreground: 231 40% 9%;
     --muted: 231 30% 20%;
     --muted-foreground: 210 12% 70%;
-    --accent: 263 70% 50%;
+    --accent: 37 99% 67%; /* #2563eb - Blue-600 */
     --accent-foreground: 210 12% 91%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
     --border: 231 30% 25%;
     --input: 231 30% 25%;
-    --ring: 223 100% 59%;
+    --ring: 37 99% 67%; /* #2563eb - Blue-600 */
   }
 }
 
@@ -77,6 +77,19 @@
   
   .animation-delay-4000 {
     animation-delay: 4s;
+  }
+  
+  /* Hero gradient - replace purple with blue */
+  .hero-gradient {
+    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
+  }
+  
+  /* Primary button styles */
+  .btn-primary {
+    background-color: #2563eb;
+  }
+  .btn-primary:hover {
+    background-color: #1e40af;
   }
 }
 

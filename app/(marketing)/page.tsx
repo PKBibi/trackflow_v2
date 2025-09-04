@@ -36,12 +36,12 @@ export default function MarketingLandingPage() {
             <Link href="/login">
               <Button variant="ghost">Sign In</Button>
             </Link>
-            <Link href="/signup">
-              <Button className="bg-[#2F6BFF] hover:bg-[#2F6BFF]/90">
-                Start Free Trial
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+                         <Link href="/signup">
+               <Button className="btn-primary hover:bg-blue-800">
+                 Start Free Trial
+                 <ArrowRight className="w-4 h-4 ml-2" />
+               </Button>
+             </Link>
           </div>
         </div>
       </header>
@@ -68,9 +68,9 @@ export default function MarketingLandingPage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Link href="/signup" className="px-8 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-              Start Free 14-Day Trial
-            </Link>
+                         <Link href="/signup" className="px-8 py-4 btn-primary text-white rounded-lg hover:bg-blue-800">
+               Start Free 14-Day Trial
+             </Link>
             <Link href="/demo" className="px-8 py-4 bg-white text-gray-900 border-2 border-gray-200 rounded-lg hover:bg-gray-50">
               Watch 2-min Demo
             </Link>
@@ -263,8 +263,8 @@ export default function MarketingLandingPage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-[#2F6BFF] to-[#7C3AED]">
+             {/* CTA Section */}
+       <section className="py-24 hero-gradient">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Ready to Track Time Like a Marketer?
@@ -273,12 +273,12 @@ export default function MarketingLandingPage() {
             Join thousands of marketing professionals who've made the switch to privacy-first time tracking.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/signup">
-              <Button size="lg" className="bg-white text-[#2F6BFF] hover:bg-white/90">
-                Start Free Trial
-                <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+                         <Link href="/signup">
+               <Button size="lg" className="bg-white text-blue-600 hover:bg-white/90">
+                 Start Free Trial
+                 <ArrowRight className="w-4 h-4 ml-2" />
+               </Button>
+             </Link>
             <Link href="/demo">
               <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
                 <Play className="w-4 h-4 mr-2" />

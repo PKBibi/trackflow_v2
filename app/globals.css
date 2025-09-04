@@ -79,18 +79,34 @@
     animation-delay: 4s;
   }
   
-  /* Hero gradient - replace purple with blue */
-  .hero-gradient {
-    background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%);
-  }
-  
-  /* Primary button styles */
-  .btn-primary {
-    background-color: #2563eb;
-  }
-  .btn-primary:hover {
-    background-color: #1e40af;
-  }
+  /* Professional blue theme - remove all purple gradients */
+.hero-gradient {
+  background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+}
+
+.cta-gradient {
+  background: #2563eb;
+}
+
+.cta-gradient:hover {
+  background: #1d4ed8;
+}
+
+/* Primary button styles */
+.btn-primary {
+  background: #2563eb;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #1d4ed8;
+}
+
+/* Navigation bar */
+.navbar {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+}
 }
 
 @keyframes blob {

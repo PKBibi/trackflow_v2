@@ -34,23 +34,23 @@ export default function SignupPage() {
     <div className="min-h-screen flex">
       {/* Left Side - Signup Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-white">
-        <div className="w-full max-w-md space-y-8">
+        <div className="w-full max-w-lg space-y-8">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-gray-900">Get Started</h1>
-            <p className="mt-2 text-gray-600">
+            <h1 className="text-4xl font-bold text-gray-900">Get Started</h1>
+            <p className="mt-3 text-lg text-gray-600">
               Start your 14-day free trial. No credit card required.
             </p>
           </div>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Create your account</CardTitle>
-              <CardDescription>
+          <Card className="shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Create your account</CardTitle>
+              <CardDescription className="text-base">
                 Track time by campaign, channel, and client
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
+            <CardContent className="px-8 pb-8">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
                   <div className="relative">
@@ -117,6 +117,15 @@ export default function SignupPage() {
                       required
                     />
                   </div>
+                  <div className="text-sm text-gray-500 mt-2">
+                    <p>Password must contain:</p>
+                    <ul className="list-disc list-inside space-y-1 mt-1">
+                      <li>At least 8 characters</li>
+                      <li>One uppercase letter</li>
+                      <li>One lowercase letter</li>
+                      <li>One number</li>
+                    </ul>
+                  </div>
                 </div>
 
                 <Button type="submit" className="w-full" size="lg">
@@ -176,49 +185,49 @@ export default function SignupPage() {
       </div>
 
       {/* Right Side - Benefits */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 to-blue-800 p-8">
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-700 to-blue-900 p-8">
         <div className="flex flex-col justify-center max-w-lg mx-auto text-white">
           <div className="mb-8">
             <h2 className="text-4xl font-bold mb-4">
               Time tracking built for digital marketers
             </h2>
-            <p className="text-xl text-blue-100">
+            <p className="text-xl text-blue-50">
               The only time tracking software built specifically for digital marketing freelancers and agencies.
             </p>
           </div>
 
           <div className="space-y-6">
             <div className="flex items-start space-x-4">
-              <CheckCircle className="h-6 w-6 text-green-400 mt-1 flex-shrink-0" />
+              <CheckCircle className="h-6 w-6 text-green-300 mt-1 flex-shrink-0" />
               <div>
-                <h3 className="text-lg font-semibold">Track time by campaign & channel</h3>
-                <p className="text-blue-100">Organize your time by marketing campaigns, channels, and client projects.</p>
+                <h3 className="text-lg font-semibold text-white">Track time by campaign & channel</h3>
+                <p className="text-blue-50">Organize your time by marketing campaigns, channels, and client projects.</p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
-              <CheckCircle className="h-6 w-6 text-green-400 mt-1 flex-shrink-0" />
+              <CheckCircle className="h-6 w-6 text-green-300 mt-1 flex-shrink-0" />
               <div>
-                <h3 className="text-lg font-semibold">Built for agencies & freelancers</h3>
-                <p className="text-blue-100">Designed specifically for marketing teams with client management in mind.</p>
+                <h3 className="text-lg font-semibold text-white">Built for agencies & freelancers</h3>
+                <p className="text-blue-50">Designed specifically for marketing teams with client management in mind.</p>
               </div>
             </div>
 
             <div className="flex items-start space-x-4">
-              <CheckCircle className="h-6 w-6 text-green-400 mt-1 flex-shrink-0" />
+              <CheckCircle className="h-6 w-6 text-green-300 mt-1 flex-shrink-0" />
               <div>
-                <h3 className="text-lg font-semibold">Invoice directly from timesheets</h3>
-                <p className="text-blue-100">Generate professional invoices based on tracked time and rates.</p>
+                <h3 className="text-lg font-semibold text-white">Invoice directly from timesheets</h3>
+                <p className="text-blue-50">Generate professional invoices based on tracked time and rates.</p>
               </div>
             </div>
           </div>
 
-          <div className="mt-12 p-6 bg-white/10 rounded-lg">
-            <p className="text-sm text-blue-100">
+          <div className="mt-12 p-6 bg-white/20 rounded-lg border border-white/20">
+            <p className="text-sm text-white">
               "TrackFlow has transformed how we track time across our marketing campaigns. 
               The campaign-based organization makes client billing so much easier."
             </p>
-            <p className="text-sm font-medium mt-2">- Sarah Chen, Marketing Director</p>
+            <p className="text-sm font-medium mt-2 text-blue-50">- Sarah Chen, Marketing Director</p>
           </div>
         </div>
       </div>

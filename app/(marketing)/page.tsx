@@ -1,7 +1,5 @@
-'use client'
-
 import Link from 'next/link'
-import { ArrowRight, Shield, Clock, BarChart3, Users, Zap, CheckCircle, Globe, Lock, ChevronRight, Play, TrendingUp, DollarSign, FileText, Brain } from 'lucide-react'
+import { ArrowRight, Play, TrendingUp, Users, Zap, DollarSign, FileText, Brain } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'

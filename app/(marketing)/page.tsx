@@ -8,43 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export default function MarketingLandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-[#0B1220] dark:to-gray-950">
-      {/* Header */}
-      <header className="border-b bg-white/80 dark:bg-[#0B1220]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="font-bold text-xl">
-            TrackFlow
-          </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/features" className="text-sm hover:text-[#2F6BFF] transition-colors">
-              Features
-            </Link>
-            <Link href="/pricing" className="text-sm hover:text-[#2F6BFF] transition-colors">
-              Pricing
-            </Link>
-            <Link href="/templates" className="text-sm hover:text-[#2F6BFF] transition-colors">
-              Templates
-            </Link>
-            <Link href="/about" className="text-sm hover:text-[#2F6BFF] transition-colors">
-              About
-            </Link>
-            <Link href="/contact" className="text-sm hover:text-[#2F6BFF] transition-colors">
-              Contact
-            </Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost">Sign In</Button>
-            </Link>
-                         <Link href="/signup">
-               <Button className="btn-primary hover:bg-blue-800">
-                 Start Free Trial
-                 <ArrowRight className="w-4 h-4 ml-2" />
-               </Button>
-             </Link>
-          </div>
-        </div>
-      </header>
+    <div className="bg-gradient-to-b from-white to-gray-50 dark:from-[#0B1220] dark:to-gray-950">
 
       {/* Hero Section */}
       <section className="py-20 px-4">
@@ -292,49 +256,6 @@ export default function MarketingLandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-[#0B1220] text-[#E5E7EB] py-12">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="font-bold text-lg mb-4">TrackFlow</h3>
-              <p className="text-sm text-gray-400">
-                Time tracking that speaks marketing. Built for freelancers and agencies.
-              </p>
-            </div>
-            <div>
-              <h4 className="font-medium mb-4">Product</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link href="/features" className="hover:text-white">Features</Link></li>
-                <li><Link href="/pricing" className="hover:text-white">Pricing</Link></li>
-                <li><Link href="/templates" className="hover:text-white">Templates</Link></li>
-                <li><Link href="/integrations" className="hover:text-white">Integrations</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-4">Company</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link href="/about" className="hover:text-white">About</Link></li>
-                <li><Link href="/blog" className="hover:text-white">Blog</Link></li>
-                <li><Link href="/contact" className="hover:text-white">Contact</Link></li>
-                <li><Link href="/careers" className="hover:text-white">Careers</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-4">Legal</h4>
-              <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link href="/privacy" className="hover:text-white">Privacy Policy</Link></li>
-                <li><Link href="/terms" className="hover:text-white">Terms of Service</Link></li>
-                <li><Link href="/security" className="hover:text-white">Security</Link></li>
-                <li><Link href="/gdpr" className="hover:text-white">GDPR</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
-            © 2024 TrackFlow. All rights reserved.
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }

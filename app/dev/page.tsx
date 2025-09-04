@@ -6,7 +6,7 @@ import {
   Calendar, BarChart3, Settings, CreditCard, LogIn,
   UserPlus, Home, DollarSign, Bell, Shield, Activity,
   Download, Key, UserCog, Trash2, ChevronRight,
-  Code, Palette, Globe, Mail, Info, PricingIcon,
+  Code, Palette, Globe, Mail, Info,
   BookOpen, Phone, Lock, FileCode, Zap
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'

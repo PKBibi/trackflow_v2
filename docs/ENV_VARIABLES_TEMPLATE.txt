@@ -1,0 +1,90 @@
+# ===================================
+# ENVIRONMENT VARIABLES TEMPLATE
+# ===================================
+# Copy this file to .env.local for local development
+# Add these variables to Vercel Dashboard for production
+
+# ===================================
+# SUPABASE CONFIGURATION
+# ===================================
+# Get these from: https://app.supabase.com/project/YOUR_PROJECT/settings/api
+NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# ===================================
+# STRIPE CONFIGURATION
+# ===================================
+# Get these from: https://dashboard.stripe.com/apikeys
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_your-key
+STRIPE_SECRET_KEY=sk_live_your-key
+STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
+
+# Stripe Price IDs (create in Stripe Dashboard)
+STRIPE_PRICE_ID_STARTER=price_starter_id
+STRIPE_PRICE_ID_PROFESSIONAL=price_professional_id
+STRIPE_PRICE_ID_ENTERPRISE=price_enterprise_id
+
+# ===================================
+# GOOGLE OAUTH & CALENDAR
+# ===================================
+# Create OAuth app at: https://console.cloud.google.com/apis/credentials
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-client-secret
+GOOGLE_REDIRECT_URI=https://your-app-domain.vercel.app/api/auth/google/callback
+
+# ===================================
+# SLACK INTEGRATION
+# ===================================
+# Create Slack app at: https://api.slack.com/apps
+SLACK_BOT_TOKEN=xoxb-your-bot-token
+SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+SLACK_CLIENT_ID=your-client-id
+SLACK_CLIENT_SECRET=your-client-secret
+SLACK_SIGNING_SECRET=your-signing-secret
+
+# ===================================
+# APPLICATION CONFIGURATION
+# ===================================
+NEXT_PUBLIC_APP_URL=https://your-app-domain.vercel.app
+NEXT_PUBLIC_APP_NAME=TrackFlow
+NEXT_PUBLIC_APP_DESCRIPTION=Professional Time Tracking & Project Management
+
+# ===================================
+# EMAIL CONFIGURATION (Optional)
+# ===================================
+# For sending emails (invoices, reports, notifications)
+EMAIL_FROM=noreply@your-domain.com
+EMAIL_SERVER_HOST=smtp.gmail.com
+EMAIL_SERVER_PORT=587
+EMAIL_SERVER_USER=your-email@gmail.com
+EMAIL_SERVER_PASSWORD=your-app-specific-password
+
+# ===================================
+# ANALYTICS (Optional)
+# ===================================
+# Google Analytics
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+
+# PostHog Analytics
+NEXT_PUBLIC_POSTHOG_KEY=phc_your_key
+NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com
+
+# ===================================
+# SENTRY ERROR TRACKING (Optional)
+# ===================================
+NEXT_PUBLIC_SENTRY_DSN=https://your-key@sentry.io/project-id
+SENTRY_AUTH_TOKEN=your-auth-token
+
+# ===================================
+# DATABASE & CACHE (Optional)
+# ===================================
+# Redis/Upstash for caching (optional)
+REDIS_URL=redis://default:password@your-redis-url:6379
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-token
+
+# ===================================
+# ENVIRONMENT
+# ===================================
+NODE_ENV=production

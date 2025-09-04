@@ -5,9 +5,9 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'TrackFlow - Time Tracking That Speaks Marketing',
-  description: 'Privacy-first time tracking for marketing professionals. Track by client, channel and campaign with retainer burndown.',
-  keywords: 'time tracking, marketing, retainer tracking, agency time tracking, privacy-first, campaign tracking',
+  title: 'TrackFlow - Time Tracking for Digital Marketing',
+  description: 'The only time tracking software built specifically for digital marketing freelancers and agencies.',
+  keywords: 'time tracking, marketing, retainer tracking, agency time tracking, privacy-first, campaign tracking, digital marketing',
   authors: [{ name: 'TrackFlow' }],
   creator: 'TrackFlow',
   publisher: 'TrackFlow',
@@ -18,8 +18,8 @@ export const metadata: Metadata = {
   },
   metadataBase: new URL('https://trackflow.app'),
   openGraph: {
-    title: 'TrackFlow - Time Tracking That Speaks Marketing',
-    description: 'Privacy-first time tracking for marketing professionals. Track by client, channel and campaign with retainer burndown.',
+    title: 'TrackFlow - Time Tracking for Digital Marketing',
+    description: 'Track time by campaign, channel, and client.',
     url: 'https://trackflow.app',
     siteName: 'TrackFlow',
     images: [
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'TrackFlow - Time Tracking That Speaks Marketing',
-    description: 'Privacy-first time tracking for marketing professionals.',
+    title: 'TrackFlow',
+    description: 'Time tracking for digital marketers',
     images: ['/images/twitter-image.png'],
     creator: '@trackflow',
   },

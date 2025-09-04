@@ -1,229 +1,226 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
-import { z } from 'zod'
+import { NextRequest, NextResponse } from 'next/server';
 
-// Validation schemas
-const TimeEntrySchema = z.object({
-  description: z.string().min(1),
-  project_id: z.string().uuid(),
-  start_time: z.string().datetime(),
-  end_time: z.string().datetime().optional(),
-  duration: z.number().optional(),
-  billable: z.boolean().default(true),
-  tags: z.array(z.string()).optional(),
-})
-
-const QuerySchema = z.object({
-  page: z.string().optional().default('1'),
-  limit: z.string().optional().default('20'),
-  project_id: z.string().uuid().optional(),
-  start_date: z.string().datetime().optional(),
-  end_date: z.string().datetime().optional(),
-  billable: z.string().optional(),
-})
+// Mock database - replace with actual database queries
+let timeEntries = [
+  {
+    id: '1',
+    date: '2024-11-20',
+    startTime: '09:00',
+    endTime: '11:00',
+    duration: 120,
+    category: 'content-seo',
+    activity: 'Blog Writing',
+    description: 'Created blog post about digital marketing trends',
+    clientId: '1',
+    clientName: 'Acme Corp',
+    projectId: '1',
+    projectName: 'Content Marketing',
+    billable: true,
+    rate: 100,
+    amount: 200,
+    userId: '1',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: '2',
+    date: '2024-11-20',
+    startTime: '14:00',
+    endTime: '15:30',
+    duration: 90,
+    category: 'advertising-paid-media',
+    activity: 'Google Ads Management',
+    description: 'Optimized PPC campaigns',
+    clientId: '2',
+    clientName: 'Tech Startup Inc',
+    projectId: '2',
+    projectName: 'Digital Advertising',
+    billable: true,
+    rate: 120,
+    amount: 180,
+    userId: '1',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
 
 // GET /api/v1/time-entries
 export async function GET(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const { searchParams } = new URL(request.url);
     
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Parse query parameters
-    const searchParams = Object.fromEntries(request.nextUrl.searchParams)
-    const query = QuerySchema.parse(searchParams)
+    // Query parameters
+    const userId = searchParams.get('userId');
+    const clientId = searchParams.get('clientId');
+    const projectId = searchParams.get('projectId');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+    const billable = searchParams.get('billable');
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '50');
     
-    const page = parseInt(query.page)
-    const limit = parseInt(query.limit)
-    const offset = (page - 1) * limit
-
-    // Build query
-    let dbQuery = supabase
-      .from('time_entries')
-      .select('*, projects(name, client)', { count: 'exact' })
-      .eq('user_id', user.id)
-      .order('start_time', { ascending: false })
-      .range(offset, offset + limit - 1)
-
+    let filteredEntries = [...timeEntries];
+    
     // Apply filters
-    if (query.project_id) {
-      dbQuery = dbQuery.eq('project_id', query.project_id)
+    if (userId) {
+      filteredEntries = filteredEntries.filter(entry => entry.userId === userId);
     }
-    if (query.start_date) {
-      dbQuery = dbQuery.gte('start_time', query.start_date)
+    if (clientId) {
+      filteredEntries = filteredEntries.filter(entry => entry.clientId === clientId);
     }
-    if (query.end_date) {
-      dbQuery = dbQuery.lte('start_time', query.end_date)
+    if (projectId) {
+      filteredEntries = filteredEntries.filter(entry => entry.projectId === projectId);
     }
-    if (query.billable !== undefined) {
-      dbQuery = dbQuery.eq('billable', query.billable === 'true')
+    if (billable !== null) {
+      filteredEntries = filteredEntries.filter(entry => entry.billable === (billable === 'true'));
     }
-
-    const { data, error, count } = await dbQuery
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+    if (startDate) {
+      filteredEntries = filteredEntries.filter(entry => entry.date >= startDate);
     }
-
-    // Calculate pagination metadata
-    const totalPages = Math.ceil((count || 0) / limit)
-    const hasNext = page < totalPages
-    const hasPrev = page > 1
-
+    if (endDate) {
+      filteredEntries = filteredEntries.filter(entry => entry.date <= endDate);
+    }
+    
+    // Pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedEntries = filteredEntries.slice(startIndex, endIndex);
+    
     return NextResponse.json({
-      data,
+      data: paginatedEntries,
       meta: {
+        total: filteredEntries.length,
         page,
         limit,
-        total: count,
-        totalPages,
-        hasNext,
-        hasPrev,
-      },
-      links: {
-        self: `/api/v1/time-entries?page=${page}&limit=${limit}`,
-        next: hasNext ? `/api/v1/time-entries?page=${page + 1}&limit=${limit}` : null,
-        prev: hasPrev ? `/api/v1/time-entries?page=${page - 1}&limit=${limit}` : null,
+        totalPages: Math.ceil(filteredEntries.length / limit)
       }
-    }, {
-      status: 200,
-      headers: {
-        'X-Total-Count': String(count || 0),
-        'X-Page': String(page),
-        'X-Limit': String(limit),
-      }
-    })
+    });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Validation error', 
-        details: error.errors 
-      }, { status: 400 })
-    }
-    
-    console.error('API Error:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
-    }, { status: 500 })
+    console.error('Error fetching time entries:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch time entries' },
+      { status: 500 }
+    );
   }
 }
 
 // POST /api/v1/time-entries
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const body = await request.json();
     
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    // Parse and validate request body
-    const body = await request.json()
-    const validatedData = TimeEntrySchema.parse(body)
-
-    // Create time entry
-    const { data, error } = await supabase
-      .from('time_entries')
-      .insert({
-        ...validatedData,
-        user_id: user.id,
-        created_at: new Date().toISOString(),
-      })
-      .select('*, projects(name, client)')
-      .single()
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
-    }
-
-    return NextResponse.json({ data }, { 
-      status: 201,
-      headers: {
-        'Location': `/api/v1/time-entries/${data.id}`
+    // Validate required fields
+    const requiredFields = ['date', 'duration', 'activity', 'category'];
+    for (const field of requiredFields) {
+      if (!body[field]) {
+        return NextResponse.json(
+          { error: `Missing required field: ${field}` },
+          { status: 400 }
+        );
       }
-    })
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ 
-        error: 'Validation error', 
-        details: error.errors 
-      }, { status: 400 })
     }
     
-    console.error('API Error:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
-    }, { status: 500 })
+    // Create new time entry
+    const newEntry = {
+      id: Date.now().toString(),
+      ...body,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    // Calculate amount if billable
+    if (newEntry.billable && newEntry.rate) {
+      newEntry.amount = (newEntry.duration / 60) * newEntry.rate;
+    }
+    
+    // Add to mock database
+    timeEntries.push(newEntry);
+    
+    // In production, save to database:
+    // const { data, error } = await supabase
+    //   .from('time_entries')
+    //   .insert([newEntry])
+    //   .select()
+    //   .single();
+    
+    return NextResponse.json({
+      data: newEntry,
+      message: 'Time entry created successfully'
+    }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating time entry:', error);
+    return NextResponse.json(
+      { error: 'Failed to create time entry' },
+      { status: 500 }
+    );
   }
 }
 
-// PATCH /api/v1/time-entries (bulk operations)
-export async function PATCH(request: NextRequest) {
+// PUT /api/v1/time-entries (bulk update)
+export async function PUT(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const body = await request.json();
+    const { ids, updates } = body;
     
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: 'Missing or invalid ids array' },
+        { status: 400 }
+      );
     }
-
-    const body = await request.json()
-    const { action, ids, data: updateData } = body
-
-    if (!action || !ids || !Array.isArray(ids)) {
-      return NextResponse.json({ 
-        error: 'Invalid request. Provide action, ids array, and data.' 
-      }, { status: 400 })
-    }
-
-    switch (action) {
-      case 'update':
-        const { error: updateError } = await supabase
-          .from('time_entries')
-          .update(updateData)
-          .eq('user_id', user.id)
-          .in('id', ids)
-
-        if (updateError) {
-          return NextResponse.json({ error: updateError.message }, { status: 500 })
-        }
-
-        return NextResponse.json({ 
-          message: `Updated ${ids.length} time entries` 
-        })
-
-      case 'delete':
-        const { error: deleteError } = await supabase
-          .from('time_entries')
-          .delete()
-          .eq('user_id', user.id)
-          .in('id', ids)
-
-        if (deleteError) {
-          return NextResponse.json({ error: deleteError.message }, { status: 500 })
-        }
-
-        return NextResponse.json({ 
-          message: `Deleted ${ids.length} time entries` 
-        })
-
-      default:
-        return NextResponse.json({ 
-          error: 'Invalid action. Use "update" or "delete".' 
-        }, { status: 400 })
-    }
+    
+    // Update multiple entries
+    const updatedEntries = timeEntries.map(entry => {
+      if (ids.includes(entry.id)) {
+        return {
+          ...entry,
+          ...updates,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      return entry;
+    });
+    
+    timeEntries = updatedEntries;
+    
+    return NextResponse.json({
+      message: `Updated ${ids.length} time entries`,
+      updatedIds: ids
+    });
   } catch (error) {
-    console.error('API Error:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
-    }, { status: 500 })
+    console.error('Error updating time entries:', error);
+    return NextResponse.json(
+      { error: 'Failed to update time entries' },
+      { status: 500 }
+    );
   }
 }
 
+// DELETE /api/v1/time-entries (bulk delete)
+export async function DELETE(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { ids } = body;
+    
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json(
+        { error: 'Missing or invalid ids array' },
+        { status: 400 }
+      );
+    }
+    
+    // Remove entries
+    timeEntries = timeEntries.filter(entry => !ids.includes(entry.id));
+    
+    return NextResponse.json({
+      message: `Deleted ${ids.length} time entries`,
+      deletedIds: ids
+    });
+  } catch (error) {
+    console.error('Error deleting time entries:', error);
+    return NextResponse.json(
+      { error: 'Failed to delete time entries' },
+      { status: 500 }
+    );
+  }
+}

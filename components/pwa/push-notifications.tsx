@@ -232,7 +232,6 @@ export function PushNotificationManager() {
           body: 'Push notifications are now enabled!',
           icon: '/icons/icon-192x192.png',
           badge: '/icons/badge-72x72.png',
-          vibrate: [200, 100, 200],
           tag: 'test-notification',
           data: {
             url: '/dashboard'

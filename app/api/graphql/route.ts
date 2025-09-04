@@ -2,8 +2,39 @@ import { NextRequest, NextResponse } from 'next/server'
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLFloat, GraphQLBoolean, GraphQLList, GraphQLNonNull, GraphQLID, graphql } from 'graphql'
 import { createClient } from '@/lib/supabase/server'
 
-// GraphQL Types
-const ProjectType = new GraphQLObjectType({
+// Forward declare types to avoid circular reference
+const TimeEntryType: GraphQLObjectType = new GraphQLObjectType({
+  name: 'TimeEntry',
+  fields: () => ({
+    id: { type: GraphQLID },
+    description: { type: GraphQLString },
+    startTime: { type: GraphQLString },
+    endTime: { type: GraphQLString },
+    duration: { type: GraphQLInt },
+    projectId: { type: GraphQLID },
+    clientId: { type: GraphQLID },
+    billable: { type: GraphQLBoolean },
+    notes: { type: GraphQLString },
+    tags: { type: new GraphQLList(GraphQLString) },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
+    project: {
+      type: ProjectType as any,
+      resolve: async (parent, args, context) => {
+        if (!parent.projectId) return null
+        const { data } = await context.supabase
+          .from('projects')
+          .select('*')
+          .eq('id', parent.projectId)
+          .eq('user_id', context.user.id)
+          .single()
+        return data
+      }
+    }
+  })
+})
+
+const ProjectType: GraphQLObjectType = new GraphQLObjectType({
   name: 'Project',
   fields: () => ({
     id: { type: GraphQLID },
@@ -37,40 +68,13 @@ const ProjectType = new GraphQLObjectType({
           .eq('user_id', context.user.id)
         
         if (!data) return 0
-        return data.reduce((sum, entry) => sum + (entry.duration || 0), 0) / 3600
+        return data.reduce((sum: number, entry: any) => sum + (entry.duration || 0), 0) / 3600
       }
     }
   })
 })
 
-const TimeEntryType = new GraphQLObjectType({
-  name: 'TimeEntry',
-  fields: () => ({
-    id: { type: GraphQLID },
-    description: { type: GraphQLString },
-    projectId: { type: GraphQLString },
-    startTime: { type: GraphQLString },
-    endTime: { type: GraphQLString },
-    duration: { type: GraphQLInt },
-    billable: { type: GraphQLBoolean },
-    tags: { type: new GraphQLList(GraphQLString) },
-    createdAt: { type: GraphQLString },
-    updatedAt: { type: GraphQLString },
-    project: {
-      type: ProjectType,
-      resolve: async (parent, args, context) => {
-        const { data } = await context.supabase
-          .from('projects')
-          .select('*')
-          .eq('id', parent.projectId)
-          .single()
-        return data
-      }
-    }
-  })
-})
-
-const InvoiceType = new GraphQLObjectType({
+const InvoiceType: GraphQLObjectType = new GraphQLObjectType({
   name: 'Invoice',
   fields: () => ({
     id: { type: GraphQLID },
@@ -91,7 +95,7 @@ const InvoiceType = new GraphQLObjectType({
   })
 })
 
-const UserStatsType = new GraphQLObjectType({
+const UserStatsType: GraphQLObjectType = new GraphQLObjectType({
   name: 'UserStats',
   fields: {
     totalHours: { type: GraphQLFloat },
@@ -250,7 +254,7 @@ const RootQuery = new GraphQLObjectType({
         const { data: timeEntries } = await timeQuery
         
         if (timeEntries) {
-          stats.totalHours = timeEntries.reduce((sum, entry) => sum + (entry.duration || 0), 0) / 3600
+          stats.totalHours = timeEntries.reduce((sum: number, entry: any) => sum + (entry.duration || 0), 0) / 3600
         }
         
         // Get projects count
@@ -268,7 +272,7 @@ const RootQuery = new GraphQLObjectType({
           .eq('user_id', context.user.id)
         
         if (clients) {
-          stats.totalClients = new Set(clients.map(p => p.client)).size
+          stats.totalClients = new Set(clients.map((p: any) => p.client)).size
         }
         
         // Calculate revenue from paid invoices
@@ -279,7 +283,7 @@ const RootQuery = new GraphQLObjectType({
           .eq('status', 'paid')
         
         if (invoices) {
-          stats.totalRevenue = invoices.reduce((sum, inv) => sum + (inv.total || 0), 0)
+          stats.totalRevenue = invoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0)
         }
         
         return stats
@@ -430,7 +434,7 @@ const schema = new GraphQLSchema({
 // API Route handlers
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient()
+    const supabase = await createClient()
     
     // Check authentication
     const { data: { user }, error: authError } = await supabase.auth.getUser()

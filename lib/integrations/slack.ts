@@ -17,7 +17,7 @@ export interface SlackNotification {
       short?: boolean
     }>
     footer?: string
-    ts?: number
+    ts?: string
   }>
   blocks?: any[]
 }
@@ -65,7 +65,7 @@ export class SlackService {
    * Send time tracking reminder
    */
   async sendTimeTrackingReminder(channel: string, userId: string, projectName?: string) {
-    const blocks = [
+    const blocks: any[] = [
       {
         type: 'header',
         text: {
@@ -152,7 +152,7 @@ export class SlackService {
             }
           ] : [],
           footer: 'TrackFlow',
-          ts: Date.now() / 1000
+          ts: Math.floor(Date.now() / 1000).toString()
         }
       ]
     }
@@ -190,7 +190,7 @@ export class SlackService {
       overdue: 'danger'
     }
 
-    const blocks = [
+    const blocks: any[] = [
       {
         type: 'header',
         text: {
@@ -266,7 +266,7 @@ export class SlackService {
     totalRevenue?: number
     currency?: string
   }) {
-    const blocks = [
+    const blocks: any[] = [
       {
         type: 'header',
         text: {
@@ -481,7 +481,7 @@ export class SlackService {
             }
           ],
           footer: 'TrackFlow Reports',
-          ts: Date.now() / 1000
+          ts: Math.floor(Date.now() / 1000).toString()
         }
       ]
     }

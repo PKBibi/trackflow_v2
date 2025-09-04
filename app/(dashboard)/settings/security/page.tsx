@@ -1,326 +1,317 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Shield, Smartphone, Key, AlertCircle, CheckCircle, Lock, Unlock, History, Monitor, MapPin, Chrome, Loader2 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Switch } from '@/components/ui/switch'
-import { toast } from '@/components/ui/use-toast'
-import { createClient } from '@/lib/supabase/client'
-import QRCode from 'qrcode'
+import { useState } from 'react';
+import { 
+  Shield, 
+  Key, 
+  Smartphone,
+  Monitor,
+  Globe,
+  AlertTriangle,
+  CheckCircle,
+  X,
+  Copy,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  LogOut,
+  Lock,
+  Download
+} from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/components/ui/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from '@/components/ui/alert';
+import { Switch } from '@/components/ui/switch';
+import { Progress } from '@/components/ui/progress';
+import type { UserSession } from '@/types/team';
 
-interface SecuritySettings {
-  two_factor_enabled: boolean
-  two_factor_method: 'authenticator' | 'sms' | null
-  backup_codes: string[]
-  sessions: Session[]
-  login_history: LoginHistory[]
-}
-
-interface Session {
-  id: string
-  device: string
-  browser: string
-  ip_address: string
-  location: string
-  last_active: string
-  created_at: string
-  is_current: boolean
-}
-
-interface LoginHistory {
-  id: string
-  timestamp: string
-  ip_address: string
-  location: string
-  device: string
-  browser: string
-  status: 'success' | 'failed'
-  method: string
-}
+// Mock data
+const mockSessions: UserSession[] = [
+  {
+    id: '1',
+    userId: '1',
+    deviceName: 'Chrome on Windows',
+    browser: 'Chrome 119',
+    os: 'Windows 11',
+    ipAddress: '192.168.1.100',
+    location: 'New York, USA',
+    lastActive: new Date(),
+    createdAt: new Date(Date.now() - 86400000),
+    isCurrent: true
+  },
+  {
+    id: '2',
+    userId: '1',
+    deviceName: 'Safari on iPhone',
+    browser: 'Safari 17',
+    os: 'iOS 17.1',
+    ipAddress: '192.168.1.101',
+    location: 'New York, USA',
+    lastActive: new Date(Date.now() - 3600000),
+    createdAt: new Date(Date.now() - 172800000),
+    isCurrent: false
+  },
+  {
+    id: '3',
+    userId: '1',
+    deviceName: 'Chrome on MacBook',
+    browser: 'Chrome 119',
+    os: 'macOS Sonoma',
+    ipAddress: '192.168.1.102',
+    location: 'Boston, USA',
+    lastActive: new Date(Date.now() - 7200000),
+    createdAt: new Date(Date.now() - 604800000),
+    isCurrent: false
+  }
+];
 
 export default function SecuritySettingsPage() {
-  const [settings, setSettings] = useState<SecuritySettings>({
-    two_factor_enabled: false,
-    two_factor_method: null,
-    backup_codes: [],
-    sessions: [],
-    login_history: []
-  })
-  const [loading, setLoading] = useState(true)
-  const [qrCode, setQrCode] = useState<string>('')
-  const [secret, setSecret] = useState<string>('')
-  const [verificationCode, setVerificationCode] = useState('')
-  const [setupDialogOpen, setSetupDialogOpen] = useState(false)
-  const [disableDialogOpen, setDisableDialogOpen] = useState(false)
-  const [backupCodesDialogOpen, setBackupCodesDialogOpen] = useState(false)
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [currentPassword, setCurrentPassword] = useState('')
-  const supabase = createClient()
+  const { toast } = useToast();
+  const [sessions, setSessions] = useState<UserSession[]>(mockSessions);
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [showQrCode, setShowQrCode] = useState(false);
+  const [showBackupCodes, setShowBackupCodes] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [verificationCode, setVerificationCode] = useState('');
+  
+  // Password form
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
-  useEffect(() => {
-    loadSecuritySettings()
-  }, [])
+  // Password strength calculation
+  const calculatePasswordStrength = (password: string) => {
+    let strength = 0;
+    if (password.length >= 8) strength += 25;
+    if (password.length >= 12) strength += 25;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength += 25;
+    if (/[0-9]/.test(password)) strength += 12.5;
+    if (/[^a-zA-Z0-9]/.test(password)) strength += 12.5;
+    return strength;
+  };
 
-  const loadSecuritySettings = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+  const passwordStrength = calculatePasswordStrength(passwordForm.newPassword);
 
-      // Load 2FA settings
-      const { data: tfaData } = await supabase
-        .from('user_security')
-        .select('*')
-        .eq('user_id', user.id)
-        .single()
+  const getPasswordStrengthLabel = (strength: number) => {
+    if (strength <= 25) return { label: 'Weak', color: 'bg-red-500' };
+    if (strength <= 50) return { label: 'Fair', color: 'bg-orange-500' };
+    if (strength <= 75) return { label: 'Good', color: 'bg-yellow-500' };
+    return { label: 'Strong', color: 'bg-green-500' };
+  };
 
-      // Load active sessions
-      const { data: sessionsData } = await supabase
-        .from('user_sessions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('last_active', { ascending: false })
+  const strengthInfo = getPasswordStrengthLabel(passwordStrength);
 
-      // Load login history
-      const { data: historyData } = await supabase
-        .from('login_history')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('timestamp', { ascending: false })
-        .limit(20)
+  // Mock backup codes
+  const mockBackupCodes = [
+    'ABCD-1234-EFGH',
+    'IJKL-5678-MNOP',
+    'QRST-9012-UVWX',
+    'YZAB-3456-CDEF',
+    'GHIJ-7890-KLMN',
+    'OPQR-1234-STUV',
+    'WXYZ-5678-ABCD',
+    'EFGH-9012-IJKL'
+  ];
 
-      setSettings({
-        two_factor_enabled: tfaData?.two_factor_enabled || false,
-        two_factor_method: tfaData?.two_factor_method || null,
-        backup_codes: tfaData?.backup_codes || [],
-        sessions: sessionsData || [],
-        login_history: historyData || []
-      })
-    } catch (error) {
-      console.error('Error loading security settings:', error)
+  // Handle password change
+  const handlePasswordChange = async () => {
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
       toast({
-        title: 'Error',
-        description: 'Failed to load security settings',
-        variant: 'destructive'
-      })
+        title: "Error",
+        description: "New passwords don't match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (passwordStrength < 50) {
+      toast({
+        title: "Error",
+        description: "Please choose a stronger password",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      toast({
+        title: "Password updated",
+        description: "Your password has been changed successfully.",
+      });
+      
+      setPasswordForm({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to change password. Please try again.",
+        variant: "destructive",
+      });
     } finally {
-      setLoading(false)
+      setIsChangingPassword(false);
     }
-  }
+  };
 
-  const setup2FA = async () => {
+  // Handle 2FA setup
+  const handle2FASetup = async () => {
+    setShowQrCode(true);
+  };
+
+  // Verify 2FA code
+  const verify2FACode = async () => {
+    if (verificationCode.length !== 6) {
+      toast({
+        title: "Error",
+        description: "Please enter a valid 6-digit code",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-
-      // Generate secret
-      const secret = generateSecret()
-      setSecret(secret)
-
-      // Generate QR code
-      const otpauth = `otpauth://totp/TrackFlow:${user.email}?secret=${secret}&issuer=TrackFlow`
-      const qr = await QRCode.toDataURL(otpauth)
-      setQrCode(qr)
-
-      setSetupDialogOpen(true)
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setTwoFactorEnabled(true);
+      setShowQrCode(false);
+      setShowBackupCodes(true);
+      setVerificationCode('');
+      
+      toast({
+        title: "2FA enabled",
+        description: "Two-factor authentication has been enabled for your account.",
+      });
     } catch (error) {
-      console.error('Error setting up 2FA:', error)
       toast({
-        title: 'Error',
-        description: 'Failed to set up 2FA',
-        variant: 'destructive'
-      })
+        title: "Error",
+        description: "Invalid verification code. Please try again.",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
-  const generateSecret = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'
-    let secret = ''
-    for (let i = 0; i < 32; i++) {
-      secret += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    return secret
-  }
-
-  const verify2FA = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-
-      // Verify the code (in production, verify on server)
-      // For demo, we'll accept any 6-digit code
-      if (verificationCode.length !== 6) {
-        throw new Error('Invalid code')
-      }
-
-      // Generate backup codes
-      const backupCodes = Array.from({ length: 10 }, () => 
-        Math.random().toString(36).substring(2, 10).toUpperCase()
-      )
-
-      // Save 2FA settings
-      const { error } = await supabase
-        .from('user_security')
-        .upsert({
-          user_id: user.id,
-          two_factor_enabled: true,
-          two_factor_method: 'authenticator',
-          two_factor_secret: secret, // In production, encrypt this
-          backup_codes: backupCodes,
-          updated_at: new Date().toISOString()
-        })
-
-      if (error) throw error
-
-      setSettings({
-        ...settings,
-        two_factor_enabled: true,
-        two_factor_method: 'authenticator',
-        backup_codes: backupCodes
-      })
-
-      setSetupDialogOpen(false)
-      setBackupCodesDialogOpen(true)
-
-      toast({
-        title: '2FA Enabled',
-        description: 'Two-factor authentication has been enabled'
-      })
-    } catch (error) {
-      console.error('Error verifying 2FA:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to verify code',
-        variant: 'destructive'
-      })
-    }
-  }
-
+  // Disable 2FA
   const disable2FA = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
-
-      // Verify the code before disabling
-      if (verificationCode.length !== 6) {
-        throw new Error('Invalid code')
-      }
-
-      const { error } = await supabase
-        .from('user_security')
-        .update({
-          two_factor_enabled: false,
-          two_factor_method: null,
-          two_factor_secret: null,
-          backup_codes: [],
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id)
-
-      if (error) throw error
-
-      setSettings({
-        ...settings,
-        two_factor_enabled: false,
-        two_factor_method: null,
-        backup_codes: []
-      })
-
-      setDisableDialogOpen(false)
-      setVerificationCode('')
-
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setTwoFactorEnabled(false);
+      
       toast({
-        title: '2FA Disabled',
-        description: 'Two-factor authentication has been disabled'
-      })
+        title: "2FA disabled",
+        description: "Two-factor authentication has been disabled.",
+      });
     } catch (error) {
-      console.error('Error disabling 2FA:', error)
       toast({
-        title: 'Error',
-        description: 'Failed to disable 2FA',
-        variant: 'destructive'
-      })
+        title: "Error",
+        description: "Failed to disable 2FA. Please try again.",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
-  const changePassword = async () => {
-    if (newPassword !== confirmPassword) {
-      toast({
-        title: 'Error',
-        description: 'Passwords do not match',
-        variant: 'destructive'
-      })
-      return
-    }
-
+  // End session
+  const endSession = async (sessionId: string) => {
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      })
-
-      if (error) throw error
-
-      setNewPassword('')
-      setConfirmPassword('')
-      setCurrentPassword('')
-
+      setSessions(sessions.filter(s => s.id !== sessionId));
+      
       toast({
-        title: 'Password Updated',
-        description: 'Your password has been changed successfully'
-      })
+        title: "Session ended",
+        description: "The session has been terminated.",
+      });
     } catch (error) {
-      console.error('Error changing password:', error)
       toast({
-        title: 'Error',
-        description: 'Failed to change password',
-        variant: 'destructive'
-      })
+        title: "Error",
+        description: "Failed to end session.",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
-  const revokeSession = async (sessionId: string) => {
+  // End all other sessions
+  const endAllOtherSessions = async () => {
     try {
-      const { error } = await supabase
-        .from('user_sessions')
-        .delete()
-        .eq('id', sessionId)
-
-      if (error) throw error
-
-      setSettings({
-        ...settings,
-        sessions: settings.sessions.filter(s => s.id !== sessionId)
-      })
-
+      setSessions(sessions.filter(s => s.isCurrent));
+      
       toast({
-        title: 'Session Revoked',
-        description: 'The session has been terminated'
-      })
+        title: "Sessions ended",
+        description: "All other sessions have been terminated.",
+      });
     } catch (error) {
-      console.error('Error revoking session:', error)
       toast({
-        title: 'Error',
-        description: 'Failed to revoke session',
-        variant: 'destructive'
-      })
+        title: "Error",
+        description: "Failed to end sessions.",
+        variant: "destructive",
+      });
     }
-  }
+  };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin" />
-      </div>
-    )
-  }
+  // Copy backup codes
+  const copyBackupCodes = () => {
+    navigator.clipboard.writeText(mockBackupCodes.join('\n'));
+    toast({
+      title: "Copied",
+      description: "Backup codes copied to clipboard.",
+    });
+  };
+
+  // Download backup codes
+  const downloadBackupCodes = () => {
+    const element = document.createElement('a');
+    const file = new Blob([mockBackupCodes.join('\n')], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = 'trackflow-backup-codes.txt';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+    
+    toast({
+      title: "Downloaded",
+      description: "Backup codes saved to file.",
+    });
+  };
+
+  const formatLastActive = (date: Date) => {
+    const diff = Date.now() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    
+    if (minutes < 1) return 'Active now';
+    if (minutes < 60) return `${minutes} minutes ago`;
+    if (hours < 24) return `${hours} hours ago`;
+    return `${days} days ago`;
+  };
 
   return (
     <div className="container max-w-6xl py-8">
@@ -331,70 +322,136 @@ export default function SecuritySettingsPage() {
         </p>
       </div>
 
-      <Tabs defaultValue="authentication" className="space-y-6">
+      <Tabs defaultValue="password" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="authentication">
-            <Shield className="w-4 h-4 mr-2" />
-            Authentication
-          </TabsTrigger>
-          <TabsTrigger value="sessions">
-            <Monitor className="w-4 h-4 mr-2" />
-            Active Sessions
-          </TabsTrigger>
-          <TabsTrigger value="history">
-            <History className="w-4 h-4 mr-2" />
-            Login History
-          </TabsTrigger>
+          <TabsTrigger value="password">Password</TabsTrigger>
+          <TabsTrigger value="2fa">Two-Factor Auth</TabsTrigger>
+          <TabsTrigger value="sessions">Active Sessions</TabsTrigger>
         </TabsList>
 
-        {/* Authentication Tab */}
-        <TabsContent value="authentication" className="space-y-6">
-          {/* Password Section */}
+        <TabsContent value="password" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Password</CardTitle>
+              <CardTitle>Change Password</CardTitle>
               <CardDescription>
-                Change your account password
+                Update your password regularly to keep your account secure
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="current-password">Current Password</Label>
-                <Input
-                  id="current-password"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                />
+                <Label>Current Password</Label>
+                <div className="relative">
+                  <Input
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    value={passwordForm.currentPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, currentPassword: e.target.value})}
+                    placeholder="Enter your current password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  >
+                    {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input
-                  id="new-password"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
+                <Label>New Password</Label>
+                <div className="relative">
+                  <Input
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={passwordForm.newPassword}
+                    onChange={(e) => setPasswordForm({...passwordForm, newPassword: e.target.value})}
+                    placeholder="Enter your new password"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="absolute right-0 top-0 h-full px-3"
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </Button>
+                </div>
+                
+                {passwordForm.newPassword && (
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Password strength</span>
+                      <span className={`font-medium ${
+                        passwordStrength <= 25 ? 'text-red-500' :
+                        passwordStrength <= 50 ? 'text-orange-500' :
+                        passwordStrength <= 75 ? 'text-yellow-500' : 'text-green-500'
+                      }`}>
+                        {strengthInfo.label}
+                      </span>
+                    </div>
+                    <Progress value={passwordStrength} className="h-2" />
+                    <div className="text-xs text-muted-foreground space-y-1">
+                      <p className={passwordForm.newPassword.length >= 8 ? 'text-green-600' : ''}>
+                        • At least 8 characters
+                      </p>
+                      <p className={/[a-z]/.test(passwordForm.newPassword) && /[A-Z]/.test(passwordForm.newPassword) ? 'text-green-600' : ''}>
+                        • Mix of uppercase and lowercase letters
+                      </p>
+                      <p className={/[0-9]/.test(passwordForm.newPassword) ? 'text-green-600' : ''}>
+                        • Include numbers
+                      </p>
+                      <p className={/[^a-zA-Z0-9]/.test(passwordForm.newPassword) ? 'text-green-600' : ''}>
+                        • Include special characters
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm New Password</Label>
+                <Label>Confirm New Password</Label>
                 <Input
-                  id="confirm-password"
                   type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  value={passwordForm.confirmPassword}
+                  onChange={(e) => setPasswordForm({...passwordForm, confirmPassword: e.target.value})}
+                  placeholder="Confirm your new password"
                 />
+                {passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword && (
+                  <p className="text-sm text-red-500">Passwords don't match</p>
+                )}
               </div>
-              <Button
-                onClick={changePassword}
-                disabled={!currentPassword || !newPassword || !confirmPassword}
+
+              <Button 
+                onClick={handlePasswordChange}
+                disabled={isChangingPassword || !passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword}
               >
-                Update Password
+                {isChangingPassword ? 'Updating...' : 'Update Password'}
               </Button>
             </CardContent>
           </Card>
 
-          {/* 2FA Section */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Password Requirements</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertTitle>Security Tips</AlertTitle>
+                <AlertDescription className="mt-2 space-y-2">
+                  <p>• Use a unique password that you don't use elsewhere</p>
+                  <p>• Consider using a password manager</p>
+                  <p>• Change your password if you suspect it's been compromised</p>
+                  <p>• Never share your password with anyone</p>
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="2fa" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>Two-Factor Authentication</CardTitle>
@@ -403,426 +460,271 @@ export default function SecuritySettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {settings.two_factor_enabled ? (
+              {!twoFactorEnabled ? (
                 <div className="space-y-4">
-                  <Alert>
-                    <CheckCircle className="h-4 w-4" />
-                    <AlertTitle>2FA is enabled</AlertTitle>
-                    <AlertDescription>
-                      Your account is protected with two-factor authentication using {settings.two_factor_method}.
-                    </AlertDescription>
-                  </Alert>
-                  
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setBackupCodesDialogOpen(true)}
-                    >
-                      View Backup Codes
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={() => setDisableDialogOpen(true)}
-                    >
-                      Disable 2FA
+                  <div className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-orange-100 dark:bg-orange-900 p-3 rounded-lg">
+                        <Smartphone className="h-6 w-6 text-orange-600 dark:text-orange-300" />
+                      </div>
+                      <div>
+                        <p className="font-medium">Enable Two-Factor Authentication</p>
+                        <p className="text-sm text-muted-foreground">
+                          Use an authenticator app to generate verification codes
+                        </p>
+                      </div>
+                    </div>
+                    <Button onClick={handle2FASetup}>
+                      Set Up
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="space-y-4">
+
                   <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>2FA is not enabled</AlertTitle>
-                    <AlertDescription>
-                      Enable two-factor authentication to add an extra layer of security to your account.
+                    <Shield className="h-4 w-4" />
+                    <AlertTitle>Why use 2FA?</AlertTitle>
+                    <AlertDescription className="mt-2">
+                      Two-factor authentication adds an extra layer of security by requiring a verification code
+                      in addition to your password when signing in from a new device.
                     </AlertDescription>
                   </Alert>
-                  
-                  <Button onClick={setup2FA}>
-                    <Smartphone className="w-4 h-4 mr-2" />
-                    Enable 2FA
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Additional Security Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Security Preferences</CardTitle>
-              <CardDescription>
-                Configure additional security settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Email notifications for new logins</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Get notified when your account is accessed from a new device
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Require re-authentication for sensitive actions</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Ask for password confirmation before critical changes
-                  </p>
-                </div>
-                <Switch defaultChecked />
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label>Session timeout</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Automatically log out after period of inactivity
-                  </p>
-                </div>
-                <Switch />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Active Sessions Tab */}
-        <TabsContent value="sessions" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Active Sessions</CardTitle>
-              <CardDescription>
-                Manage devices and browsers where you're currently logged in
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {settings.sessions.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No active sessions found
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {settings.sessions.map((session) => (
-                    <div
-                      key={session.id}
-                      className="flex items-center justify-between p-4 border rounded-lg"
-                    >
-                      <div className="flex items-start gap-4">
-                        <div className="p-2 bg-muted rounded-lg">
-                          {session.device.includes('Mobile') ? (
-                            <Smartphone className="w-5 h-5" />
-                          ) : (
-                            <Monitor className="w-5 h-5" />
-                          )}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-medium">{session.device}</p>
-                            {session.is_current && (
-                              <Badge variant="outline" className="text-xs">
-                                Current
-                              </Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground">
-                            {session.browser} • {session.ip_address}
-                          </p>
-                          <div className="flex items-center gap-4 mt-1 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {session.location}
-                            </span>
-                            <span>
-                              Last active: {new Date(session.last_active).toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
+                  <div className="flex items-center justify-between p-4 border rounded-lg bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                    <div className="flex items-center gap-4">
+                      <div className="bg-green-100 dark:bg-green-900 p-3 rounded-lg">
+                        <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
                       </div>
-                      
-                      {!session.is_current && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => revokeSession(session.id)}
-                        >
-                          Revoke
-                        </Button>
-                      )}
+                      <div>
+                        <p className="font-medium">Two-Factor Authentication Enabled</p>
+                        <p className="text-sm text-muted-foreground">
+                          Your account is protected with 2FA
+                        </p>
+                      </div>
                     </div>
-                  ))}
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="destructive">
+                          Disable 2FA
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Disable Two-Factor Authentication</DialogTitle>
+                          <DialogDescription>
+                            Are you sure you want to disable 2FA? This will make your account less secure.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                          <Button variant="outline">Cancel</Button>
+                          <Button variant="destructive" onClick={disable2FA}>
+                            Disable 2FA
+                          </Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Backup Codes</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Use these codes to access your account if you lose access to your authenticator app
+                      </p>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setShowBackupCodes(true)}>
+                          View Backup Codes
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Regenerate Codes
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               )}
-              
-              <div className="mt-4 pt-4 border-t">
-                <Button variant="destructive">
-                  Revoke All Other Sessions
-                </Button>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Login History Tab */}
-        <TabsContent value="history" className="space-y-6">
+        <TabsContent value="sessions" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Login History</CardTitle>
-              <CardDescription>
-                Recent login attempts to your account
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Active Sessions</CardTitle>
+                  <CardDescription>
+                    Devices and locations where you're currently signed in
+                  </CardDescription>
+                </div>
+                {sessions.filter(s => !s.isCurrent).length > 0 && (
+                  <Button 
+                    variant="outline"
+                    onClick={endAllOtherSessions}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign out all other sessions
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
-              {settings.login_history.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  No login history available
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date & Time</TableHead>
-                      <TableHead>Device</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>IP Address</TableHead>
-                      <TableHead>Method</TableHead>
-                      <TableHead>Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {settings.login_history.map((entry) => (
-                      <TableRow key={entry.id}>
-                        <TableCell>
-                          {new Date(entry.timestamp).toLocaleString()}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            {entry.device.includes('Mobile') ? (
-                              <Smartphone className="w-4 h-4" />
-                            ) : (
-                              <Monitor className="w-4 h-4" />
-                            )}
-                            <span className="text-sm">{entry.device}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>{entry.location}</TableCell>
-                        <TableCell className="font-mono text-xs">
-                          {entry.ip_address}
-                        </TableCell>
-                        <TableCell>{entry.method}</TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={entry.status === 'success' ? 'default' : 'destructive'}
-                          >
-                            {entry.status}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
+              <div className="space-y-4">
+                {sessions.map((session) => (
+                  <div key={session.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div className={`p-3 rounded-lg ${
+                        session.isCurrent ? 'bg-green-100 dark:bg-green-900' : 'bg-gray-100 dark:bg-gray-800'
+                      }`}>
+                        <Monitor className={`h-5 w-5 ${
+                          session.isCurrent ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'
+                        }`} />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">{session.deviceName}</p>
+                          {session.isCurrent && (
+                            <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                              Current
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {session.location} • {session.ipAddress}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {formatLastActive(session.lastActive)}
+                        </p>
+                      </div>
+                    </div>
+                    {!session.isCurrent && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => endSession(session.id)}
+                      >
+                        End Session
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
             </CardContent>
           </Card>
+
+          <Alert>
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Unrecognized session?</AlertTitle>
+            <AlertDescription>
+              If you see a session you don't recognize, end it immediately and change your password.
+            </AlertDescription>
+          </Alert>
         </TabsContent>
       </Tabs>
 
-      {/* 2FA Setup Dialog */}
-      <Dialog open={setupDialogOpen} onOpenChange={setSetupDialogOpen}>
+      {/* QR Code Dialog for 2FA Setup */}
+      <Dialog open={showQrCode} onOpenChange={setShowQrCode}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Set Up Two-Factor Authentication</DialogTitle>
             <DialogDescription>
-              Scan the QR code with your authenticator app
+              Scan this QR code with your authenticator app
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            {qrCode && (
-              <div className="flex justify-center">
-                <img src={qrCode} alt="2FA QR Code" className="w-48 h-48" />
+          <div className="space-y-4">
+            <div className="bg-white p-4 rounded-lg flex justify-center">
+              {/* This would be a real QR code in production */}
+              <div className="w-48 h-48 bg-gray-200 flex items-center justify-center text-gray-500">
+                QR Code
               </div>
-            )}
-            
+            </div>
             <div className="space-y-2">
-              <Label>Manual Entry Key</Label>
+              <Label>Can't scan? Enter this code manually:</Label>
               <div className="flex items-center gap-2">
-                <Input
-                  value={secret}
-                  readOnly
-                  className="font-mono text-xs"
-                />
-                <Button
-                  size="icon"
-                  variant="outline"
+                <code className="flex-1 p-2 bg-muted rounded text-sm font-mono">
+                  ABCD EFGH IJKL MNOP
+                </code>
+                <Button 
+                  variant="outline" 
+                  size="sm"
                   onClick={() => {
-                    navigator.clipboard.writeText(secret)
-                    toast({
-                      title: 'Copied',
-                      description: 'Secret key copied to clipboard'
-                    })
+                    navigator.clipboard.writeText('ABCDEFGHIJKLMNOP');
+                    toast({ title: "Copied", description: "Secret key copied to clipboard." });
                   }}
                 >
-                  <Key className="w-4 h-4" />
+                  <Copy className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-            
             <div className="space-y-2">
-              <Label htmlFor="verification-code">Verification Code</Label>
+              <Label>Enter verification code</Label>
               <Input
-                id="verification-code"
-                placeholder="Enter 6-digit code"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="000000"
                 maxLength={6}
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ''))}
               />
+              <p className="text-xs text-muted-foreground">
+                Enter the 6-digit code from your authenticator app
+              </p>
             </div>
-          </div>
-          
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSetupDialogOpen(false)
-                setVerificationCode('')
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={verify2FA}
+            <Button 
+              className="w-full"
+              onClick={verify2FACode}
               disabled={verificationCode.length !== 6}
             >
-              Verify & Enable
+              Verify and Enable 2FA
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Disable 2FA Dialog */}
-      <Dialog open={disableDialogOpen} onOpenChange={setDisableDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Disable Two-Factor Authentication</DialogTitle>
-            <DialogDescription>
-              Enter your authentication code to disable 2FA
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-4">
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Warning</AlertTitle>
-              <AlertDescription>
-                Disabling 2FA will make your account less secure. Are you sure you want to continue?
-              </AlertDescription>
-            </Alert>
-            
-            <div className="space-y-2">
-              <Label htmlFor="disable-code">Authentication Code</Label>
-              <Input
-                id="disable-code"
-                placeholder="Enter 6-digit code"
-                value={verificationCode}
-                onChange={(e) => setVerificationCode(e.target.value)}
-                maxLength={6}
-              />
-            </div>
           </div>
-          
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setDisableDialogOpen(false)
-                setVerificationCode('')
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={disable2FA}
-              disabled={verificationCode.length !== 6}
-            >
-              Disable 2FA
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Backup Codes Dialog */}
-      <Dialog open={backupCodesDialogOpen} onOpenChange={setBackupCodesDialogOpen}>
-        <DialogContent>
+      <Dialog open={showBackupCodes} onOpenChange={setShowBackupCodes}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Backup Codes</DialogTitle>
+            <DialogTitle>Backup Recovery Codes</DialogTitle>
             <DialogDescription>
               Save these codes in a safe place. Each code can only be used once.
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-4 py-4">
+          <div className="space-y-4">
             <Alert>
-              <AlertCircle className="h-4 w-4" />
+              <AlertTriangle className="h-4 w-4" />
               <AlertTitle>Important</AlertTitle>
               <AlertDescription>
-                These codes can be used to access your account if you lose access to your authenticator device.
+                Store these codes securely. You'll need them if you lose access to your authenticator app.
               </AlertDescription>
             </Alert>
             
-            <div className="grid grid-cols-2 gap-2">
-              {settings.backup_codes.map((code, index) => (
-                <div
-                  key={index}
-                  className="p-2 bg-muted rounded font-mono text-sm text-center"
-                >
+            <div className="grid grid-cols-2 gap-2 p-4 bg-muted rounded-lg font-mono text-sm">
+              {mockBackupCodes.map((code, index) => (
+                <div key={index} className="p-2 bg-background rounded">
                   {code}
                 </div>
               ))}
             </div>
-            
-            <div className="flex gap-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const codes = settings.backup_codes.join('\n')
-                  navigator.clipboard.writeText(codes)
-                  toast({
-                    title: 'Copied',
-                    description: 'Backup codes copied to clipboard'
-                  })
-                }}
-              >
-                Copy Codes
+
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={copyBackupCodes}>
+                <Copy className="h-4 w-4 mr-2" />
+                Copy
               </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  const codes = settings.backup_codes.join('\n')
-                  const blob = new Blob([codes], { type: 'text/plain' })
-                  const url = URL.createObjectURL(blob)
-                  const a = document.createElement('a')
-                  a.href = url
-                  a.download = 'trackflow-backup-codes.txt'
-                  a.click()
-                }}
-              >
-                Download Codes
+              <Button variant="outline" className="flex-1" onClick={downloadBackupCodes}>
+                <Download className="h-4 w-4 mr-2" />
+                Download
               </Button>
             </div>
-          </div>
-          
-          <DialogFooter>
-            <Button onClick={() => setBackupCodesDialogOpen(false)}>
-              Done
+
+            <Button className="w-full" onClick={() => setShowBackupCodes(false)}>
+              I've Saved My Codes
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }
-

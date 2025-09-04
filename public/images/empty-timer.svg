@@ -1,0 +1,50 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="400" height="300" fill="transparent"/>
+  <g opacity="0.9">
+    <!-- Decorative circles -->
+    <circle cx="200" cy="130" r="85" stroke="#2F6BFF" stroke-width="2" stroke-dasharray="5 5" fill="none" opacity="0.2"/>
+    <circle cx="200" cy="130" r="65" stroke="#16B8A6" stroke-width="2" stroke-dasharray="4 4" fill="none" opacity="0.25"/>
+    <circle cx="200" cy="130" r="45" stroke="#7C3AED" stroke-width="2" stroke-dasharray="3 3" fill="none" opacity="0.3"/>
+    
+    <!-- Main timer icon -->
+    <g transform="translate(200, 130)">
+      <!-- Outer ring -->
+      <circle cx="0" cy="0" r="30" stroke="#2F6BFF" stroke-width="3" fill="#2F6BFF" fill-opacity="0.08"/>
+      
+      <!-- Timer face -->
+      <circle cx="0" cy="0" r="26" stroke="#16B8A6" stroke-width="2" fill="white"/>
+      
+      <!-- Clock hands paused at 12:00 -->
+      <line x1="0" y1="0" x2="0" y2="-15" stroke="#2F6BFF" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="0" y1="0" x2="10" y2="0" stroke="#16B8A6" stroke-width="2" stroke-linecap="round"/>
+      
+      <!-- Center dot -->
+      <circle cx="0" cy="0" r="3" fill="#7C3AED"/>
+      
+      <!-- Timer button on top -->
+      <rect x="-8" y="-40" width="16" height="8" rx="2" fill="#2F6BFF"/>
+      <line x1="0" y1="-32" x2="0" y2="-26" stroke="#2F6BFF" stroke-width="2"/>
+    </g>
+    
+    <!-- Pause icon overlay -->
+    <g transform="translate(225, 105)" opacity="0.6">
+      <rect x="-3" y="-8" width="2" height="16" rx="1" fill="#7C3AED"/>
+      <rect x="1" y="-8" width="2" height="16" rx="1" fill="#7C3AED"/>
+    </g>
+    
+    <!-- Time display -->
+    <rect x="160" y="175" width="80" height="30" rx="6" stroke="#E5E7EB" stroke-width="2" fill="white"/>
+    <text x="200" y="195" font-family="monospace" font-size="16" font-weight="600" fill="#0B1220" text-anchor="middle">
+      00:00:00
+    </text>
+    
+    <!-- Message text -->
+    <text x="200" y="230" font-family="Inter, sans-serif" font-size="18" font-weight="600" fill="#0B1220" text-anchor="middle">
+      No timer running
+    </text>
+    <text x="200" y="255" font-family="Inter, sans-serif" font-size="14" fill="#6B7280" text-anchor="middle">
+      Press Space or click Start to begin tracking
+    </text>
+  </g>
+</svg>
+

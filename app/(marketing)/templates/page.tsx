@@ -1,83 +1,134 @@
 import Link from 'next/link'
-import { Download, Clock, Users, FileText, BarChart3, Settings, Zap, Star } from 'lucide-react'
+import { Clock, Users, Target, BarChart3, Zap, Star, Download, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
+const templates = [
+  {
+    name: "PPC Monthly Optimization",
+    duration: 45,
+    category: "advertising",
+    description: "Complete PPC account review and optimization workflow",
+    icon: Target,
+    downloads: 1247,
+    rating: 4.9,
+    features: ["Campaign analysis", "Keyword research", "Ad copy review", "Performance reporting"]
+  },
+  {
+    name: "SEO Technical Audit",
+    duration: 90,
+    category: "seo",
+    description: "Comprehensive technical SEO audit and recommendations",
+    icon: BarChart3,
+    downloads: 892,
+    rating: 4.8,
+    features: ["Site crawl analysis", "Performance review", "Technical fixes", "Priority recommendations"]
+  },
+  {
+    name: "Content Creation",
+    duration: 120,
+    category: "content",
+    description: "End-to-end content creation and optimization process",
+    icon: Users,
+    downloads: 1567,
+    rating: 4.7,
+    features: ["Research & planning", "Content creation", "SEO optimization", "Publishing workflow"]
+  },
+  {
+    name: "Client Reporting Call",
+    duration: 30,
+    category: "admin",
+    description: "Structured client reporting and Q&A sessions",
+    icon: Clock,
+    downloads: 2103,
+    rating: 4.9,
+    features: ["Report preparation", "Call structure", "Action items", "Follow-up tasks"]
+  },
+  {
+    name: "Social Media Campaign",
+    duration: 60,
+    category: "social",
+    description: "Complete social media campaign planning and execution",
+    icon: Zap,
+    downloads: 743,
+    rating: 4.6,
+    features: ["Strategy planning", "Content calendar", "Community management", "Performance tracking"]
+  },
+  {
+    name: "Email Marketing Setup",
+    duration: 75,
+    category: "email",
+    description: "Email marketing campaign setup and automation",
+    icon: Target,
+    downloads: 634,
+    rating: 4.8,
+    features: ["List segmentation", "Template design", "Automation setup", "A/B testing"]
+  }
+]
+
+const TemplateCard = ({ name, duration, category, description, icon: Icon, downloads, rating, features }: typeof templates[0]) => (
+  <Card className="border border-gray-200 hover:border-blue-300 transition-all duration-200 hover:shadow-lg">
+    <CardHeader>
+      <div className="flex items-center justify-between mb-4">
+        <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+          <Icon className="w-6 h-6 text-blue-600" />
+        </div>
+        <Badge variant="secondary" className="text-xs capitalize">{category}</Badge>
+      </div>
+      <CardTitle className="text-lg mb-2">{name}</CardTitle>
+      <CardDescription className="text-sm text-gray-600">{description}</CardDescription>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-4">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-gray-500">Duration</span>
+          <span className="font-medium">{duration} min</span>
+        </div>
+        
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-gray-700">Key Features:</p>
+          <ul className="space-y-1">
+            {features.map((feature, index) => (
+              <li key={index} className="text-xs text-gray-600 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
+                {feature}
+              </li>
+            ))}
+          </ul>
+        </div>
+        
+        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+          <div className="flex items-center gap-2">
+            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+            <span className="text-sm font-medium">{rating}</span>
+            <span className="text-xs text-gray-500">({downloads})</span>
+          </div>
+          <Button size="sm" variant="outline" className="text-xs">
+            <Download className="w-3 h-3 mr-1" />
+            Use Template
+          </Button>
+        </div>
+      </div>
+    </CardContent>
+  </Card>
+)
+
 export default function TemplatesPage() {
-  const templates = [
-    {
-      icon: Clock,
-      title: "PPC Campaign Template",
-      description: "Pre-configured time tracking for Google Ads, Meta Ads, and other PPC platforms.",
-      category: "Campaign",
-      downloads: 1247,
-      rating: 4.9,
-      features: ["Campaign categorization", "Ad group tracking", "Performance metrics", "Client reporting"]
-    },
-    {
-      icon: Users,
-      title: "SEO Project Template",
-      description: "Track time across keyword research, content creation, and technical optimization.",
-      category: "SEO",
-      downloads: 892,
-      rating: 4.8,
-      features: ["Keyword research", "Content creation", "Technical SEO", "Link building"]
-    },
-    {
-      icon: FileText,
-      title: "Social Media Template",
-      description: "Organize time by platform, content type, and campaign objectives.",
-      category: "Social",
-      downloads: 1563,
-      rating: 4.7,
-      features: ["Platform tracking", "Content types", "Campaign objectives", "Engagement metrics"]
-    },
-    {
-      icon: BarChart3,
-      title: "Client Retainer Template",
-      description: "Track time against client retainers with automatic budget alerts.",
-      category: "Billing",
-      downloads: 2101,
-      rating: 4.9,
-      features: ["Retainer tracking", "Budget alerts", "Client reporting", "Invoice generation"]
-    },
-    {
-      icon: Settings,
-      title: "Agency Operations Template",
-      description: "Complete workflow for agency teams managing multiple clients and projects.",
-      category: "Operations",
-      downloads: 756,
-      rating: 4.8,
-      features: ["Client management", "Project tracking", "Team collaboration", "Resource allocation"]
-    },
-    {
-      icon: Zap,
-      title: "Freelancer Template",
-      description: "Simple, efficient time tracking for individual marketing consultants.",
-      category: "Freelance",
-      downloads: 1892,
-      rating: 4.9,
-      features: ["Project tracking", "Client billing", "Time categorization", "Invoice templates"]
-    }
-  ]
-
-  const categories = ["All", "Campaign", "SEO", "Social", "Billing", "Operations", "Freelance"]
-
   return (
-    <div className="bg-gradient-to-b from-white to-gray-50 dark:from-[#0B1220] dark:to-gray-950">
+    <div className="bg-white">
       {/* Hero Section */}
-      <section className="py-20 px-4">
+      <section className="py-20 px-4 border-b border-gray-100">
         <div className="max-w-6xl mx-auto text-center">
           <Badge className="mb-4 bg-blue-100 text-blue-600 border-blue-200">
-            Ready-to-Use Templates
+            Quick Start Templates
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
-            Marketing Time Tracking Templates
+            Quick Start Templates
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
-            Hit the ground running with pre-configured templates designed specifically for 
-            digital marketing teams. No setup required.
+            Pre-built workflows for common marketing tasks. 
+            Save hours of setup time and start tracking immediately.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/signup">
@@ -87,6 +138,7 @@ export default function TemplatesPage() {
             </Link>
             <Link href="/demo">
               <Button size="lg" variant="outline">
+                <Play className="w-4 h-4 mr-2" />
                 Watch Demo
               </Button>
             </Link>
@@ -95,96 +147,39 @@ export default function TemplatesPage() {
       </section>
 
       {/* Templates Grid */}
-      <section className="py-24 bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Choose Your Template
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Each template comes with pre-configured categories, projects, and workflows
-            </p>
-          </div>
-          
+      <section className="py-24 px-4">
+        <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {templates.map((template, index) => {
-              const Icon = template.icon
-              return (
-                <Card key={index} className="border-blue-200/20 hover:border-blue-300 transition-colors hover:shadow-lg">
-                  <CardHeader>
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <Icon className="w-6 h-6 text-blue-600" />
-                      </div>
-                      <Badge variant="secondary">
-                        {template.category}
-                      </Badge>
-                    </div>
-                    <CardTitle className="text-lg">{template.title}</CardTitle>
-                    <CardDescription>
-                      {template.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <span className="flex items-center gap-1">
-                          <Download className="w-4 h-4" />
-                          {template.downloads.toLocaleString()}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <Star className="w-4 h-4 text-yellow-500 fill-current" />
-                          {template.rating}
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium text-gray-700">Includes:</p>
-                        <ul className="text-sm text-gray-600 space-y-1">
-                          {template.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-center gap-2">
-                              <div className="w-1.5 h-1.5 bg-blue-400 rounded-full"></div>
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      <Button className="w-full" variant="outline">
-                        Use Template
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
+            {templates.map(template => (
+              <TemplateCard key={template.name} {...template} />
+            ))}
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 cta-gradient">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Ready to Get Started?
+      <section className="py-24 bg-gray-50 border-t border-gray-100">
+        <div className="max-w-4xl mx-auto text-center px-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            Need a Custom Template?
           </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            Choose your template and start tracking time like a professional marketer in minutes.
+          <p className="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+            Our team can create custom templates for your specific workflow and industry.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/signup">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-white/90">
-                Start Free Trial
+            <Link href="/contact">
+              <Button size="lg" className="btn-primary">
+                Request Custom Template
               </Button>
             </Link>
-            <Link href="/contact">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
-                Get Custom Template
+            <Link href="/demo">
+              <Button size="lg" variant="outline">
+                Schedule Demo
               </Button>
             </Link>
           </div>
-          <p className="text-sm text-white/80 mt-4">
-            No credit card required • 14-day free trial
+          <p className="text-sm text-gray-500 mt-4">
+            Free consultation • Custom workflows • Industry-specific templates
           </p>
         </div>
       </section>

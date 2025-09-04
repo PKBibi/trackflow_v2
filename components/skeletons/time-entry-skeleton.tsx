@@ -56,3 +56,4 @@ export function TimeEntryTableSkeleton({ rows = 5 }: { rows?: number }) {
   );
 }
 
+

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, Shield, Clock, BarChart3, Users, Zap, CheckCircle, Globe, Lock, ChevronRight, Play } from 'lucide-react'
+import { ArrowRight, Shield, Clock, BarChart3, Users, Zap, CheckCircle, Globe, Lock, ChevronRight, Play, TrendingUp, DollarSign, FileText, Brain } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -84,102 +84,102 @@ export default function MarketingLandingPage() {
         </div>
       </section>
 
-      {/* Features Grid */}
-      <section className="py-24 bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]">
-              Marketing-First Features
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Built for Modern Marketing Teams
-            </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Every feature designed with marketers in mind
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Retainer Burndown */}
-            <Card className="border-[#2F6BFF]/20 hover:border-[#2F6BFF] transition-colors">
-              <CardHeader>
-                <div className="w-12 h-12 bg-[#2F6BFF]/10 rounded-lg flex items-center justify-center mb-4">
-                  <Clock className="w-6 h-6 text-[#2F6BFF]" />
-                </div>
-                <CardTitle>Retainer Burndown</CardTitle>
-                <CardDescription>
-                  Track retainer utilization in real-time. Know exactly how much budget remains for each client.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            {/* Channel & Campaign Tracking */}
-            <Card className="border-[#7C3AED]/20 hover:border-[#7C3AED] transition-colors">
-              <CardHeader>
-                <div className="w-12 h-12 bg-[#7C3AED]/10 rounded-lg flex items-center justify-center mb-4">
-                  <BarChart3 className="w-6 h-6 text-[#7C3AED]" />
-                </div>
-                <CardTitle>Channel & Campaign Tracking</CardTitle>
-                <CardDescription>
-                  Track time by marketing channel, campaign, and initiative. See what's actually driving results.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            {/* Privacy-First Auto-Detect */}
-            <Card className="border-[#16B8A6]/20 hover:border-[#16B8A6] transition-colors">
-              <CardHeader>
-                <div className="w-12 h-12 bg-[#16B8A6]/10 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="w-6 h-6 text-[#16B8A6]" />
-                </div>
-                <CardTitle>Privacy-First Auto-Detect</CardTitle>
-                <CardDescription>
-                  Automatically detect platforms from URL/title only. No DOM scraping, no screenshots.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            {/* Marketer Templates */}
-            <Card className="border-[#F59E0B]/20 hover:border-[#F59E0B] transition-colors">
-              <CardHeader>
-                <div className="w-12 h-12 bg-[#F59E0B]/10 rounded-lg flex items-center justify-center mb-4">
-                  <Zap className="w-6 h-6 text-[#F59E0B]" />
-                </div>
-                <CardTitle>Marketer Templates</CardTitle>
-                <CardDescription>
-                  Pre-built templates for content creation, campaigns, reporting, and client work.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            {/* White-Label Reports */}
-            <Card className="border-[#2F6BFF]/20 hover:border-[#2F6BFF] transition-colors">
-              <CardHeader>
-                <div className="w-12 h-12 bg-[#2F6BFF]/10 rounded-lg flex items-center justify-center mb-4">
-                  <Users className="w-6 h-6 text-[#2F6BFF]" />
-                </div>
-                <CardTitle>White-Label Reports</CardTitle>
-                <CardDescription>
-                  Generate beautiful, branded reports for clients with your logo and colors.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-            
-            {/* CSV KPI Import */}
-            <Card className="border-[#7C3AED]/20 hover:border-[#7C3AED] transition-colors">
-              <CardHeader>
-                <div className="w-12 h-12 bg-[#7C3AED]/10 rounded-lg flex items-center justify-center mb-4">
-                  <CheckCircle className="w-6 h-6 text-[#7C3AED]" />
-                </div>
-                <CardTitle>CSV KPI Import</CardTitle>
-                <CardDescription>
-                  Import performance data from any platform. Connect time spent to actual results.
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          </div>
-        </div>
-      </section>
+             {/* Features Grid */}
+       <section className="py-24 bg-white dark:bg-gray-900">
+         <div className="container mx-auto px-4">
+           <div className="text-center mb-16">
+             <Badge className="mb-4 bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]">
+               Marketing-First Features
+             </Badge>
+             <h2 className="text-3xl md:text-4xl font-bold mb-4">
+               Built for Modern Marketing Teams
+             </h2>
+             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+               Every feature designed with marketers in mind
+             </p>
+           </div>
+           
+           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+             {/* Campaign ROI Tracking */}
+             <Card className="border-[#2F6BFF]/20 hover:border-[#2F6BFF] transition-colors">
+               <CardHeader>
+                 <div className="w-12 h-12 bg-[#2F6BFF]/10 rounded-lg flex items-center justify-center mb-4">
+                   <TrendingUp className="w-6 h-6 text-[#2F6BFF]" />
+                 </div>
+                 <CardTitle>Campaign ROI Tracking</CardTitle>
+                 <CardDescription>
+                   Link time spent to campaign performance. See which campaigns are actually profitable after labor costs.
+                 </CardDescription>
+               </CardHeader>
+             </Card>
+             
+             {/* Multi-Channel Time Allocation */}
+             <Card className="border-[#7C3AED]/20 hover:border-[#7C3AED] transition-colors">
+               <CardHeader>
+                 <div className="w-12 h-12 bg-[#7C3AED]/10 rounded-lg flex items-center justify-center mb-4">
+                   <Users className="w-6 h-6 text-[#7C3AED]" />
+                 </div>
+                 <CardTitle>Multi-Channel Time Allocation</CardTitle>
+                 <CardDescription>
+                   Track time across PPC, SEO, Social, Email. Know exactly where your hours go.
+                 </CardDescription>
+               </CardHeader>
+             </Card>
+             
+             {/* Retainer Burndown Alerts */}
+             <Card className="border-[#16B8A6]/20 hover:border-[#16B8A6] transition-colors">
+               <CardHeader>
+                 <div className="w-12 h-12 bg-[#16B8A6]/10 rounded-lg flex items-center justify-center mb-4">
+                   <DollarSign className="w-6 h-6 text-[#16B8A6]" />
+                 </div>
+                 <CardTitle>Retainer Burndown Alerts</CardTitle>
+                 <CardDescription>
+                   Get notified at 75%, 90%, and 100% retainer usage. Never go over budget unexpectedly.
+                 </CardDescription>
+               </CardHeader>
+             </Card>
+             
+             {/* White-Label Client Reports */}
+             <Card className="border-[#F59E0B]/20 hover:border-[#F59E0B] transition-colors">
+               <CardHeader>
+                 <div className="w-12 h-12 bg-[#F59E0B]/10 rounded-lg flex items-center justify-center mb-4">
+                   <FileText className="w-6 h-6 text-[#F59E0B]" />
+                 </div>
+                 <CardTitle>White-Label Client Reports</CardTitle>
+                 <CardDescription>
+                   Professional reports showing time by campaign, channel, and deliverable. Your branding, not ours.
+                 </CardDescription>
+               </CardHeader>
+             </Card>
+             
+             {/* Platform Auto-Detection */}
+             <Card className="border-[#2F6BFF]/20 hover:border-[#2F6BFF] transition-colors">
+               <CardHeader>
+                 <div className="w-12 h-12 bg-[#2F6BFF]/10 rounded-lg flex items-center justify-center mb-4">
+                   <Zap className="w-6 h-6 text-[#2F6BFF]" />
+                 </div>
+                 <CardTitle>Platform Auto-Detection</CardTitle>
+                 <CardDescription>
+                   Browser extension detects when you're in Google Ads, Meta Business, or Analytics.
+                 </CardDescription>
+               </CardHeader>
+             </Card>
+             
+             {/* AI Insights & Predictions */}
+             <Card className="border-[#7C3AED]/20 hover:border-[#7C3AED] transition-colors">
+               <CardHeader>
+                 <div className="w-12 h-12 bg-[#7C3AED]/10 rounded-lg flex items-center justify-center mb-4">
+                   <Brain className="w-6 h-6 text-[#7C3AED]" />
+                 </div>
+                 <CardTitle>AI Insights & Predictions</CardTitle>
+                 <CardDescription>
+                   Get daily insights on productivity patterns and time predictions for similar tasks.
+                 </CardDescription>
+               </CardHeader>
+             </Card>
+           </div>
+         </div>
+       </section>
 
       {/* Testimonials */}
       <section className="py-24 bg-gray-50 dark:bg-gray-900/50">

@@ -1397,7 +1397,8 @@ export default function BlogPostPage({ params }: PageProps) {
 
         {/* Content */}
         <div 
-          className="prose prose-gray dark:prose-invert max-w-none"
+          className="prose prose-lg prose-gray dark:prose-invert max-w-none leading-relaxed"
+          style={{ lineHeight: '1.8' }}
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
 

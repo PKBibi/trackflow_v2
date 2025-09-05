@@ -46,10 +46,6 @@ export async function middleware(request: NextRequest) {
   // Define protected routes that require authentication
   const protectedRoutes = [
     '/dashboard',
-    '/timer',
-    '/timesheet',
-    '/reports',
-    '/invoices',
     '/insights',
     '/settings',
     '/import',
@@ -60,6 +56,31 @@ export async function middleware(request: NextRequest) {
   const authRoutes = ['/login', '/signup']
 
   const pathname = request.nextUrl.pathname
+
+  // Redirect standalone routes to dashboard equivalents FIRST (before auth check)
+  if (pathname === '/timer') {
+    return NextResponse.redirect(new URL('/dashboard/timer', request.url))
+  }
+  
+  if (pathname === '/timesheet') {
+    return NextResponse.redirect(new URL('/dashboard/timesheet', request.url))
+  }
+  
+  if (pathname === '/reports') {
+    return NextResponse.redirect(new URL('/dashboard/reports', request.url))
+  }
+  
+  if (pathname === '/invoices') {
+    return NextResponse.redirect(new URL('/dashboard/invoices', request.url))
+  }
+  
+  if (pathname === '/clients') {
+    return NextResponse.redirect(new URL('/dashboard/clients', request.url))
+  }
+  
+  if (pathname === '/projects') {
+    return NextResponse.redirect(new URL('/dashboard/projects', request.url))
+  }
 
   // Check if the current route is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
@@ -77,31 +98,6 @@ export async function middleware(request: NextRequest) {
   // Redirect authenticated users away from auth pages to dashboard
   if (isAuthRoute && session) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
-  }
-
-  // Redirect standalone routes to dashboard equivalents
-  if (session && pathname === '/timer') {
-    return NextResponse.redirect(new URL('/dashboard/timer', request.url))
-  }
-  
-  if (session && pathname === '/timesheet') {
-    return NextResponse.redirect(new URL('/dashboard/timesheet', request.url))
-  }
-  
-  if (session && pathname === '/reports') {
-    return NextResponse.redirect(new URL('/dashboard/reports', request.url))
-  }
-  
-  if (session && pathname === '/invoices') {
-    return NextResponse.redirect(new URL('/dashboard/invoices', request.url))
-  }
-  
-  if (session && pathname === '/clients') {
-    return NextResponse.redirect(new URL('/dashboard/clients', request.url))
-  }
-  
-  if (session && pathname === '/projects') {
-    return NextResponse.redirect(new URL('/dashboard/projects', request.url))
   }
 
   return response

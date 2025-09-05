@@ -12,12 +12,12 @@ export interface Project {
   campaign_platform?: string
   campaign_objective?: string
   target_audience?: string
-  budget?: number // in cents
+  budget_amount?: number // in cents (matches database column name)
   start_date?: string
   end_date?: string
   
   // Project Management
-  status: 'active' | 'completed' | 'on_hold' | 'cancelled'
+  status: 'planning' | 'active' | 'paused' | 'completed' | 'cancelled'
   priority: 'low' | 'medium' | 'high' | 'urgent'
   estimated_hours?: number
   actual_hours?: number
@@ -120,7 +120,8 @@ class ProjectsAPI {
       .select(`
         *,
         clients:client_id (
-          name
+          name,
+          company
         )
       `)
       .eq('user_id', user.id)
@@ -147,14 +148,14 @@ class ProjectsAPI {
     const projectsWithStats = await Promise.all(
       data.map(async (project: any) => {
         const stats = await this.getProjectStats(project.id)
-        const budgetUsedPercentage = project.budget && stats.total_amount > 0 
-          ? Math.round((stats.total_amount / project.budget) * 100) 
+        const budgetUsedPercentage = project.budget_amount && stats.total_amount > 0 
+          ? Math.round((stats.total_amount / project.budget_amount) * 100) 
           : undefined
 
         return {
           ...project,
           client_name: project.clients?.name || 'Unknown Client',
-          client_company: project.clients?.name || '', // Use name as fallback until company column is available
+          client_company: project.clients?.company, // Use name as fallback until company column is available
           total_time_entries: stats.total_time_entries,
           total_hours: stats.total_hours,
           total_amount: stats.total_amount,
@@ -180,7 +181,8 @@ class ProjectsAPI {
       .select(`
         *,
         clients:client_id (
-          name
+          name,
+          company
         )
       `)
       .eq('id', id)
@@ -194,14 +196,14 @@ class ProjectsAPI {
     if (!data) return null
 
     const stats = await this.getProjectStats(data.id)
-    const budgetUsedPercentage = data.budget && stats.total_amount > 0 
-      ? Math.round((stats.total_amount / data.budget) * 100) 
+    const budgetUsedPercentage = data.budget_amount && stats.total_amount > 0 
+      ? Math.round((stats.total_amount / data.budget_amount) * 100) 
       : undefined
 
     return {
       ...data,
       client_name: data.clients?.name || 'Unknown Client',
-      client_company: data.clients?.name || '', // Use name as fallback until company column is available
+      client_company: data.clients?.company, // Use name as fallback until company column is available
       total_time_entries: stats.total_time_entries,
       total_hours: stats.total_hours,
       total_amount: stats.total_amount,
@@ -312,7 +314,7 @@ class ProjectsAPI {
     const totalProjects = projects.length
     const activeProjects = projects.filter(p => p.status === 'active').length
     const completedProjects = projects.filter(p => p.status === 'completed').length
-    const totalProjectValue = projects.reduce((sum, p) => sum + (p.budget || 0), 0)
+    const totalProjectValue = projects.reduce((sum, p) => sum + (p.budget_amount || 0), 0)
 
     // Get projects with time tracking data to calculate over-budget count
     const projectsWithStats = await this.getAll()
@@ -338,7 +340,7 @@ class ProjectsAPI {
   async getProjectsAtRisk(threshold: number = 80): Promise<ProjectWithStats[]> {
     const projects = await this.getAll({ status: 'active' })
     return projects.filter(project => 
-      project.budget_used_percentage && project.budget_used_percentage >= threshold
+      project.budget_amount_used_percentage && project.budget_amount_used_percentage >= threshold
     )
   }
 

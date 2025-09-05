@@ -29,10 +29,10 @@ export interface Client {
   retainer_end_date?: string
   retainer_auto_renew: boolean
   
-  // Alerts (temporarily disabled due to schema mismatch)
-  // alert_at_75_percent: boolean
-  // alert_at_90_percent: boolean
-  // alert_at_100_percent: boolean
+  // Alerts
+  alert_at_75_percent: boolean
+  alert_at_90_percent: boolean
+  alert_at_100_percent: boolean
   
   // Metadata
   status: 'active' | 'inactive' | 'archived'

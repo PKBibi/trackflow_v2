@@ -186,6 +186,8 @@ export default function TimerPage() {
         task_description: newEntry.description,
         billable: newEntry.billable,
         hourly_rate: newEntry.hourlyRate,
+        campaign_id: newEntry.campaign_id,
+        campaign_platform: newEntry.campaign_platform,
         status: 'running'
         // is_timer_running: true // Temporarily disabled due to schema mismatch
       });

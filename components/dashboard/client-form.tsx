@@ -54,10 +54,10 @@ interface Client {
   retainer_end_date: string
   retainer_auto_renew: boolean
   
-  // Alerts (temporarily disabled due to schema mismatch)
-  // alert_at_75_percent: boolean
-  // alert_at_90_percent: boolean
-  // alert_at_100_percent: boolean
+  // Alerts
+  alert_at_75_percent: boolean
+  alert_at_90_percent: boolean
+  alert_at_100_percent: boolean
   
   // Metadata
   status: 'active' | 'inactive' | 'archived'
@@ -93,9 +93,9 @@ const defaultClient: Client = {
   retainer_start_date: '',
   retainer_end_date: '',
   retainer_auto_renew: false,
-  // alert_at_75_percent: true,
-  // alert_at_90_percent: true,
-  // alert_at_100_percent: true,
+  alert_at_75_percent: true,
+  alert_at_90_percent: true,
+  alert_at_100_percent: true,
   status: 'active',
   notes: '',
   tags: []
@@ -123,9 +123,9 @@ export function ClientForm({ client, isOpen, onOpenChange, onSave, isLoading }: 
     retainer_start_date: client.retainer_start_date || '',
     retainer_end_date: client.retainer_end_date || '',
     retainer_auto_renew: client.retainer_auto_renew,
-    // alert_at_75_percent: client.alert_at_75_percent,
-    // alert_at_90_percent: client.alert_at_90_percent,
-    // alert_at_100_percent: client.alert_at_100_percent,
+    alert_at_75_percent: client.alert_at_75_percent,
+    alert_at_90_percent: client.alert_at_90_percent,
+    alert_at_100_percent: client.alert_at_100_percent,
     status: client.status,
     notes: client.notes || '',
     tags: client.tags || []
@@ -418,7 +418,7 @@ export function ClientForm({ client, isOpen, onOpenChange, onSave, isLoading }: 
                   <Label htmlFor="auto_renew">Auto-renew monthly</Label>
                 </div>
 
-                {/* Alert Settings - Temporarily disabled due to schema mismatch
+                {/* Alert Settings */}
                 <div className="space-y-3">
                   <Label className="text-sm font-medium">Usage Alerts</Label>
                   <div className="space-y-2">
@@ -448,7 +448,6 @@ export function ClientForm({ client, isOpen, onOpenChange, onSave, isLoading }: 
                     </div>
                   </div>
                 </div>
-                */}
               </CardContent>
             )}
           </Card>

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { HttpError, isHttpError } from '@/lib/errors'\nimport { NextRequest, NextResponse } from 'next/server'
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLFloat, GraphQLBoolean, GraphQLList, GraphQLNonNull, GraphQLID, graphql } from 'graphql'
 import { createClient } from '@/lib/supabase/server'
 
@@ -318,7 +318,7 @@ const RootMutation = new GraphQLObjectType({
           .select()
           .single()
         
-        if (error) throw new Error(error.message)
+        if (error) throw new HttpError(400, error.message)
         return data
       }
     },
@@ -346,7 +346,7 @@ const RootMutation = new GraphQLObjectType({
           .select()
           .single()
         
-        if (error) throw new Error(error.message)
+        if (error) throw new HttpError(400, error.message)
         return data
       }
     },
@@ -376,7 +376,7 @@ const RootMutation = new GraphQLObjectType({
           .select()
           .single()
         
-        if (error) throw new Error(error.message)
+        if (error) throw new HttpError(400, error.message)
         return data
       }
     },
@@ -400,7 +400,7 @@ const RootMutation = new GraphQLObjectType({
           .select()
           .single()
         
-        if (error) throw new Error(error.message)
+        if (error) throw new HttpError(400, error.message)
         return data
       }
     },
@@ -418,7 +418,7 @@ const RootMutation = new GraphQLObjectType({
           .eq('id', args.id)
           .eq('user_id', context.user.id)
         
-        if (error) throw new Error(error.message)
+        if (error) throw new HttpError(400, error.message)
         return true
       }
     }
@@ -502,4 +502,5 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(result)
 }
+
 

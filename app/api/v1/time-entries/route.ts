@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { HttpError, isHttpError } from '@/lib/errors';
 
 // Mock database - replace with actual database queries
 let timeEntries = [
@@ -96,12 +97,12 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Error fetching time entries:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch time entries' },
-      { status: 500 }
-    );
+  console.error('Time-entries route error:', error)
+  if (isHttpError(error)) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
   }
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+}
 }
 
 // POST /api/v1/time-entries
@@ -148,12 +149,12 @@ export async function POST(request: NextRequest) {
       message: 'Time entry created successfully'
     }, { status: 201 });
   } catch (error) {
-    console.error('Error creating time entry:', error);
-    return NextResponse.json(
-      { error: 'Failed to create time entry' },
-      { status: 500 }
-    );
+  console.error('Time-entries route error:', error)
+  if (isHttpError(error)) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
   }
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+}
 }
 
 // PUT /api/v1/time-entries (bulk update)
@@ -188,12 +189,12 @@ export async function PUT(request: NextRequest) {
       updatedIds: ids
     });
   } catch (error) {
-    console.error('Error updating time entries:', error);
-    return NextResponse.json(
-      { error: 'Failed to update time entries' },
-      { status: 500 }
-    );
+  console.error('Time-entries route error:', error)
+  if (isHttpError(error)) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
   }
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+}
 }
 
 // DELETE /api/v1/time-entries (bulk delete)
@@ -217,10 +218,10 @@ export async function DELETE(request: NextRequest) {
       deletedIds: ids
     });
   } catch (error) {
-    console.error('Error deleting time entries:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete time entries' },
-      { status: 500 }
-    );
+  console.error('Time-entries route error:', error)
+  if (isHttpError(error)) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
   }
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+}
 }

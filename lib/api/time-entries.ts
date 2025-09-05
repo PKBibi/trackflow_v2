@@ -127,8 +127,7 @@ class TimeEntriesAPI {
       .select(`
         *,
         clients:client_id (
-          name,
-          company
+          name
         ),
         projects:project_id (
           name,
@@ -168,7 +167,7 @@ class TimeEntriesAPI {
     // Transform the data to include client and project names
     return data.map((entry: any) => ({
       ...entry,
-      client_name: entry.clients?.name || entry.clients?.company || 'Unknown Client',
+      client_name: entry.clients?.name || 'Unknown Client',
       project_name: entry.projects?.name || 'Unknown Project'
     }))
   }

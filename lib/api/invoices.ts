@@ -168,7 +168,6 @@ class InvoicesAPI {
         *,
         clients:client_id (
           name,
-          company,
           email
         ),
         invoice_items (
@@ -185,7 +184,7 @@ class InvoicesAPI {
     return data.map((invoice: any) => ({
       ...invoice,
       client_name: invoice.clients?.name || 'Unknown Client',
-      client_company: invoice.clients?.company,
+      client_company: invoice.clients?.name || '',
       client_email: invoice.clients?.email,
       items: invoice.invoice_items || [],
       total_hours: (invoice.invoice_items || []).reduce((sum: number, item: any) => sum + item.hours, 0),
@@ -207,7 +206,6 @@ class InvoicesAPI {
         clients:client_id (
           id,
           name,
-          company,
           email
         )
       `)
@@ -243,7 +241,7 @@ class InvoicesAPI {
         clientMap.set(clientId, {
           client_id: clientId,
           client_name: client?.name || 'Unknown Client',
-          client_company: client?.company,
+          client_company: client?.name || '',
           client_email: client?.email,
           time_entries: []
         })
@@ -487,7 +485,6 @@ class InvoicesAPI {
         *,
         clients:client_id (
           name,
-          company,
           email
         ),
         invoice_items (
@@ -507,7 +504,7 @@ class InvoicesAPI {
     return {
       ...data,
       client_name: data.clients?.name || 'Unknown Client',
-      client_company: data.clients?.company,
+      client_company: data.clients?.name || '',
       client_email: data.clients?.email,
       items: data.invoice_items || [],
       total_hours: (data.invoice_items || []).reduce((sum: number, item: any) => sum + item.hours, 0),

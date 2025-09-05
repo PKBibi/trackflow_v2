@@ -18,7 +18,7 @@ export interface TimeEntry {
   hourly_rate: number // in cents
   amount?: number // calculated amount in cents
   status: 'running' | 'stopped' | 'invoiced' | 'paid'
-  is_timer_running: boolean
+  // is_timer_running: boolean // Temporarily disabled due to schema mismatch
   notes?: string
   tags?: string[]
   created_at?: string
@@ -206,7 +206,7 @@ class TimeEntriesAPI {
       .from('time_entries')
       .select('*')
       .eq('user_id', user.id)
-      .eq('is_timer_running', true)
+      .eq('status', 'running')
       .single()
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
@@ -229,11 +229,10 @@ class TimeEntriesAPI {
       .from('time_entries')
       .update({
         end_time: now,
-        is_timer_running: false,
         status: 'stopped'
       })
       .eq('user_id', user.id)
-      .eq('is_timer_running', true)
+      .eq('status', 'running')
 
     if (error) {
       throw new Error(`Failed to stop running timers: ${error.message}`)

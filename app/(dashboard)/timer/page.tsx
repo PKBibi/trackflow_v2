@@ -186,8 +186,8 @@ export default function TimerPage() {
         task_description: newEntry.description,
         billable: newEntry.billable,
         hourly_rate: newEntry.hourlyRate,
-        status: 'running',
-        is_timer_running: true
+        status: 'running'
+        // is_timer_running: true // Temporarily disabled due to schema mismatch
       });
 
       setCurrentTimer({
@@ -216,8 +216,8 @@ export default function TimerPage() {
       // Update the time entry in database
       await timeEntriesAPI.update(currentTimer.currentEntryId, {
         end_time: endTime.toISOString(),
-        is_timer_running: false,
         status: 'stopped'
+        // is_timer_running: false // Temporarily disabled due to schema mismatch
       });
 
       // Reset timer state
@@ -252,9 +252,10 @@ export default function TimerPage() {
       setError(null);
       const newIsRunning = !currentTimer.isRunning;
       
-      await timeEntriesAPI.update(currentTimer.currentEntryId, {
-        is_timer_running: newIsRunning
-      });
+      // Temporarily disabled due to schema mismatch
+      // await timeEntriesAPI.update(currentTimer.currentEntryId, {
+      //   is_timer_running: newIsRunning
+      // });
 
       setCurrentTimer(prev => ({
         ...prev,

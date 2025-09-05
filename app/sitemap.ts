@@ -11,7 +11,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/pricing',
     '/about',
     '/contact',
-    '/blog',
+    '/templates',
+    '/integrations',
+    '/careers',
+    '/gdpr',
+    '/security',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,
@@ -23,7 +27,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const legalPages = [
     '/terms',
     '/privacy',
-    '/cookie-policy',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,
@@ -35,7 +38,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const authPages = [
     '/login',
     '/signup',
-    '/forgot-password',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,
@@ -51,6 +53,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/projects',
     '/reports',
     '/settings',
+    '/insights',
+    '/onboarding',
+    '/import',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,
@@ -58,11 +63,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  // Blog posts (in production, fetch from CMS/database)
+  // Blog posts 
   const blogPosts = [
-    '/blog/time-tracking-for-marketers',
-    '/blog/managing-retainer-clients',
-    '/blog/agency-productivity-tips',
+    '/blog/10-time-tracking-tips-for-freelancers',
+    '/blog/how-to-price-your-services',
+    '/blog/state-of-digital-marketing-rates-2024',
+    '/blog/5-ways-to-automate-agency-workflow',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,

@@ -130,37 +130,6 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
-      {/* Header */}
-      <header className="border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="font-bold text-xl">
-            TrackFlow
-          </Link>
-          <nav className="hidden md:flex items-center gap-6">
-            <Link href="/features" className="text-sm hover:text-primary transition-colors">
-              Features
-            </Link>
-            <Link href="/pricing" className="text-sm font-medium text-primary">
-              Pricing
-            </Link>
-            <Link href="/about" className="text-sm hover:text-primary transition-colors">
-              About
-            </Link>
-            <Link href="/contact" className="text-sm hover:text-primary transition-colors">
-              Contact
-            </Link>
-          </nav>
-          <div className="flex items-center gap-4">
-            <Link href="/login">
-              <Button variant="ghost">Sign In</Button>
-            </Link>
-            <Link href="/signup">
-              <Button>Start Free Trial</Button>
-            </Link>
-          </div>
-        </div>
-      </header>
-
       <main className="container mx-auto px-4 py-16">
         {/* Pricing Header */}
         <div className="text-center mb-12">

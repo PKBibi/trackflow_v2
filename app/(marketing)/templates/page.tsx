@@ -5,65 +5,190 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const templates = [
+  // Advertising Templates
   {
     name: "PPC Monthly Optimization",
     duration: 45,
     category: "advertising",
     description: "Complete PPC account review and optimization workflow",
     icon: Target,
-    downloads: 1247,
+    downloads: 247,
     rating: 4.9,
     features: ["Campaign analysis", "Keyword research", "Ad copy review", "Performance reporting"]
   },
+  {
+    name: "Google Ads Account Audit",
+    duration: 120,
+    category: "advertising",
+    description: "Comprehensive Google Ads account review and optimization roadmap",
+    icon: BarChart3,
+    downloads: 189,
+    rating: 4.8,
+    features: ["Account structure review", "Keyword analysis", "Ad copy assessment", "Landing page review", "Optimization roadmap"]
+  },
+  {
+    name: "Facebook Ads Creative Testing",
+    duration: 90,
+    category: "advertising",
+    description: "Set up and manage Facebook ad creative testing campaigns",
+    icon: Zap,
+    downloads: 156,
+    rating: 4.7,
+    features: ["Creative development", "Audience setup", "Test structure", "Budget allocation", "Performance tracking"]
+  },
+  
+  // SEO Templates
   {
     name: "SEO Technical Audit",
     duration: 90,
     category: "seo",
     description: "Comprehensive technical SEO audit and recommendations",
     icon: BarChart3,
-    downloads: 892,
+    downloads: 192,
     rating: 4.8,
     features: ["Site crawl analysis", "Performance review", "Technical fixes", "Priority recommendations"]
   },
+  {
+    name: "Local SEO Setup",
+    duration: 60,
+    category: "seo",
+    description: "Complete local SEO optimization for local businesses",
+    icon: Target,
+    downloads: 134,
+    rating: 4.6,
+    features: ["Google My Business", "Local citations", "Review management", "Local content strategy"]
+  },
+  
+  // Content Templates
   {
     name: "Content Creation",
     duration: 120,
     category: "content",
     description: "End-to-end content creation and optimization process",
     icon: Users,
-    downloads: 1567,
+    downloads: 267,
     rating: 4.7,
     features: ["Research & planning", "Content creation", "SEO optimization", "Publishing workflow"]
   },
   {
-    name: "Client Reporting Call",
-    duration: 30,
-    category: "admin",
-    description: "Structured client reporting and Q&A sessions",
+    name: "Blog Post Writing",
+    duration: 180,
+    category: "content",
+    description: "Complete blog post creation from research to publication",
     icon: Clock,
-    downloads: 2103,
-    rating: 4.9,
-    features: ["Report preparation", "Call structure", "Action items", "Follow-up tasks"]
+    downloads: 198,
+    rating: 4.8,
+    features: ["Topic research", "SEO optimization", "Draft creation", "Editing round", "Publishing setup"]
   },
   {
-    name: "Social Media Campaign",
-    duration: 60,
-    category: "social",
-    description: "Complete social media campaign planning and execution",
-    icon: Zap,
-    downloads: 743,
-    rating: 4.6,
-    features: ["Strategy planning", "Content calendar", "Community management", "Performance tracking"]
+    name: "Video Script Writing",
+    duration: 120,
+    category: "content",
+    description: "Professional video script development for marketing videos",
+    icon: Play,
+    downloads: 87,
+    rating: 4.5,
+    features: ["Hook development", "Story structure", "CTA placement", "Visual notes", "Duration targeting"]
   },
+  
+  // Analytics Templates
+  {
+    name: "Google Analytics Monthly Report",
+    duration: 60,
+    category: "analytics",
+    description: "Comprehensive monthly analytics review and insights",
+    icon: BarChart3,
+    downloads: 312,
+    rating: 4.9,
+    features: ["Traffic analysis", "Conversion tracking", "Goal performance", "Custom insights", "Recommendations"]
+  },
+  {
+    name: "Campaign Performance Review",
+    duration: 90,
+    category: "analytics",
+    description: "Multi-channel campaign performance analysis",
+    icon: Target,
+    downloads: 176,
+    rating: 4.7,
+    features: ["Multi-channel analysis", "ROI calculation", "A/B test results", "Budget recommendations", "Next steps planning"]
+  },
+  
+  // Strategy Templates
+  {
+    name: "Competitor Analysis",
+    duration: 120,
+    category: "strategy",
+    description: "Comprehensive competitive landscape analysis",
+    icon: Users,
+    downloads: 145,
+    rating: 4.8,
+    features: ["Competitive landscape", "Ad spy research", "SEO gap analysis", "Social media audit", "Opportunity identification"]
+  },
+  {
+    name: "Marketing Strategy Session",
+    duration: 180,
+    category: "strategy",
+    description: "Complete marketing strategy development session",
+    icon: Target,
+    downloads: 98,
+    rating: 4.9,
+    features: ["Goal setting", "Channel selection", "Budget allocation", "Timeline planning", "KPI definition"]
+  },
+  
+  // Email Templates
   {
     name: "Email Marketing Setup",
     duration: 75,
     category: "email",
     description: "Email marketing campaign setup and automation",
     icon: Target,
-    downloads: 634,
+    downloads: 134,
     rating: 4.8,
     features: ["List segmentation", "Template design", "Automation setup", "A/B testing"]
+  },
+  {
+    name: "Welcome Series Setup",
+    duration: 120,
+    category: "email",
+    description: "Complete welcome email series setup and automation",
+    icon: Zap,
+    downloads: 112,
+    rating: 4.7,
+    features: ["Sequence planning", "Copy writing", "Design templates", "Automation setup", "Testing"]
+  },
+  {
+    name: "Newsletter Creation",
+    duration: 60,
+    category: "email",
+    description: "Weekly or monthly newsletter creation process",
+    icon: Clock,
+    downloads: 203,
+    rating: 4.6,
+    features: ["Content curation", "Copy writing", "Design layout", "List segmentation", "Scheduling"]
+  },
+  
+  // Social Media Templates
+  {
+    name: "Social Media Campaign",
+    duration: 60,
+    category: "social",
+    description: "Complete social media campaign planning and execution",
+    icon: Zap,
+    downloads: 243,
+    rating: 4.6,
+    features: ["Strategy planning", "Content calendar", "Community management", "Performance tracking"]
+  },
+  
+  // Admin Templates
+  {
+    name: "Client Reporting Call",
+    duration: 30,
+    category: "admin",
+    description: "Structured client reporting and Q&A sessions",
+    icon: Clock,
+    downloads: 410,
+    rating: 4.9,
+    features: ["Report preparation", "Call structure", "Action items", "Follow-up tasks"]
   }
 ]
 

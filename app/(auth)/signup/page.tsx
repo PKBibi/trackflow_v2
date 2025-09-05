@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CheckCircle } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+import { CheckCircle, AlertCircle } from 'lucide-react'
 
 // Simple icon components
 const GoogleIcon = () => (
@@ -21,12 +23,15 @@ const LinkedInIcon = () => (
 )
 
 export default function SignupPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     company: '',
     password: ''
   })
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -35,10 +40,63 @@ export default function SignupPage() {
     })
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
-    console.log('Form submitted:', formData)
+    setIsLoading(true)
+    setError(null)
+
+    // Basic validation
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long')
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const supabase = createClient()
+      
+      // Sign up the user
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            full_name: formData.fullName,
+            company: formData.company,
+          }
+        }
+      })
+
+      if (signUpError) {
+        setError(signUpError.message)
+        return
+      }
+
+      // Redirect to onboarding or dashboard
+      router.push('/onboarding')
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSocialSignup = async (provider: 'google' | 'linkedin') => {
+    try {
+      const supabase = createClient()
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: provider === 'linkedin' ? 'linkedin_oidc' : 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`
+        }
+      })
+      
+      if (error) {
+        setError(error.message)
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.')
+    }
   }
 
   return (
@@ -48,147 +106,168 @@ export default function SignupPage() {
         <div className="w-full max-w-md">
           <h1 className="text-3xl font-bold mb-2">Get Started</h1>
           <p className="text-gray-600 mb-8">
-            Start your 14-day free trial. No credit card required.
+            Start your free 14-day trial. No credit card required.
           </p>
 
-          {/* Social Auth */}
-          <div className="space-y-3 mb-6">
-            <button className="w-full py-3 px-4 border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors">
-              <GoogleIcon /> Continue with Google
-            </button>
-            <button className="w-full py-3 px-4 border border-gray-300 rounded-lg flex items-center justify-center gap-3 hover:bg-gray-50 transition-colors">
-              <LinkedInIcon /> Continue with LinkedIn
-            </button>
-          </div>
-
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md flex items-center gap-2 mb-4">
+              <AlertCircle className="w-4 h-4" />
+              <span className="text-sm">{error}</span>
             </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
-            </div>
-          </div>
+          )}
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="fullName" className="block text-sm font-medium mb-2">Full Name</label>
-              <input 
-                type="text" 
-                id="fullName"
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Full Name
+              </label>
+              <input
+                type="text"
                 name="fullName"
                 value={formData.fullName}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="John Doe"
                 required
               />
             </div>
-            
+
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-2">Work Email</label>
-              <input 
-                type="email" 
-                id="email"
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Work Email
+              </label>
+              <input
+                type="email"
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="john@company.com"
                 required
               />
             </div>
-            
+
             <div>
-              <label htmlFor="company" className="block text-sm font-medium mb-2">Company</label>
-              <input 
-                type="text" 
-                id="company"
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Company Name
+              </label>
+              <input
+                type="text"
                 name="company"
                 value={formData.company}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Acme Marketing Agency"
                 required
               />
             </div>
-            
+
             <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">Password</label>
-              <input 
-                type="password" 
-                id="password"
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Minimum 6 characters"
+                minLength={6}
                 required
               />
-              <p className="text-xs text-gray-500 mt-1">
-                Minimum 8 characters with one uppercase letter
-              </p>
             </div>
 
-            <button 
+            <button
               type="submit"
-              className="w-full py-3 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors"
+              disabled={isLoading}
+              className="w-full bg-blue-600 text-white py-3 rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Start 14-Day Free Trial
+              {isLoading ? 'Creating Account...' : 'Start Free Trial'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-gray-600 mt-6">
-            Already have an account? <Link href="/login" className="text-blue-600 hover:underline">Sign in</Link>
+          <div className="my-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Or sign up with</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <button 
+              onClick={() => handleSocialSignup('google')}
+              className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              <GoogleIcon />
+              <span>Google</span>
+            </button>
+            <button 
+              onClick={() => handleSocialSignup('linkedin')}
+              className="flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
+            >
+              <LinkedInIcon />
+              <span>LinkedIn</span>
+            </button>
+          </div>
+
+          <p className="mt-6 text-center text-sm text-gray-600">
+            Already have an account?{' '}
+            <Link href="/login" className="text-blue-600 hover:text-blue-700">
+              Sign in
+            </Link>
           </p>
         </div>
       </div>
 
-      {/* Right: Benefits */}
-      <div className="hidden lg:flex items-center justify-center p-12 bg-gradient-to-br from-blue-50 to-blue-100">
-        <div className="max-w-lg">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8">
-            Time tracking built for digital marketers
+      {/* Right: Features */}
+      <div className="hidden lg:flex items-center justify-center p-12 bg-gradient-to-br from-blue-600 to-blue-700">
+        <div className="max-w-md text-white">
+          <h2 className="text-3xl font-bold mb-6">
+            Join 2,000+ marketing agencies tracking time smarter
           </h2>
-          
-          <div className="space-y-6">
-            <div className="flex gap-4">
-              <CheckCircle className="text-blue-600 mt-1 flex-shrink-0" size={20} />
+          <ul className="space-y-4">
+            <li className="flex items-start gap-3">
+              <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold mb-1">Track by Campaign & Channel</h3>
-                <p className="text-gray-600">Organize time by PPC, SEO, Social, and more</p>
+                <p className="font-semibold">Track by Marketing Channel</p>
+                <p className="text-sm text-blue-100">
+                  PPC, SEO, Social, Email - know exactly where time goes
+                </p>
               </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <CheckCircle className="text-blue-600 mt-1 flex-shrink-0" size={20} />
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold mb-1">Built for Agencies</h3>
-                <p className="text-gray-600">Retainer tracking, white-label reports, team management</p>
+                <p className="font-semibold">Retainer Management</p>
+                <p className="text-sm text-blue-100">
+                  Never go over budget with automatic alerts
+                </p>
               </div>
-            </div>
-            
-            <div className="flex gap-4">
-              <CheckCircle className="text-blue-600 mt-1 flex-shrink-0" size={20} />
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold mb-1">Invoice from Timesheets</h3>
-                <p className="text-gray-600">Generate professional invoices in one click</p>
+                <p className="font-semibold">Campaign ROI Tracking</p>
+                <p className="text-sm text-blue-100">
+                  See true profitability after labor costs
+                </p>
               </div>
-            </div>
-          </div>
-
-          <div className="mt-12 p-6 bg-white rounded-lg shadow-sm">
-            <p className="text-gray-600 italic mb-4">
-              "TrackFlow cut our invoicing time by 70% and helped us identify 
-              our most profitable services."
-            </p>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-semibold text-sm">SC</span>
-              </div>
+            </li>
+            <li className="flex items-start gap-3">
+              <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold">Sarah Chen</p>
-                <p className="text-sm text-gray-500">Growth Digital Agency</p>
+                <p className="font-semibold">AI-Powered Insights</p>
+                <p className="text-sm text-blue-100">
+                  Get recommendations to boost productivity and revenue
+                </p>
               </div>
-            </div>
-          </div>
+            </li>
+          </ul>
         </div>
       </div>
     </div>

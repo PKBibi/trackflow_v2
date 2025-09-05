@@ -120,8 +120,7 @@ class ProjectsAPI {
       .select(`
         *,
         clients:client_id (
-          name,
-          company
+          name
         )
       `)
       .eq('user_id', user.id)
@@ -155,7 +154,7 @@ class ProjectsAPI {
         return {
           ...project,
           client_name: project.clients?.name || 'Unknown Client',
-          client_company: project.clients?.company, // Use name as fallback until company column is available
+          client_company: project.clients?.name || '', // Use name as fallback until company column is available
           total_time_entries: stats.total_time_entries,
           total_hours: stats.total_hours,
           total_amount: stats.total_amount,
@@ -181,8 +180,7 @@ class ProjectsAPI {
       .select(`
         *,
         clients:client_id (
-          name,
-          company
+          name
         )
       `)
       .eq('id', id)
@@ -203,7 +201,7 @@ class ProjectsAPI {
     return {
       ...data,
       client_name: data.clients?.name || 'Unknown Client',
-      client_company: data.clients?.company, // Use name as fallback until company column is available
+      client_company: data.clients?.name || '', // Use name as fallback until company column is available
       total_time_entries: stats.total_time_entries,
       total_hours: stats.total_hours,
       total_amount: stats.total_amount,

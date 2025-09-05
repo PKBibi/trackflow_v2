@@ -127,8 +127,7 @@ class TimeEntriesAPI {
       .select(`
         *,
         clients:client_id (
-          name,
-          company
+          name
         ),
         projects:project_id (
           name,

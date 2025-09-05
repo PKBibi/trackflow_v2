@@ -15,39 +15,39 @@ const blogPosts = {
     category: 'Productivity',
     excerpt: 'Master time tracking with campaign-specific strategies, channel allocation insights, and productivity patterns that boost your billable hours.',
     content: `
-      <p className="lead">Time is money, especially in digital marketing. But most freelancers leave thousands on the table by not tracking effectively. Here are 10 battle-tested strategies from successful marketers.</p>
+      <p class="text-lg text-gray-600 mb-6">Time is money, especially in digital marketing. But most freelancers leave thousands on the table by not tracking effectively. Here are 10 battle-tested strategies from successful marketers.</p>
 
-      <h2>1. Track by Channel, Not Just by Client</h2>
-      <p>Stop tracking "Client A - 3 hours." Start tracking "Client A - Google Ads optimization - 1.5 hours" and "Client A - Facebook creative - 1.5 hours." This granularity reveals which channels are actually profitable.</p>
-      <p><strong>Why it matters:</strong> You might discover that your Google Ads work generates $200/hour while social media management only yields $75/hour. This data drives better pricing and service decisions.</p>
+      <h2 class="text-2xl font-bold mt-8 mb-4">1. Track by Channel, Not Just by Client</h2>
+      <p class="mb-4">Stop tracking "Client A - 3 hours." Start tracking "Client A - Google Ads optimization - 1.5 hours" and "Client A - Facebook creative - 1.5 hours." This granularity reveals which channels are actually profitable.</p>
+      <p class="mb-6"><strong>Why it matters:</strong> You might discover that your Google Ads work generates $200/hour while social media management only yields $75/hour. This data drives better pricing and service decisions.</p>
 
-      <h2>2. Use Campaign-Specific Time Blocks</h2>
-      <p>Allocate specific time blocks to campaigns, not just clients. A "Spring Sale Campaign" might span multiple channels but tracking it as one unit shows true campaign profitability.</p>
-      <p><strong>Implementation tip:</strong> Create a campaign code system: [Client]-[Campaign]-[Channel]. Example: ACME-SPRING24-FB for Acme's Spring 2024 Facebook campaign.</p>
+      <h2 class="text-2xl font-bold mt-8 mb-4">2. Use Campaign-Specific Time Blocks</h2>
+      <p class="mb-4">Allocate specific time blocks to campaigns, not just clients. A "Spring Sale Campaign" might span multiple channels but tracking it as one unit shows true campaign profitability.</p>
+      <p class="mb-6"><strong>Implementation tip:</strong> Create a campaign code system: [Client]-[Campaign]-[Channel]. Example: ACME-SPRING24-FB for Acme's Spring 2024 Facebook campaign.</p>
 
-      <h2>3. Build Templates for Recurring Tasks</h2>
-      <p>Create time tracking templates for common marketing tasks:</p>
-      <ul>
+      <h2 class="text-2xl font-bold mt-8 mb-4">3. Build Templates for Recurring Tasks</h2>
+      <p class="mb-4">Create time tracking templates for common marketing tasks:</p>
+      <ul class="list-disc list-inside mb-4 space-y-2">
         <li>PPC Campaign Setup (typically 3-4 hours)</li>
         <li>Monthly Reporting (typically 2-3 hours)</li>
         <li>A/B Test Analysis (typically 1-2 hours)</li>
         <li>Creative Brief Development (typically 2-3 hours)</li>
       </ul>
-      <p>Templates help you estimate project time accurately and identify when tasks are taking too long.</p>
+      <p class="mb-6">Templates help you estimate project time accurately and identify when tasks are taking too long.</p>
 
-      <h2>4. Set Timers for "Quick Checks"</h2>
-      <p>Those "quick" campaign checks add up. Set a 15-minute timer when you say "let me just check the metrics." When it rings, either stop or officially log the time.</p>
-      <p><strong>The shocking truth:</strong> Most marketers spend 5-7 hours per week on untracked "quick checks."</p>
+      <h2 class="text-2xl font-bold mt-8 mb-4">4. Set Timers for "Quick Checks"</h2>
+      <p class="mb-4">Those "quick" campaign checks add up. Set a 15-minute timer when you say "let me just check the metrics." When it rings, either stop or officially log the time.</p>
+      <p class="mb-6"><strong>The shocking truth:</strong> Most marketers spend 5-7 hours per week on untracked "quick checks."</p>
 
-      <h2>5. Track Non-Billable Work Too</h2>
-      <p>Track everything, even if you don't bill for it:</p>
-      <ul>
+      <h2 class="text-2xl font-bold mt-8 mb-4">5. Track Non-Billable Work Too</h2>
+      <p class="mb-4">Track everything, even if you don't bill for it:</p>
+      <ul class="list-disc list-inside mb-4 space-y-2">
         <li>Client communication</li>
         <li>Research and learning</li>
         <li>Tool setup and maintenance</li>
         <li>Strategy development</li>
       </ul>
-      <p>This shows your true hourly rate and helps identify tasks to delegate or eliminate.</p>
+      <p class="mb-6">This shows your true hourly rate and helps identify tasks to delegate or eliminate.</p>
 
       <h2>6. Use Start/Stop Tracking, Not Estimates</h2>
       <p>Don't guess at the end of the day. Use real-time tracking:</p>

@@ -79,6 +79,31 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
 
+  // Redirect standalone routes to dashboard equivalents
+  if (session && pathname === '/timer') {
+    return NextResponse.redirect(new URL('/dashboard/timer', request.url))
+  }
+  
+  if (session && pathname === '/timesheet') {
+    return NextResponse.redirect(new URL('/dashboard/timesheet', request.url))
+  }
+  
+  if (session && pathname === '/reports') {
+    return NextResponse.redirect(new URL('/dashboard/reports', request.url))
+  }
+  
+  if (session && pathname === '/invoices') {
+    return NextResponse.redirect(new URL('/dashboard/invoices', request.url))
+  }
+  
+  if (session && pathname === '/clients') {
+    return NextResponse.redirect(new URL('/dashboard/clients', request.url))
+  }
+  
+  if (session && pathname === '/projects') {
+    return NextResponse.redirect(new URL('/dashboard/projects', request.url))
+  }
+
   return response
 }
 

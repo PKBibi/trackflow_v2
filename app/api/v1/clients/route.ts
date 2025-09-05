@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'; { HttpError, isHttpError } from '@/lib/errors';
 
 // Mock database - replace with actual database queries
 let clients = [
@@ -137,12 +137,12 @@ export async function GET(request: NextRequest) {
       stats
     });
   } catch (error) {
-    console.error('Error fetching clients:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch clients' },
-      { status: 500 }
-    );
+  console.error('Clients route error:', error)
+  if (isHttpError(error)) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
   }
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+}
 }
 
 // POST /api/v1/clients
@@ -197,12 +197,12 @@ export async function POST(request: NextRequest) {
       message: 'Client created successfully'
     }, { status: 201 });
   } catch (error) {
-    console.error('Error creating client:', error);
-    return NextResponse.json(
-      { error: 'Failed to create client' },
-      { status: 500 }
-    );
+  console.error('Clients route error:', error)
+  if (isHttpError(error)) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
   }
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+}
 }
 
 // PUT /api/v1/clients (bulk update)
@@ -237,12 +237,12 @@ export async function PUT(request: NextRequest) {
       updatedIds: ids
     });
   } catch (error) {
-    console.error('Error updating clients:', error);
-    return NextResponse.json(
-      { error: 'Failed to update clients' },
-      { status: 500 }
-    );
+  console.error('Clients route error:', error)
+  if (isHttpError(error)) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
   }
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+}
 }
 
 // DELETE /api/v1/clients (bulk delete)
@@ -285,12 +285,13 @@ export async function DELETE(request: NextRequest) {
       deletedIds: ids
     });
   } catch (error) {
-    console.error('Error deleting clients:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete clients' },
-      { status: 500 }
-    );
+  console.error('Clients route error:', error)
+  if (isHttpError(error)) {
+    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
   }
+  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
 }
+}
+
 
 

@@ -47,10 +47,6 @@ const defaultProject: Omit<Project, 'id' | 'user_id' | 'created_at' | 'updated_a
   client_id: '',
   name: '',
   description: '',
-  campaign_id: '',
-  campaign_platform: '',
-  campaign_objective: '',
-  target_audience: '',
   budget: 0,
   start_date: '',
   end_date: '',
@@ -311,81 +307,6 @@ export function ProjectForm({ project, isOpen, onOpenChange, onSave, isLoading, 
             </CardContent>
           </Card>
 
-          {/* Campaign Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Target className="w-5 h-5" />
-                Campaign Details
-              </CardTitle>
-              <CardDescription>
-                Track marketing campaign specifics for this project
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="campaign_id">Campaign ID</Label>
-                  <Input
-                    id="campaign_id"
-                    value={formData.campaign_id}
-                    onChange={(e) => updateField('campaign_id', e.target.value)}
-                    placeholder="e.g., CAMP-2024-Q1-001"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="campaign_platform">Platform</Label>
-                  <Select 
-                    value={formData.campaign_platform || ''} 
-                    onValueChange={(value) => updateField('campaign_platform', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose platform" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {campaignPlatforms.map((platform) => (
-                        <SelectItem key={platform} value={platform}>
-                          {platform}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="campaign_objective">Campaign Objective</Label>
-                  <Select 
-                    value={formData.campaign_objective || ''} 
-                    onValueChange={(value) => updateField('campaign_objective', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose objective" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {campaignObjectives.map((objective) => (
-                        <SelectItem key={objective} value={objective}>
-                          {objective}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="target_audience">Target Audience</Label>
-                  <Input
-                    id="target_audience"
-                    value={formData.target_audience}
-                    onChange={(e) => updateField('target_audience', e.target.value)}
-                    placeholder="e.g., Small business owners, 25-45"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Budget & Timeline */}
           <Card>

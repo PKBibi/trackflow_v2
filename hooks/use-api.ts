@@ -20,10 +20,10 @@ const defaultFetcher = async (url: string) => {
   
   if (!res.ok) {
     const error = new Error('An error occurred while fetching the data.');
-    // @ts-ignore
-    error.info = await res.json();
-    // @ts-ignore
-    error.status = res.status;
+    const info = await res.json().catch(() => ({ message: 'Unknown error' }));
+    const httpError = new Error('An error occurred while fetching the data.') as Error & { info?: unknown; status?: number };
+    httpError.info = info;
+    httpError.status = res.status;
     throw error;
   }
   
@@ -158,8 +158,9 @@ export async function postApi<T = any>(
   
   if (!response.ok) {
     const error = new Error('Failed to post data');
-    // @ts-ignore
-    error.status = response.status;
+    const httpError = new Error('Request failed') as Error & { status?: number };
+    httpError.status = response.status;
+    throw httpError;
     throw error;
   }
   
@@ -189,8 +190,9 @@ export async function putApi<T = any>(
   
   if (!response.ok) {
     const error = new Error('Failed to update data');
-    // @ts-ignore
-    error.status = response.status;
+    const httpError = new Error('Request failed') as Error & { status?: number };
+    httpError.status = response.status;
+    throw httpError;
     throw error;
   }
   
@@ -218,8 +220,9 @@ export async function deleteApi<T = any>(
   
   if (!response.ok) {
     const error = new Error('Failed to delete data');
-    // @ts-ignore
-    error.status = response.status;
+    const httpError = new Error('Request failed') as Error & { status?: number };
+    httpError.status = response.status;
+    throw httpError;
     throw error;
   }
   
@@ -273,4 +276,5 @@ export function clearAllCaches() {
   // Clear SWR cache
   mutate(() => true, undefined, { revalidate: false });
 }
+
 

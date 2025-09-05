@@ -185,9 +185,9 @@ export default function TimerPage() {
         task_title: newEntry.taskTitle,
         task_description: newEntry.description,
         billable: newEntry.billable,
-        hourly_rate: newEntry.hourlyRate,
-        campaign_id: newEntry.campaign_id,
-        campaign_platform: newEntry.campaign_platform
+        hourly_rate: newEntry.hourlyRate
+        // campaign_id: newEntry.campaign_id, // Column doesn't exist in production DB
+        // campaign_platform: newEntry.campaign_platform // Column doesn't exist in production DB
         // status: 'running' // Column doesn't exist in DB
         // is_timer_running: true // Column doesn't exist in DB
         // Timer runs when end_time is null
@@ -521,7 +521,6 @@ export default function TimerPage() {
                       .map(project => (
                         <option key={project.id} value={project.id}>
                           {project.name}
-                          {project.campaign_platform && ` (${project.campaign_platform})`}
                         </option>
                       ))}
                   </select>

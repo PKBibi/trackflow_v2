@@ -40,7 +40,7 @@ export class SlackService {
    */
   async sendWebhookNotification(notification: SlackNotification) {
     if (!this.webhook) {
-      throw new Error('Slack webhook URL not configured')
+      console.warn('[Slack] Webhook not configured; skipping send.'); return;
     }
 
     return await this.webhook.send(notification)
@@ -51,7 +51,7 @@ export class SlackService {
    */
   async sendMessage(channel: string, text: string, options: any = {}) {
     if (!this.client) {
-      throw new Error('Slack client not configured')
+      console.warn('[Slack] Client not configured; skipping send.'); return { ok: false } as any;
     }
 
     return await this.client.chat.postMessage({
@@ -516,4 +516,5 @@ export class SlackService {
     }
   }
 }
+
 

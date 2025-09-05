@@ -7,11 +7,11 @@ export interface Project {
   name: string
   description?: string
   
-  // Marketing Campaign Details
-  campaign_id?: string
-  campaign_platform?: string
-  campaign_objective?: string
-  target_audience?: string
+  // Marketing Campaign Details (columns don't exist in production DB)
+  // campaign_id?: string
+  // campaign_platform?: string
+  // campaign_objective?: string
+  // target_audience?: string
   budget_amount?: number // in cents (matches database column name)
   start_date?: string
   end_date?: string

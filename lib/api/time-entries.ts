@@ -12,8 +12,8 @@ export interface TimeEntry {
   marketing_channel: string
   task_title: string
   task_description?: string
-  campaign_id?: string
-  campaign_platform?: string
+  // campaign_id?: string // Column doesn't exist in production DB
+  // campaign_platform?: string // Column doesn't exist in production DB
   billable: boolean
   hourly_rate: number // in cents
   amount?: number // calculated amount in cents
@@ -130,9 +130,7 @@ class TimeEntriesAPI {
           name
         ),
         projects:project_id (
-          name,
-          campaign_id,
-          campaign_platform
+          name
         )
       `)
       .eq('user_id', user.id)

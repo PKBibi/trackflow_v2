@@ -462,19 +462,6 @@ export default function ProjectsPage() {
                         </div>
                       </div>
 
-                      {/* Campaign Info */}
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-muted-foreground">Campaign</h4>
-                        {project.campaign_platform && (
-                          <div className="flex items-center gap-2 text-sm">
-                            <Target className="w-3 h-3" />
-                            <span>{project.campaign_platform}</span>
-                          </div>
-                        )}
-                        {project.campaign_objective && (
-                          <p className="text-sm text-muted-foreground">{project.campaign_objective}</p>
-                        )}
-                      </div>
 
                       {/* Performance */}
                       <div className="space-y-2">

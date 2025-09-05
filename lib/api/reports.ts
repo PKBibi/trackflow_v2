@@ -256,7 +256,6 @@ class ReportsAPI {
         billable,
         clients:client_id (
           name,
-          company,
           has_retainer,
           retainer_amount,
           status
@@ -297,7 +296,7 @@ class ReportsAPI {
 
       const existing = clientMap.get(clientId) || {
         client_name: client.name,
-        company: client.company || '',
+        company: client.name || '',
         has_retainer: client.has_retainer,
         retainer_amount: client.retainer_amount || 0,
         status: client.status,

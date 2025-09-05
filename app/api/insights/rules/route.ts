@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     // 1. Most Productive Hours Pattern Detection
     const { data: productivityPatterns, error: productivityError } = await supabase
       .from('time_entries')
-      .select('start_time, duration, task_count')
+      .select('start_time, duration')
       .eq('user_id', user.id)
       .not('start_time', 'is', null)
       .not('duration', 'is', null)
@@ -64,7 +64,7 @@ export async function GET(request: Request) {
     const { data: channelData, error: channelError } = await supabase
       .from('time_entries')
       .select(`
-        channel,
+        marketing_channel,
         duration,
         hourly_rate,
         billable
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
       const channelStats: { [key: string]: { totalEarnings: number, totalHours: number } } = {}
       
       channelData.forEach(entry => {
-        const channel = entry.channel || 'Unknown'
+        const channel = entry.marketing_channel || 'Unknown'
         const earnings = (entry.duration || 0) * (entry.hourly_rate || 0) / 100 // Assuming duration is in minutes
         const hours = (entry.duration || 0) / 60
         

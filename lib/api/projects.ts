@@ -338,7 +338,7 @@ class ProjectsAPI {
   async getProjectsAtRisk(threshold: number = 80): Promise<ProjectWithStats[]> {
     const projects = await this.getAll({ status: 'active' })
     return projects.filter(project => 
-      project.budget_amount_used_percentage && project.budget_amount_used_percentage >= threshold
+      project.budget_used_percentage && project.budget_used_percentage >= threshold
     )
   }
 

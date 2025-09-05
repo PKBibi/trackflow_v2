@@ -17,7 +17,7 @@ export interface TimeEntry {
   billable: boolean
   hourly_rate: number // in cents
   amount?: number // calculated amount in cents
-  status: 'running' | 'stopped' | 'invoiced' | 'paid'
+  // status: 'running' | 'stopped' | 'invoiced' | 'paid' // Column doesn't exist in DB
   // is_timer_running: boolean // Temporarily disabled due to schema mismatch
   notes?: string
   tags?: string[]
@@ -206,7 +206,7 @@ class TimeEntriesAPI {
       .from('time_entries')
       .select('*')
       .eq('user_id', user.id)
-      .eq('status', 'running')
+      .is('end_time', null)
       .single()
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
@@ -228,11 +228,10 @@ class TimeEntriesAPI {
     const { error } = await this.supabase
       .from('time_entries')
       .update({
-        end_time: now,
-        status: 'stopped'
+        end_time: now
       })
       .eq('user_id', user.id)
-      .eq('status', 'running')
+      .is('end_time', null)
 
     if (error) {
       throw new Error(`Failed to stop running timers: ${error.message}`)

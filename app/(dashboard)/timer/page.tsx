@@ -187,9 +187,10 @@ export default function TimerPage() {
         billable: newEntry.billable,
         hourly_rate: newEntry.hourlyRate,
         campaign_id: newEntry.campaign_id,
-        campaign_platform: newEntry.campaign_platform,
-        status: 'running'
-        // is_timer_running: true // Temporarily disabled due to schema mismatch
+        campaign_platform: newEntry.campaign_platform
+        // status: 'running' // Column doesn't exist in DB
+        // is_timer_running: true // Column doesn't exist in DB
+        // Timer runs when end_time is null
       });
 
       setCurrentTimer({
@@ -217,9 +218,9 @@ export default function TimerPage() {
       
       // Update the time entry in database
       await timeEntriesAPI.update(currentTimer.currentEntryId, {
-        end_time: endTime.toISOString(),
-        status: 'stopped'
-        // is_timer_running: false // Temporarily disabled due to schema mismatch
+        end_time: endTime.toISOString()
+        // status: 'stopped' // Column doesn't exist in DB
+        // is_timer_running: false // Column doesn't exist in DB
       });
 
       // Reset timer state

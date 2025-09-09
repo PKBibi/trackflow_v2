@@ -1,8 +1,27 @@
 import Link from 'next/link'
 import { Clock, Users, Target, BarChart3, Zap, Star, Download, Play } from 'lucide-react'
+import type { Metadata } from 'next'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+export const metadata: Metadata = {
+  title: 'Templates | TrackFlow – Ready-to-Use Workflows',
+  description: 'Download ready-to-use templates for PPC optimization, SEO audits, and more. Save time and standardize your workflow.',
+  openGraph: {
+    title: 'TrackFlow Templates',
+    description: 'Ready-to-use workflows for PPC, SEO, and creative testing.',
+    url: 'https://track-flow.app/templates',
+    siteName: 'TrackFlow',
+    images: [ { url: '/images/og-templates.png', width: 1200, height: 630 } ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TrackFlow Templates',
+    description: 'Ready-to-use workflows for PPC, SEO, and creative testing.',
+    images: ['/images/og-templates.png'],
+  },
+}
 
 const templates = [
   // Advertising Templates
@@ -245,7 +264,7 @@ export default function TemplatesPage() {
       {/* Hero Section */}
       <section className="py-20 px-4 border-b border-gray-100">
         <div className="max-w-6xl mx-auto text-center">
-          <Badge className="mb-4 bg-blue-100 text-blue-600 border-blue-200">
+          <Badge className="mb-4 bg-blue-600 text-white border-blue-600">
             Quick Start Templates
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">

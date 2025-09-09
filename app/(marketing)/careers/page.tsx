@@ -12,10 +12,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Careers at TrackFlow - Join Our Mission',
     description: 'Help us build the time tracking tool that digital marketers actually want to use.',
-    images: ['/og-careers.png'],
+    images: ['/images/og-careers.png'],
   },
   alternates: {
-    canonical: 'https://trackflow.app/careers',
+    canonical: 'https://track-flow.app/careers',
   },
 }
 
@@ -69,7 +69,7 @@ export default function CareersPage() {
       {/* Hero Section */}
       <section className="py-20 px-4 border-b border-gray-100">
         <div className="max-w-4xl mx-auto text-center">
-          <Badge className="mb-4 bg-blue-100 text-blue-600 border-blue-200">
+          <Badge className="mb-4 bg-blue-600 text-white border-blue-600">
             We're Hiring
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -96,7 +96,7 @@ export default function CareersPage() {
             <p className="text-gray-600 mb-8">
               Tell us about yourself, what you've built, and why you're excited about TrackFlow.
             </p>
-            <a href="mailto:careers@trackflow.app">
+            <a href="mailto:careers@track-flow.app">
               <Button size="lg" className="btn-primary">
                 Send Us Your Story
               </Button>
@@ -188,7 +188,7 @@ export default function CareersPage() {
             Even if we don't have the perfect role right now, we'd love to connect with passionate builders.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="mailto:careers@trackflow.app">
+            <a href="mailto:careers@track-flow.app">
               <Button size="lg" className="bg-white text-gray-900 hover:bg-gray-100">
                 Get in Touch
               </Button>

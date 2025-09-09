@@ -11,10 +11,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'TrackFlow Integrations - Connect Your Marketing Stack',
     description: 'Seamlessly integrate with your favorite marketing and business tools.',
-    images: ['/og-integrations.png'],
+    images: ['/images/og-integrations.png'],
   },
   alternates: {
-    canonical: 'https://trackflow.app/integrations',
+    canonical: 'https://track-flow.app/integrations',
   },
 }
 
@@ -158,7 +158,7 @@ export default function IntegrationsPage() {
       {/* Hero Section */}
       <section className="py-20 px-4 border-b border-gray-100">
         <div className="max-w-6xl mx-auto text-center">
-          <Badge className="mb-4 bg-blue-100 text-blue-600 border-blue-200">
+          <Badge className="mb-4 bg-blue-600 text-white border-blue-600">
             Integrations
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
@@ -216,7 +216,7 @@ export default function IntegrationsPage() {
             Let us know what integration you need and we'll prioritize it in our roadmap.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="mailto:integrations@trackflow.app">
+            <a href="mailto:integrations@track-flow.app">
               <Button size="lg" className="btn-primary">
                 Request Integration
               </Button>

@@ -1,8 +1,31 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { TrendingUp, Users, DollarSign, FileText, Zap, Brain, Clock, BarChart3, Shield, Globe, Target, PieChart } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+
+export const metadata: Metadata = {
+  title: 'Features | TrackFlow – Time Tracking for Marketers',
+  description: 'TrackFlow features built for digital marketers: channel tracking, retainer alerts, AI insights, and white-label client reports.',
+  openGraph: {
+    title: 'TrackFlow Features',
+    description: 'Marketing-first time tracking: channels, campaigns, retainers, and AI insights.',
+    url: 'https://track-flow.app/features',
+    siteName: 'TrackFlow',
+    images: [
+      { url: '/images/og-image.png', width: 1200, height: 630, alt: 'TrackFlow Features' },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'TrackFlow Features',
+    description: 'Marketing-first time tracking with AI insights and reporting.',
+    images: ['/images/twitter-image.png'],
+  },
+}
+
+export const revalidate = 86400 // 24h ISR for marketing page
 
 const features = [
   {
@@ -94,10 +117,24 @@ const FeatureCard = ({ icon: Icon, title, description, category, highlight }: ty
 export default function FeaturesPage() {
   return (
     <div className="bg-white">
+      {/* Breadcrumb JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://track-flow.app/' },
+              { '@type': 'ListItem', position: 2, name: 'Features', item: 'https://track-flow.app/features' }
+            ]
+          })
+        }}
+      />
       {/* Hero Section */}
       <section className="py-20 px-4 border-b border-gray-100">
         <div className="max-w-6xl mx-auto text-center">
-          <Badge className="mb-4 bg-blue-100 text-blue-600 border-blue-200">
+          <Badge className="mb-4 bg-blue-600 text-white border-blue-600">
             Marketing-First Features
           </Badge>
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">

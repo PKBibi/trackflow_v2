@@ -50,7 +50,7 @@ export default function MarketingLandingPage() {
        <section className="py-24 bg-white dark:bg-gray-900">
          <div className="container mx-auto px-4">
            <div className="text-center mb-16">
-                           <Badge className="mb-4 bg-blue-100 text-blue-600 border-blue-200">
+                           <Badge className="mb-4 bg-blue-600 text-white border-blue-600">
                 Marketing-First Features
               </Badge>
              <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -231,7 +231,7 @@ export default function MarketingLandingPage() {
            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
              Ready to Track Time Like a Marketer?
            </h2>
-           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+           <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
              Join thousands of marketing professionals who've made the switch to privacy-first time tracking.
            </p>
            <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -248,7 +248,7 @@ export default function MarketingLandingPage() {
                </Button>
              </Link>
            </div>
-           <p className="text-sm text-white/80 mt-4">
+           <p className="text-sm text-white mt-4">
              No credit card required • 14-day free trial
            </p>
          </div>

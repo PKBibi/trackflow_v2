@@ -9,7 +9,11 @@ import { WebVitals } from '@/components/web-vitals'
 import { Toaster } from '@/components/ui/toaster'
 import ErrorBoundary from '@/components/error-boundary'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  display: 'swap', // Improve font loading performance
+  preload: true
+})
 
 export const metadata: Metadata = {
   title: 'TrackFlow - Time Tracking for Digital Marketing',
@@ -101,12 +105,18 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Preconnect to external domains for faster loading */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://app.posthog.com" />
+        {/* DNS prefetch for performance */}
+        <link rel="dns-prefetch" href="https://www.google-analytics.com" />
+      </head>
       <body className={inter.className}>
         <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 bg-white text-black dark:bg-gray-800 dark:text-white px-3 py-2 rounded shadow">Skip to main content</a>
         <div className="min-h-screen flex flex-col">
-          <Analytics />
-          <PostHogAnalytics />
-          <WebVitals />
           <Toaster />
           <script
             type="application/ld+json"
@@ -157,6 +167,10 @@ export default function RootLayout({
             </main>
           </ErrorBoundary>
           <Footer />
+          {/* Load analytics after main content to prevent CLS */}
+          <Analytics />
+          <PostHogAnalytics />
+          <WebVitals />
         </div>
       </body>
     </html>

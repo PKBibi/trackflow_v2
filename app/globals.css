@@ -3,6 +3,21 @@
 @tailwind utilities;
 
 @layer base {
+  /* Font loading optimization to prevent CLS */
+  html {
+    font-display: swap;
+  }
+  
+  /* Prevent layout shifts during font loading */
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+  }
+  
+  /* Ensure consistent line heights to prevent CLS */
+  * {
+    line-height: calc(1em + 0.5rem);
+  }
+  
   :root {
     /* TrackFlow Brand Colors */
     --brand-navy: 231 40% 9%; /* #0B1220 */

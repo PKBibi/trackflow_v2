@@ -6,6 +6,8 @@ import { useEffect } from 'react';
 
 // Google Analytics Measurement ID from environment variable
 const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+const PH_API_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+const PH_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com';
 
 // Track page views
 export function pageview(url: string) {
@@ -35,6 +37,32 @@ export function event({
       value: value,
     });
   }
+}
+
+// PostHog minimal capture (client-side)
+export function capturePosthog(event: string, properties?: Record<string, any>) {
+  try {
+    // Prefer posthog-js if loaded
+    if (typeof window !== 'undefined' && (window as any).posthog?.capture) {
+      (window as any).posthog.capture(event, properties)
+      return
+    }
+    if (!PH_API_KEY) return;
+    const payload = {
+      api_key: PH_API_KEY,
+      event,
+      properties: {
+        ...properties,
+        $current_url: typeof window !== 'undefined' ? window.location.href : undefined,
+      },
+    };
+    fetch(`${PH_HOST.replace(/\/$/, '')}/capture/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch(() => {});
+  } catch {}
 }
 
 // Predefined events for TrackFlow
@@ -100,11 +128,18 @@ export const trackEvent = {
   }),
   
   // Feature usage
-  featureUse: (feature: string) => event({ 
-    action: 'feature_use', 
-    category: 'feature',
-    label: feature 
-  }),
+  featureUse: (feature: string) => { 
+    event({ 
+      action: 'feature_use', 
+      category: 'feature',
+      label: feature 
+    });
+    capturePosthog('feature_use', { feature });
+  },
+  experiment: (name: string, variant: string, action: 'view' | 'cta') => {
+    event({ action: `exp_${name}_${action}`, category: 'experiment', label: variant });
+    capturePosthog('experiment', { name, variant, action });
+  },
   
   // Error tracking
   error: (message: string) => event({ 
@@ -133,12 +168,12 @@ export function Analytics() {
   return (
     <>
       <Script
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
       />
       <Script
         id="google-analytics"
-        strategy="afterInteractive"
+        strategy="lazyOnload"
         dangerouslySetInnerHTML={{
           __html: `
             window.dataLayer = window.dataLayer || [];

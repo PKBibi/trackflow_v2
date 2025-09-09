@@ -3,6 +3,11 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import Header from '@/components/layout/header'
 import Footer from '@/components/layout/footer'
+import { Analytics } from '@/components/analytics'
+import { PostHogAnalytics } from '@/components/posthog'
+import { WebVitals } from '@/components/web-vitals'
+import { Toaster } from '@/components/ui/toaster'
+import ErrorBoundary from '@/components/error-boundary'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -18,11 +23,11 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://trackflow.app'),
+  metadataBase: new URL('https://track-flow.app'),
   openGraph: {
     title: 'TrackFlow - Time Tracking for Digital Marketing',
     description: 'Track time by campaign, channel, and client.',
-    url: 'https://trackflow.app',
+    url: 'https://track-flow.app',
     siteName: 'TrackFlow',
     images: [
       {
@@ -95,13 +100,62 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 bg-white text-black dark:bg-gray-800 dark:text-white px-3 py-2 rounded shadow">Skip to main content</a>
         <div className="min-h-screen flex flex-col">
+          <Analytics />
+          <PostHogAnalytics />
+          <WebVitals />
+          <Toaster />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'Organization',
+                name: 'TrackFlow',
+                url: 'https://track-flow.app',
+                logo: 'https://track-flow.app/images/logo.png',
+                telephone: '+44 20 8156 6441',
+                address: {
+                  '@type': 'PostalAddress',
+                  streetAddress: '167-169 Great Portland Street, 5th Floor',
+                  addressLocality: 'London',
+                  postalCode: 'W1W 5PF',
+                  addressCountry: 'GB'
+                },
+                sameAs: [
+                  'https://twitter.com/trackflow',
+                  'https://linkedin.com/company/trackflow'
+                ]
+              })
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'WebSite',
+                url: 'https://track-flow.app',
+                potentialAction: {
+                  '@type': 'SearchAction',
+                  target: {
+                    '@type': 'EntryPoint',
+                    urlTemplate: 'https://track-flow.app/search?q={search_term_string}'
+                  },
+                  'query-input': 'required name=search_term_string'
+                }
+              })
+            }}
+          />
           <Header />
-          <main className="flex-1">
-            {children}
-          </main>
+          <ErrorBoundary>
+            <main id="main-content" className="flex-1">
+              {children}
+            </main>
+          </ErrorBoundary>
           <Footer />
         </div>
       </body>

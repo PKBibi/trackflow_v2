@@ -39,6 +39,13 @@ export default function Footer() {
             </ul>
           </div>
         </div>
+        {/* Contact row */}
+        <div className="mt-8 text-xs text-gray-400 border-t border-gray-800 pt-6 text-center">
+          <p>
+            167-169 Great Portland Street, 5th Floor, London, W1W 5PF<br />
+            Tel: 020 8156 6441 • track-flow.app
+          </p>
+        </div>
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm text-gray-400">
           © 2024 TrackFlow. All rights reserved.
         </div>

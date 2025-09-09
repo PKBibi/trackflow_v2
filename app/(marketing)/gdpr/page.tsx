@@ -12,10 +12,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'TrackFlow GDPR Compliance - Your Data, Your Rights',
     description: 'Full transparency about how we handle your data under GDPR.',
-    images: ['/og-gdpr.png'],
+    images: ['/images/og-gdpr.png'],
   },
   alternates: {
-    canonical: 'https://trackflow.app/gdpr',
+    canonical: 'https://track-flow.app/gdpr',
   },
 }
 
@@ -231,16 +231,16 @@ export default function GDPRPage() {
                 <div>
                   <h3 className="font-semibold mb-4">Data Controller</h3>
                   <p className="text-gray-600">
-                    TrackFlow Inc.<br />
-                    123 Market Street<br />
-                    San Francisco, CA 94105<br />
-                    United States
+                    TrackFlow Ltd.<br />
+                    167-169 Great Portland Street<br />
+                    5th Floor, London, W1W 5PF<br />
+                    United Kingdom
                   </p>
                 </div>
                 <div>
                   <h3 className="font-semibold mb-4">Data Protection Officer</h3>
                   <p className="text-gray-600">
-                    Email: <a href="mailto:privacy@trackflow.app" className="text-blue-600 hover:underline">privacy@trackflow.app</a><br />
+                    Email: <a href="mailto:privacy@track-flow.app" className="text-blue-600 hover:underline">privacy@track-flow.app</a><br />
                     Phone: +1 (555) 123-4567<br />
                     Response time: Within 48 hours
                   </p>
@@ -268,7 +268,7 @@ export default function GDPRPage() {
                 </div>
                 <div>
                   <h3 className="font-semibold mb-1">Submit Your Request</h3>
-                  <p className="text-gray-600">Email privacy@trackflow.app with your specific request</p>
+                  <p className="text-gray-600">Email privacy@track-flow.app with your specific request</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
@@ -291,7 +291,7 @@ export default function GDPRPage() {
               </div>
             </div>
           </div>
-          <a href="mailto:privacy@trackflow.app">
+          <a href="mailto:privacy@track-flow.app">
             <Button size="lg" className="btn-primary">
               Contact Privacy Team
             </Button>

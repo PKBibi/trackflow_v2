@@ -47,15 +47,14 @@ const defaultProject: Omit<Project, 'id' | 'user_id' | 'created_at' | 'updated_a
   client_id: '',
   name: '',
   description: '',
-  budget: 0,
+  budget_amount: 0,
   start_date: '',
   end_date: '',
   status: 'active',
   priority: 'medium',
   estimated_hours: 0,
   hourly_rate: 15000, // $150/hour
-  budget_alert_threshold: 80,
-  is_billable: true,
+  // optional fields removed or renamed to match Project type
   tags: [],
   notes: ''
 }
@@ -131,11 +130,11 @@ export function ProjectForm({ project, isOpen, onOpenChange, onSave, isLoading, 
     if (!formData.name.trim()) {
       newErrors.name = 'Project name is required'
     }
-    if (formData.hourly_rate <= 0) {
+    if (formData.hourly_rate && formData.hourly_rate <= 0) {
       newErrors.hourly_rate = 'Hourly rate must be greater than 0'
     }
-    if (formData.budget && formData.budget < 0) {
-      newErrors.budget = 'Budget cannot be negative'
+    if (formData.budget_amount && formData.budget_amount < 0) {
+      newErrors.budget_amount = 'Budget cannot be negative'
     }
     if (formData.estimated_hours && formData.estimated_hours < 0) {
       newErrors.estimated_hours = 'Estimated hours cannot be negative'
@@ -323,13 +322,13 @@ export function ProjectForm({ project, isOpen, onOpenChange, onSave, isLoading, 
                   <Input
                     id="budget"
                     type="number"
-                    value={formData.budget ? formData.budget / 100 : ''}
-                    onChange={(e) => updateField('budget', e.target.value ? Math.round(parseFloat(e.target.value) * 100) : 0)}
-                    className={errors.budget ? 'border-red-500' : ''}
+                    value={formData.budget_amount ? formData.budget_amount / 100 : ''}
+                    onChange={(e) => updateField('budget_amount', e.target.value ? Math.round(parseFloat(e.target.value) * 100) : 0)}
+                    className={errors.budget_amount ? 'border-red-500' : ''}
                     placeholder="0.00"
                   />
-                  {errors.budget && (
-                    <p className="text-sm text-red-500 mt-1">{errors.budget}</p>
+                  {errors.budget_amount && (
+                    <p className="text-sm text-red-500 mt-1">{errors.budget_amount}</p>
                   )}
                 </div>
 
@@ -338,7 +337,7 @@ export function ProjectForm({ project, isOpen, onOpenChange, onSave, isLoading, 
                   <Input
                     id="hourly_rate"
                     type="number"
-                    value={formData.hourly_rate / 100}
+                    value={formData.hourly_rate ? formData.hourly_rate / 100 : ''}
                     onChange={(e) => updateField('hourly_rate', Math.round(parseFloat(e.target.value || '0') * 100))}
                     className={errors.hourly_rate ? 'border-red-500' : ''}
                   />
@@ -411,7 +410,7 @@ export function ProjectForm({ project, isOpen, onOpenChange, onSave, isLoading, 
               </div>
 
               {/* Budget calculation preview */}
-              {formData.budget && formData.estimated_hours && formData.hourly_rate && (
+              {formData.budget_amount && formData.estimated_hours && formData.hourly_rate && (
                 <div className="bg-blue-50 p-4 rounded-lg border">
                   <p className="text-sm font-medium mb-2">Budget Analysis</p>
                   <div className="grid grid-cols-3 gap-4 text-sm">
@@ -423,16 +422,16 @@ export function ProjectForm({ project, isOpen, onOpenChange, onSave, isLoading, 
                     </div>
                     <div>
                       <span className="text-muted-foreground">Budget:</span>
-                      <p className="font-semibold">${(formData.budget / 100).toLocaleString()}</p>
+                      <p className="font-semibold">${(formData.budget_amount / 100).toLocaleString()}</p>
                     </div>
                     <div>
                       <span className="text-muted-foreground">Margin:</span>
                       <p className={`font-semibold ${
-                        formData.budget >= (formData.estimated_hours * formData.hourly_rate) 
+                        formData.budget_amount >= (formData.estimated_hours * formData.hourly_rate) 
                           ? 'text-green-600' 
                           : 'text-red-600'
                       }`}>
-                        ${((formData.budget - (formData.estimated_hours * formData.hourly_rate)) / 100).toLocaleString()}
+                        ${((formData.budget_amount - (formData.estimated_hours * formData.hourly_rate)) / 100).toLocaleString()}
                       </p>
                     </div>
                   </div>

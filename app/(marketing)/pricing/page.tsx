@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Check, X, ChevronRight, Shield, Clock, Users, FileText, BarChart3, Zap, Globe, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -127,10 +127,42 @@ const categoryLabels = {
 
 export default function PricingPage() {
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('monthly')
+  const [plan, setPlan] = useState<'free'|'pro'|'enterprise'>('free')
+  const [auth, setAuth] = useState(false)
+  const [prices, setPrices] = useState<any[]>([])
+
+  useEffect(() => {
+    fetch('/api/me/plan').then(r=>r.json()).then(d=>{ setPlan(d.plan||'free'); setAuth(!!d.authenticated) }).catch(()=>{})
+    fetch('/api/billing/status').then(r=>r.json()).then(d=>{ if (Array.isArray(d.prices)) setPrices(d.prices) }).catch(()=>{})
+  }, [])
+
+  const startCheckout = async (target: 'pro'|'enterprise') => {
+    try {
+      const res = await fetch('/api/billing/create-checkout-session', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: target })
+      })
+      const data = await res.json()
+      if (data.url) window.location.href = data.url
+    } catch {}
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950">
       <main className="container mx-auto px-4 py-16">
+        {/* Breadcrumb JSON-LD */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'BreadcrumbList',
+              itemListElement: [
+                { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://track-flow.app/' },
+                { '@type': 'ListItem', position: 2, name: 'Pricing', item: 'https://track-flow.app/pricing' }
+              ]
+            })
+          }}
+        />
         {/* Pricing Header */}
         <div className="text-center mb-12">
           <Badge className="mb-4" variant="secondary">
@@ -140,9 +172,20 @@ export default function PricingPage() {
           <h1 className="text-4xl font-bold mb-4">
             Plans Built for Marketing Teams
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-2">
             Track by client, channel and campaign—with privacy-first auto-detect and retainer burndown.
           </p>
+          {prices.length > 0 && (
+            <p className="text-sm text-muted-foreground mb-8">
+              {(() => {
+                const pro = prices.find((p:any)=> (p.nickname||'').toLowerCase().includes('pro')) || prices.sort((a:any,b:any)=> (a.unitAmount||0)-(b.unitAmount||0))[0]
+                const ent = prices.find((p:any)=> (p.nickname||'').toLowerCase().includes('ent')) || prices.sort((a:any,b:any)=> (b.unitAmount||0)-(a.unitAmount||0))[0]
+                const proText = pro?.unitAmount ? `$${(pro.unitAmount/100).toFixed(0)}/${pro?.recurring?.interval || 'mo'}` : ''
+                const entText = ent?.unitAmount ? `$${(ent.unitAmount/100).toFixed(0)}/${ent?.recurring?.interval || 'mo'}` : ''
+                return `Pro from ${proText}${entText ? ` • Enterprise from ${entText}` : ''}`
+              })()}
+            </p>
+          )}
           
           {/* Billing Toggle */}
           <div className="flex items-center justify-center gap-4 mb-2">
@@ -228,8 +271,17 @@ export default function PricingPage() {
                   className="w-full" 
                   variant={plan.highlighted ? 'default' : 'outline'}
                   size="lg"
+                  onClick={() => {
+                    if (plan.name === 'Agency Starter') {
+                      if (auth) startCheckout('pro'); else window.location.href = '/signup'
+                    } else if (plan.name === 'Agency Growth') {
+                      if (auth) startCheckout('enterprise'); else window.location.href = '/signup'
+                    } else {
+                      window.location.href = auth ? '/billing' : '/signup'
+                    }
+                  }}
                 >
-                  {plan.cta}
+                  {plan.name === 'Freelancer' ? (auth ? 'Go to Billing' : 'Start Free Trial') : (auth ? `Upgrade to ${plan.name.includes('Growth') ? 'Enterprise' : 'Pro'}` : 'Start Free Trial')}
                   <ChevronRight className="w-4 h-4 ml-2" />
                 </Button>
               </CardFooter>

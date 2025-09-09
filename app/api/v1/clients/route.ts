@@ -1,297 +1,342 @@
-import { NextRequest, NextResponse } from 'next/server'; { HttpError, isHttpError } from '@/lib/errors';
-
-// Mock database - replace with actual database queries
-let clients = [
-  {
-    id: '1',
-    name: 'Acme Corp',
-    email: 'contact@acmecorp.com',
-    phone: '+1-555-0100',
-    address: '123 Business St, New York, NY 10001',
-    website: 'https://acmecorp.com',
-    industry: 'Technology',
-    hourlyRate: 150,
-    currency: 'USD',
-    totalBilled: 15000,
-    totalPaid: 12000,
-    outstandingBalance: 3000,
-    status: 'active',
-    notes: 'Preferred communication via email',
-    createdAt: new Date('2024-01-01').toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: '2',
-    name: 'Tech Startup Inc',
-    email: 'hello@techstartup.com',
-    phone: '+1-555-0200',
-    address: '456 Innovation Ave, San Francisco, CA 94102',
-    website: 'https://techstartup.com',
-    industry: 'SaaS',
-    hourlyRate: 120,
-    currency: 'USD',
-    totalBilled: 8500,
-    totalPaid: 8500,
-    outstandingBalance: 0,
-    status: 'active',
-    notes: 'Monthly retainer client',
-    createdAt: new Date('2024-02-01').toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: '3',
-    name: 'Global Enterprises',
-    email: 'info@globalent.com',
-    phone: '+1-555-0300',
-    address: '789 Corporate Blvd, Chicago, IL 60601',
-    website: 'https://globalenterprises.com',
-    industry: 'Finance',
-    hourlyRate: 200,
-    currency: 'USD',
-    totalBilled: 25000,
-    totalPaid: 20000,
-    outstandingBalance: 5000,
-    status: 'active',
-    notes: 'Enterprise client - NET 30 terms',
-    createdAt: new Date('2024-03-01').toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-];
+import { NextRequest, NextResponse } from 'next/server'
+import { HttpError, isHttpError } from '@/lib/errors'
+import { createClient } from '@/lib/supabase/server'
+import { apiRateLimit } from '@/lib/rate-limit'
 
 // GET /api/v1/clients
 export async function GET(request: NextRequest) {
+  return apiRateLimit(request, async () => {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      throw new HttpError(401, 'Unauthorized')
+    }
+    
     const { searchParams } = new URL(request.url);
     
     // Query parameters
     const search = searchParams.get('search');
     const status = searchParams.get('status');
-    const industry = searchParams.get('industry');
+    const hasRetainer = searchParams.get('hasRetainer');
     const sortBy = searchParams.get('sortBy') || 'name';
     const sortOrder = searchParams.get('sortOrder') || 'asc';
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '50');
+    const offset = (page - 1) * limit;
     
-    let filteredClients = [...clients];
+    // Build query
+    let query = supabase
+      .from('clients')
+      .select('*', { count: 'exact' })
+      .eq('user_id', user.id)
     
     // Apply filters
     if (search) {
-      const searchLower = search.toLowerCase();
-      filteredClients = filteredClients.filter(client =>
-        client.name.toLowerCase().includes(searchLower) ||
-        client.email.toLowerCase().includes(searchLower) ||
-        client.industry?.toLowerCase().includes(searchLower)
-      );
+      query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,company.ilike.%${search}%`)
     }
     if (status) {
-      filteredClients = filteredClients.filter(client => client.status === status);
+      query = query.eq('status', status)
     }
-    if (industry) {
-      filteredClients = filteredClients.filter(client => client.industry === industry);
+    if (hasRetainer !== null) {
+      query = query.eq('has_retainer', hasRetainer === 'true')
     }
     
-    // Sorting
-    filteredClients.sort((a, b) => {
-      let comparison = 0;
-      switch (sortBy) {
-        case 'name':
-          comparison = a.name.localeCompare(b.name);
-          break;
-        case 'totalBilled':
-          comparison = a.totalBilled - b.totalBilled;
-          break;
-        case 'outstandingBalance':
-          comparison = a.outstandingBalance - b.outstandingBalance;
-          break;
-        case 'createdAt':
-          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-          break;
-        default:
-          comparison = a.name.localeCompare(b.name);
-      }
-      return sortOrder === 'asc' ? comparison : -comparison;
-    });
+    // Apply sorting
+    const isAsc = sortOrder === 'asc'
+    query = query.order(sortBy, { ascending: isAsc })
     
-    // Pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedClients = filteredClients.slice(startIndex, endIndex);
+    // Apply pagination
+    query = query.range(offset, offset + limit - 1)
     
-    // Calculate statistics
+    const { data: clients, error, count } = await query
+    
+    if (error) {
+      throw new HttpError(500, error.message)
+    }
+    
+    // Calculate statistics with a separate aggregation query
+    const { data: statsData } = await supabase
+      .from('clients')
+      .select('status, hourly_rate')
+      .eq('user_id', user.id)
+    
+    // Also get invoice statistics for revenue calculations
+    const { data: invoiceStats } = await supabase
+      .from('invoices')
+      .select('client_id, total_amount, status')
+      .eq('user_id', user.id)
+    
+    // Calculate stats
+    const activeClients = statsData?.filter(c => c.status === 'active').length || 0
+    const averageRate = statsData?.length ? 
+      statsData.reduce((sum, c) => sum + (c.hourly_rate || 0), 0) / statsData.length : 0
+    
+    // Calculate revenue from invoices
+    const totalRevenue = invoiceStats?.reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0
+    const totalOutstanding = invoiceStats
+      ?.filter(inv => inv.status !== 'paid' && inv.status !== 'cancelled')
+      .reduce((sum, inv) => sum + (inv.total_amount || 0), 0) || 0
+    
     const stats = {
-      totalClients: filteredClients.length,
-      activeClients: filteredClients.filter(c => c.status === 'active').length,
-      totalRevenue: filteredClients.reduce((sum, c) => sum + c.totalBilled, 0),
-      totalOutstanding: filteredClients.reduce((sum, c) => sum + c.outstandingBalance, 0),
-      averageRate: filteredClients.reduce((sum, c) => sum + c.hourlyRate, 0) / filteredClients.length
+      totalClients: count || 0,
+      activeClients,
+      totalRevenue: totalRevenue / 100, // Convert from cents
+      totalOutstanding: totalOutstanding / 100, // Convert from cents  
+      averageRate: averageRate / 100 // Convert from cents
     };
     
     return NextResponse.json({
-      data: paginatedClients,
+      data: clients || [],
       meta: {
-        total: filteredClients.length,
+        total: count || 0,
         page,
         limit,
-        totalPages: Math.ceil(filteredClients.length / limit)
+        totalPages: Math.ceil((count || 0) / limit)
       },
       stats
     });
   } catch (error) {
-  console.error('Clients route error:', error)
-  if (isHttpError(error)) {
-    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
+    console.error('Clients route error:', error)
+    if (isHttpError(error)) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-}
+  })
 }
 
 // POST /api/v1/clients
 export async function POST(request: NextRequest) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      throw new HttpError(401, 'Unauthorized')
+    }
+    
     const body = await request.json();
     
     // Validate required fields
-    const requiredFields = ['name', 'email'];
+    const requiredFields = ['name'];
     for (const field of requiredFields) {
       if (!body[field]) {
-        return NextResponse.json(
-          { error: `Missing required field: ${field}` },
-          { status: 400 }
-        );
+        throw new HttpError(400, `Missing required field: ${field}`)
       }
     }
     
-    // Check for duplicate email
-    const existingClient = clients.find(c => c.email === body.email);
-    if (existingClient) {
-      return NextResponse.json(
-        { error: 'A client with this email already exists' },
-        { status: 409 }
-      );
+    // Check for duplicate email if provided
+    if (body.email) {
+      const { data: existing } = await supabase
+        .from('clients')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('email', body.email)
+        .single()
+      
+      if (existing) {
+        throw new HttpError(409, 'A client with this email already exists')
+      }
     }
     
-    // Create new client
-    const newClient = {
-      id: Date.now().toString(),
-      ...body,
-      totalBilled: 0,
-      totalPaid: 0,
-      outstandingBalance: 0,
+    // Prepare client data
+    const clientData = {
+      user_id: user.id,
+      name: body.name,
+      email: body.email || null,
+      phone: body.phone || null,
+      company: body.company || null,
+      website: body.website || null,
+      address: body.address || null,
+      city: body.city || null,
+      state: body.state || null,
+      zip_code: body.zip_code || null,
+      country: body.country || 'US',
+      hourly_rate: body.hourly_rate || null,
+      currency: body.currency || 'USD',
+      tax_rate: body.tax_rate || 0,
+      has_retainer: body.has_retainer || false,
+      retainer_hours: body.retainer_hours || 0,
+      retainer_amount: body.retainer_amount || 0,
+      retainer_start_date: body.retainer_start_date || null,
+      retainer_end_date: body.retainer_end_date || null,
+      retainer_auto_renew: body.retainer_auto_renew || false,
+      alert_at_75_percent: body.alert_at_75_percent !== false,
+      alert_at_90_percent: body.alert_at_90_percent !== false,
+      alert_at_100_percent: body.alert_at_100_percent !== false,
       status: body.status || 'active',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+      notes: body.notes || null,
+      tags: body.tags || []
+    }
     
-    // Add to mock database
-    clients.push(newClient);
+    // Insert into database
+    const { data: newClient, error } = await supabase
+      .from('clients')
+      .insert([clientData])
+      .select()
+      .single()
     
-    // In production, save to database:
-    // const { data, error } = await supabase
-    //   .from('clients')
-    //   .insert([newClient])
-    //   .select()
-    //   .single();
+    if (error) {
+      throw new HttpError(500, error.message)
+    }
     
     return NextResponse.json({
       data: newClient,
       message: 'Client created successfully'
     }, { status: 201 });
   } catch (error) {
-  console.error('Clients route error:', error)
-  if (isHttpError(error)) {
-    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
+    console.error('Clients route error:', error)
+    if (isHttpError(error)) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-}
 }
 
 // PUT /api/v1/clients (bulk update)
 export async function PUT(request: NextRequest) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      throw new HttpError(401, 'Unauthorized')
+    }
+    
     const body = await request.json();
     const { ids, updates } = body;
     
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json(
-        { error: 'Missing or invalid ids array' },
-        { status: 400 }
-      );
+      throw new HttpError(400, 'Missing or invalid ids array')
     }
     
-    // Update multiple clients
-    const updatedClients = clients.map(client => {
-      if (ids.includes(client.id)) {
-        return {
-          ...client,
-          ...updates,
-          updatedAt: new Date().toISOString()
-        };
-      }
-      return client;
-    });
+    // Verify user owns these clients
+    const { data: clientCheck } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('user_id', user.id)
+      .in('id', ids)
     
-    clients = updatedClients;
+    if (!clientCheck || clientCheck.length !== ids.length) {
+      throw new HttpError(403, 'You do not have permission to update some of these clients')
+    }
+    
+    // Prepare updates (filter out undefined values)
+    const validUpdates: any = {}
+    const allowedFields = ['name', 'email', 'phone', 'company', 'website', 'address', 
+      'city', 'state', 'zip_code', 'country', 'hourly_rate', 'currency', 'tax_rate',
+      'has_retainer', 'retainer_hours', 'retainer_amount', 'retainer_start_date',
+      'retainer_end_date', 'retainer_auto_renew', 'alert_at_75_percent', 
+      'alert_at_90_percent', 'alert_at_100_percent', 'status', 'notes', 'tags']
+    
+    for (const field of allowedFields) {
+      if (updates[field] !== undefined) {
+        validUpdates[field] = updates[field]
+      }
+    }
+    
+    // Update clients
+    const { error } = await supabase
+      .from('clients')
+      .update(validUpdates)
+      .eq('user_id', user.id)
+      .in('id', ids)
+    
+    if (error) {
+      throw new HttpError(500, error.message)
+    }
     
     return NextResponse.json({
       message: `Updated ${ids.length} clients`,
       updatedIds: ids
     });
   } catch (error) {
-  console.error('Clients route error:', error)
-  if (isHttpError(error)) {
-    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
+    console.error('Clients route error:', error)
+    if (isHttpError(error)) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
-}
 }
 
 // DELETE /api/v1/clients (bulk delete)
 export async function DELETE(request: NextRequest) {
   try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) {
+      throw new HttpError(401, 'Unauthorized')
+    }
+    
     const body = await request.json();
     const { ids } = body;
     
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json(
-        { error: 'Missing or invalid ids array' },
-        { status: 400 }
-      );
+      throw new HttpError(400, 'Missing or invalid ids array')
     }
     
-    // Check for clients with outstanding balances
-    const clientsWithBalance = clients.filter(c => 
-      ids.includes(c.id) && c.outstandingBalance > 0
-    );
+    // Verify user owns these clients
+    const { data: clientCheck } = await supabase
+      .from('clients')
+      .select('id, name')
+      .eq('user_id', user.id)
+      .in('id', ids)
     
-    if (clientsWithBalance.length > 0) {
+    if (!clientCheck || clientCheck.length !== ids.length) {
+      throw new HttpError(403, 'You do not have permission to delete some of these clients')
+    }
+    
+    // Check for clients with unpaid invoices
+    const { data: unpaidInvoices } = await supabase
+      .from('invoices')
+      .select('client_id, total_amount')
+      .eq('user_id', user.id)
+      .in('client_id', ids)
+      .neq('status', 'paid')
+      .neq('status', 'cancelled')
+    
+    if (unpaidInvoices && unpaidInvoices.length > 0) {
+      const clientsWithBalance = unpaidInvoices.map(inv => {
+        const client = clientCheck.find(c => c.id === inv.client_id)
+        return {
+          id: inv.client_id,
+          name: client?.name || 'Unknown',
+          balance: inv.total_amount / 100 // Convert from cents
+        }
+      })
+      
       return NextResponse.json(
         { 
-          error: 'Cannot delete clients with outstanding balances',
-          clientsWithBalance: clientsWithBalance.map(c => ({
-            id: c.id,
-            name: c.name,
-            balance: c.outstandingBalance
-          }))
+          error: 'Cannot delete clients with unpaid invoices',
+          clientsWithBalance
         },
         { status: 400 }
       );
     }
     
-    // Remove clients
-    clients = clients.filter(client => !ids.includes(client.id));
+    // Delete clients
+    const { error } = await supabase
+      .from('clients')
+      .delete()
+      .eq('user_id', user.id)
+      .in('id', ids)
+    
+    if (error) {
+      throw new HttpError(500, error.message)
+    }
     
     return NextResponse.json({
       message: `Deleted ${ids.length} clients`,
       deletedIds: ids
     });
   } catch (error) {
-  console.error('Clients route error:', error)
-  if (isHttpError(error)) {
-    return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
+    console.error('Clients route error:', error)
+    if (isHttpError(error)) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
+    }
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-  return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
 }
-}
-
-
-

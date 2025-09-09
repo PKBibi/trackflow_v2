@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import * as XLSX from 'xlsx';
+import dynamic from 'next/dynamic';
+const XLSXPromise = import('xlsx');
 import { 
   Upload, 
   FileSpreadsheet, 
@@ -90,6 +91,7 @@ export default function ImportPage() {
 
   const fields = importType === 'time_entries' ? timeEntryFields : clientFields;
   const totalSteps = 4;
+  const [progressText, setProgressText] = useState('');
 
   // Handle file upload
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -123,7 +125,7 @@ export default function ImportPage() {
     try {
       const reader = new FileReader();
       
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const data = e.target?.result;
         
         if (uploadedFile.name.endsWith('.csv')) {
@@ -143,6 +145,9 @@ export default function ImportPage() {
           setRawData(dataRows);
         } else {
           // Parse Excel
+          // Lazy import xlsx to avoid adding it to the main bundle
+          // @ts-ignore
+          const XLSX = await XLSXPromise;
           const workbook = XLSX.read(data, { type: 'binary' });
           const sheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[sheetName];
@@ -327,7 +332,9 @@ export default function ImportPage() {
         
         // Update progress
         const progress = (imported / processedData.length) * 100;
-        console.log(`Imported ${imported}/${processedData.length} (${progress.toFixed(1)}%)`);
+        const text = `Imported ${imported} of ${processedData.length} (${progress.toFixed(1)}%)`;
+        setProgressText(text);
+        console.log(text);
       }
       
       toast({
@@ -379,8 +386,9 @@ export default function ImportPage() {
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return (
-          <div className="space-y-6">
+  return (
+    <div className="space-y-6" aria-busy={isProcessing}>
+      <div className="sr-only" aria-live="polite">{isProcessing ? progressText || 'Import in progress' : ''}</div>
             {/* Import Type Selection */}
             <Tabs value={importType} onValueChange={(v) => setImportType(v as any)}>
               <TabsList className="grid w-full grid-cols-2">

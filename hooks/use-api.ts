@@ -157,11 +157,9 @@ export async function postApi<T = any>(
   });
   
   if (!response.ok) {
-    const error = new Error('Failed to post data');
     const httpError = new Error('Request failed') as Error & { status?: number };
     httpError.status = response.status;
     throw httpError;
-    throw error;
   }
   
   const result = await response.json();
@@ -189,11 +187,9 @@ export async function putApi<T = any>(
   });
   
   if (!response.ok) {
-    const error = new Error('Failed to update data');
     const httpError = new Error('Request failed') as Error & { status?: number };
     httpError.status = response.status;
     throw httpError;
-    throw error;
   }
   
   const result = await response.json();
@@ -219,11 +215,9 @@ export async function deleteApi<T = any>(
   });
   
   if (!response.ok) {
-    const error = new Error('Failed to delete data');
     const httpError = new Error('Request failed') as Error & { status?: number };
     httpError.status = response.status;
     throw httpError;
-    throw error;
   }
   
   const result = await response.json();

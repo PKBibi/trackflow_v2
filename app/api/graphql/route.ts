@@ -1,4 +1,5 @@
-import { HttpError, isHttpError } from '@/lib/errors'\nimport { NextRequest, NextResponse } from 'next/server'
+import { HttpError, isHttpError } from '@/lib/errors'
+import { NextRequest, NextResponse } from 'next/server'
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLFloat, GraphQLBoolean, GraphQLList, GraphQLNonNull, GraphQLID, graphql } from 'graphql'
 import { createClient } from '@/lib/supabase/server'
 
@@ -11,9 +12,11 @@ const TimeEntryType: GraphQLObjectType = new GraphQLObjectType({
     startTime: { type: GraphQLString },
     endTime: { type: GraphQLString },
     duration: { type: GraphQLInt },
+    amount: { type: GraphQLFloat },
     projectId: { type: GraphQLID },
     clientId: { type: GraphQLID },
     billable: { type: GraphQLBoolean },
+    channel: { type: GraphQLString },
     notes: { type: GraphQLString },
     tags: { type: new GraphQLList(GraphQLString) },
     createdAt: { type: GraphQLString },
@@ -26,6 +29,19 @@ const TimeEntryType: GraphQLObjectType = new GraphQLObjectType({
           .from('projects')
           .select('*')
           .eq('id', parent.projectId)
+          .eq('user_id', context.user.id)
+          .single()
+        return data
+      }
+    },
+    client: {
+      type: ClientType as any,
+      resolve: async (parent, args, context) => {
+        if (!parent.clientId) return null
+        const { data } = await context.supabase
+          .from('clients')
+          .select('*')
+          .eq('id', parent.clientId)
           .eq('user_id', context.user.id)
           .single()
         return data
@@ -44,9 +60,24 @@ const ProjectType: GraphQLObjectType = new GraphQLObjectType({
     status: { type: GraphQLString },
     hourlyRate: { type: GraphQLFloat },
     budget: { type: GraphQLFloat },
+    estimatedHours: { type: GraphQLFloat },
+    deadline: { type: GraphQLString },
     color: { type: GraphQLString },
     createdAt: { type: GraphQLString },
     updatedAt: { type: GraphQLString },
+    clientDetails: {
+      type: ClientType,
+      resolve: async (parent, args, context) => {
+        if (!parent.client) return null
+        const { data } = await context.supabase
+          .from('clients')
+          .select('*')
+          .eq('name', parent.client)
+          .eq('user_id', context.user.id)
+          .single()
+        return data
+      }
+    },
     timeEntries: {
       type: new GraphQLList(TimeEntryType),
       resolve: async (parent, args, context) => {
@@ -68,10 +99,67 @@ const ProjectType: GraphQLObjectType = new GraphQLObjectType({
           .eq('user_id', context.user.id)
         
         if (!data) return 0
-        return data.reduce((sum: number, entry: any) => sum + (entry.duration || 0), 0) / 3600
+        return data.reduce((sum: number, entry: any) => sum + (entry.duration || 0), 0) / 60
+      }
+    },
+    totalRevenue: {
+      type: GraphQLFloat,
+      resolve: async (parent, args, context) => {
+        const { data } = await context.supabase
+          .from('time_entries')
+          .select('amount')
+          .eq('project_id', parent.id)
+          .eq('user_id', context.user.id)
+        
+        if (!data) return 0
+        return data.reduce((sum: number, entry: any) => sum + (entry.amount || 0), 0)
       }
     }
   })
+})
+
+const ClientType: GraphQLObjectType = new GraphQLObjectType({
+  name: 'Client',
+  fields: () => ({
+    id: { type: GraphQLID },
+    name: { type: GraphQLString },
+    email: { type: GraphQLString },
+    phone: { type: GraphQLString },
+    company: { type: GraphQLString },
+    address: { type: GraphQLString },
+    hourlyRate: { type: GraphQLFloat },
+    currency: { type: GraphQLString },
+    retainerAmount: { type: GraphQLFloat },
+    retainerUsed: { type: GraphQLFloat },
+    retainerReset: { type: GraphQLString },
+    notes: { type: GraphQLString },
+    status: { type: GraphQLString },
+    createdAt: { type: GraphQLString },
+    updatedAt: { type: GraphQLString },
+    projects: {
+      type: new GraphQLList(ProjectType),
+      resolve: async (parent, args, context) => {
+        const { data } = await context.supabase
+          .from('projects')
+          .select('*')
+          .eq('client', parent.name)
+          .eq('user_id', context.user.id)
+        return data || []
+      }
+    }
+  })
+})
+
+const InvoiceLineItemType: GraphQLObjectType = new GraphQLObjectType({
+  name: 'InvoiceLineItem',
+  fields: {
+    id: { type: GraphQLID },
+    description: { type: GraphQLString },
+    quantity: { type: GraphQLFloat },
+    unitPrice: { type: GraphQLFloat },
+    total: { type: GraphQLFloat },
+    timeEntryId: { type: GraphQLID }
+  }
 })
 
 const InvoiceType: GraphQLObjectType = new GraphQLObjectType({
@@ -91,7 +179,30 @@ const InvoiceType: GraphQLObjectType = new GraphQLObjectType({
     notes: { type: GraphQLString },
     items: { type: new GraphQLList(GraphQLString) },
     createdAt: { type: GraphQLString },
-    paidAt: { type: GraphQLString }
+    paidAt: { type: GraphQLString },
+    client: {
+      type: ClientType,
+      resolve: async (parent, args, context) => {
+        if (!parent.clientId) return null
+        const { data } = await context.supabase
+          .from('clients')
+          .select('*')
+          .eq('id', parent.clientId)
+          .eq('user_id', context.user.id)
+          .single()
+        return data
+      }
+    },
+    lineItems: {
+      type: new GraphQLList(InvoiceLineItemType),
+      resolve: async (parent, args, context) => {
+        const { data } = await context.supabase
+          .from('invoice_line_items')
+          .select('*')
+          .eq('invoice_id', parent.id)
+        return data || []
+      }
+    }
   })
 })
 
@@ -112,6 +223,46 @@ const UserStatsType: GraphQLObjectType = new GraphQLObjectType({
 const RootQuery = new GraphQLObjectType({
   name: 'RootQueryType',
   fields: {
+    // Get single client
+    client: {
+      type: ClientType,
+      args: { id: { type: GraphQLID } },
+      resolve: async (parent, args, context) => {
+        const { data } = await context.supabase
+          .from('clients')
+          .select('*')
+          .eq('id', args.id)
+          .eq('user_id', context.user.id)
+          .single()
+        return data
+      }
+    },
+    
+    // Get all clients
+    clients: {
+      type: new GraphQLList(ClientType),
+      args: {
+        status: { type: GraphQLString },
+        search: { type: GraphQLString },
+        limit: { type: GraphQLInt },
+        offset: { type: GraphQLInt }
+      },
+      resolve: async (parent, args, context) => {
+        let query = context.supabase
+          .from('clients')
+          .select('*')
+          .eq('user_id', context.user.id)
+        
+        if (args.status) query = query.eq('status', args.status)
+        if (args.search) query = query.ilike('name', `%${args.search}%`)
+        if (args.limit) query = query.limit(args.limit)
+        if (args.offset) query = query.range(args.offset, args.offset + (args.limit || 10) - 1)
+        
+        const { data } = await query.order('name')
+        return data || []
+      }
+    },
+
     // Get single project
     project: {
       type: ProjectType,
@@ -296,6 +447,86 @@ const RootQuery = new GraphQLObjectType({
 const RootMutation = new GraphQLObjectType({
   name: 'RootMutationType',
   fields: {
+    // Create client
+    createClient: {
+      type: ClientType,
+      args: {
+        name: { type: new GraphQLNonNull(GraphQLString) },
+        email: { type: GraphQLString },
+        phone: { type: GraphQLString },
+        company: { type: GraphQLString },
+        address: { type: GraphQLString },
+        hourlyRate: { type: GraphQLFloat },
+        currency: { type: GraphQLString },
+        retainerAmount: { type: GraphQLFloat },
+        notes: { type: GraphQLString }
+      },
+      resolve: async (parent, args, context) => {
+        const { data, error } = await context.supabase
+          .from('clients')
+          .insert({
+            ...args,
+            user_id: context.user.id,
+            status: 'active',
+            retainer_used: 0
+          })
+          .select()
+          .single()
+        
+        if (error) throw new HttpError(400, error.message)
+        return data
+      }
+    },
+    
+    // Update client
+    updateClient: {
+      type: ClientType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) },
+        name: { type: GraphQLString },
+        email: { type: GraphQLString },
+        phone: { type: GraphQLString },
+        company: { type: GraphQLString },
+        address: { type: GraphQLString },
+        hourlyRate: { type: GraphQLFloat },
+        currency: { type: GraphQLString },
+        retainerAmount: { type: GraphQLFloat },
+        status: { type: GraphQLString },
+        notes: { type: GraphQLString }
+      },
+      resolve: async (parent, args, context) => {
+        const { id, ...updates } = args
+        const { data, error } = await context.supabase
+          .from('clients')
+          .update(updates)
+          .eq('id', id)
+          .eq('user_id', context.user.id)
+          .select()
+          .single()
+        
+        if (error) throw new HttpError(400, error.message)
+        return data
+      }
+    },
+    
+    // Delete client
+    deleteClient: {
+      type: GraphQLBoolean,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLID) }
+      },
+      resolve: async (parent, args, context) => {
+        const { error } = await context.supabase
+          .from('clients')
+          .delete()
+          .eq('id', args.id)
+          .eq('user_id', context.user.id)
+        
+        if (error) throw new HttpError(400, error.message)
+        return true
+      }
+    },
+
     // Create project
     createProject: {
       type: ProjectType,
@@ -305,13 +536,22 @@ const RootMutation = new GraphQLObjectType({
         client: { type: GraphQLString },
         hourlyRate: { type: GraphQLFloat },
         budget: { type: GraphQLFloat },
+        estimatedHours: { type: GraphQLFloat },
+        deadline: { type: GraphQLString },
         color: { type: GraphQLString }
       },
       resolve: async (parent, args, context) => {
         const { data, error } = await context.supabase
           .from('projects')
           .insert({
-            ...args,
+            name: args.name,
+            description: args.description,
+            client: args.client,
+            hourly_rate: args.hourlyRate,
+            budget: args.budget,
+            estimated_hours: args.estimatedHours,
+            deadline: args.deadline,
+            color: args.color,
             user_id: context.user.id,
             status: 'active'
           })
@@ -334,13 +574,22 @@ const RootMutation = new GraphQLObjectType({
         status: { type: GraphQLString },
         hourlyRate: { type: GraphQLFloat },
         budget: { type: GraphQLFloat },
+        estimatedHours: { type: GraphQLFloat },
+        deadline: { type: GraphQLString },
         color: { type: GraphQLString }
       },
       resolve: async (parent, args, context) => {
-        const { id, ...updates } = args
+        const { id, hourlyRate, estimatedHours, ...updates } = args
+        
+        const updateData = {
+          ...updates,
+          ...(hourlyRate !== undefined && { hourly_rate: hourlyRate }),
+          ...(estimatedHours !== undefined && { estimated_hours: estimatedHours })
+        }
+        
         const { data, error } = await context.supabase
           .from('projects')
-          .update(updates)
+          .update(updateData)
           .eq('id', id)
           .eq('user_id', context.user.id)
           .select()
@@ -357,20 +606,53 @@ const RootMutation = new GraphQLObjectType({
       args: {
         description: { type: new GraphQLNonNull(GraphQLString) },
         projectId: { type: new GraphQLNonNull(GraphQLString) },
+        clientId: { type: GraphQLString },
         startTime: { type: new GraphQLNonNull(GraphQLString) },
         endTime: { type: GraphQLString },
         duration: { type: GraphQLInt },
         billable: { type: GraphQLBoolean },
+        channel: { type: GraphQLString },
+        notes: { type: GraphQLString },
         tags: { type: new GraphQLList(GraphQLString) }
       },
       resolve: async (parent, args, context) => {
+        // Calculate duration if end_time is provided
+        let duration = args.duration;
+        let amount = null;
+        
+        if (args.endTime && !duration) {
+          const start = new Date(args.startTime)
+          const end = new Date(args.endTime)
+          duration = Math.round((end.getTime() - start.getTime()) / 60000) // Convert to minutes
+        }
+        
+        // Get project details for hourly rate calculation
+        if (duration && args.projectId) {
+          const { data: project } = await context.supabase
+            .from('projects')
+            .select('hourly_rate')
+            .eq('id', args.projectId)
+            .single()
+          
+          if (project && project.hourly_rate) {
+            amount = (duration / 60) * project.hourly_rate
+          }
+        }
+
         const { data, error } = await context.supabase
           .from('time_entries')
           .insert({
-            ...args,
+            description: args.description,
             project_id: args.projectId,
+            client_id: args.clientId,
             start_time: args.startTime,
             end_time: args.endTime,
+            duration,
+            amount,
+            billable: args.billable,
+            channel: args.channel,
+            notes: args.notes,
+            tags: args.tags,
             user_id: context.user.id
           })
           .select()

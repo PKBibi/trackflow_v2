@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card } from '@/components/ui/card'
+import { IntegrationCard } from '@/components/integrations/integration-card'
 
 export const metadata: Metadata = {
   title: 'Integrations - TrackFlow | Connect Your Marketing Tools',
@@ -142,16 +142,6 @@ export default function IntegrationsPage() {
     }
   ];
 
-  const getStatusBadge = (status: string) => {
-    switch(status) {
-      case 'available':
-        return <Badge className="bg-green-100 text-green-700 border-green-200">Available</Badge>
-      case 'coming-soon':
-        return <Badge className="bg-blue-100 text-blue-700 border-blue-200">Coming Soon</Badge>
-      default:
-        return <Badge className="bg-gray-100 text-gray-600 border-gray-200">Planned</Badge>
-    }
-  }
 
   return (
     <div className="bg-white">
@@ -182,23 +172,7 @@ export default function IntegrationsPage() {
               </div>
               <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {category.tools.map((tool) => (
-                  <Card key={tool.name} className="relative p-6 hover:shadow-lg transition-shadow">
-                    <div className="absolute top-4 right-4">
-                      {getStatusBadge(tool.status)}
-                    </div>
-                    <div className="mb-4">
-                      <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-2xl mb-4">
-                        {tool.icon}
-                      </div>
-                      <h3 className="font-semibold text-lg mb-2">{tool.name}</h3>
-                      <p className="text-sm text-gray-600">{tool.description}</p>
-                    </div>
-                    {tool.status === 'available' && (
-                      <Button size="sm" className="w-full">
-                        Configure
-                      </Button>
-                    )}
-                  </Card>
+                  <IntegrationCard key={tool.name} tool={tool} />
                 ))}
               </div>
             </div>

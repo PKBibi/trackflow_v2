@@ -62,7 +62,14 @@ export default function DeleteAccountPage() {
   const sendVerificationCode = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to continue',
+          variant: 'destructive'
+        })
+        return
+      }
 
       // Send verification code to user's email
       await fetch('/api/account/send-deletion-code', {
@@ -94,7 +101,15 @@ export default function DeleteAccountPage() {
     setDeleting(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to continue',
+          variant: 'destructive'
+        })
+        setDeleting(false)
+        return
+      }
 
       // Verify password
       const { error: signInError } = await supabase.auth.signInWithPassword({

@@ -1,52 +1,28 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@/lib/supabase/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
-
-  // Create a Supabase client configured for the server environment
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
-        },
-        set(name: string, value: string, options: any) {
-          request.cookies.set({ name, value, ...options })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: any) {
-          request.cookies.set({ name, value: '', ...options })
-          response = NextResponse.next({
-            request: {
-              headers: request.headers,
-            },
-          })
-          response.cookies.set({ name, value: '', ...options })
-        },
-      },
-    }
-  )
-
-  // Check authentication status
-  const { data: { session } } = await supabase.auth.getSession()
+  // Properly validate Supabase session instead of just checking cookie existence
+  let user = null
+  
+  try {
+    const supabase = await createClient()
+    const { data: { session }, error } = await supabase.auth.getSession()
+    
+    // Consider session valid only if we have a valid user and no errors
+    const hasValidSession = session?.user && !error
+    user = hasValidSession ? session.user : null
+  } catch (error) {
+    // If we can't create supabase client or get session, treat as unauthenticated
+    console.error('Middleware auth error:', error)
+    user = null
+  }
 
   // Define protected routes that require authentication
   const protectedRoutes = [
     '/dashboard',
-    // '/timer', // Temporarily disabled for testing
+    '/timer', // Re-enabled with proper auth validation
     '/timesheet', 
     '/reports',
     '/invoices',
@@ -54,6 +30,7 @@ export async function middleware(request: NextRequest) {
     '/projects',
     '/insights',
     '/settings',
+    '/billing',
     '/import',
     '/onboarding'
   ]
@@ -70,18 +47,22 @@ export async function middleware(request: NextRequest) {
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
 
   // Redirect unauthenticated users trying to access protected routes
-  if (isProtectedRoute && !session) {
+  if (isProtectedRoute && !user) {
     const redirectUrl = new URL('/login', request.url)
     redirectUrl.searchParams.set('redirectTo', pathname)
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Redirect authenticated users away from auth pages to dashboard
-  if (isAuthRoute && session) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+  // If user is authenticated and visits full pricing page, redirect to simple pricing
+  if (pathname === '/pricing' && user) {
+    return NextResponse.redirect(new URL('/pricing/simple', request.url))
   }
 
-  return response
+  // Redirect authenticated users away from auth pages to dashboard
+  if (isAuthRoute && user) {
+    return NextResponse.redirect(new URL('/dashboard', request.url))
+  }
+  return NextResponse.next()
 }
 
 // Configure which routes the middleware should run on

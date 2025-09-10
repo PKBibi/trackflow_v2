@@ -248,10 +248,12 @@ const TemplateCard = ({ name, duration, category, description, icon: Icon, downl
             <span className="text-sm font-medium">{rating}</span>
             <span className="text-xs text-gray-500">({downloads})</span>
           </div>
-          <Button size="sm" variant="outline" className="text-xs">
-            <Download className="w-3 h-3 mr-1" />
-            Use Template
-          </Button>
+          <Link href={`/signup?template=${encodeURIComponent(name)}`} aria-label={`Use template ${name}`}>
+            <Button size="sm" variant="outline" className="text-xs">
+              <Download className="w-3 h-3 mr-1" />
+              Use Template
+            </Button>
+          </Link>
         </div>
       </div>
     </CardContent>

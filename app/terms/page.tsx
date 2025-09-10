@@ -120,8 +120,8 @@ export default function TermsPage() {
             </p>
             <div className="mt-4">
               <p>TrackFlow</p>
-              <p>Email: legal@trackflow.app</p>
-              <p>Address: [Your Business Address]</p>
+              <p>Email: legal@track-flow.app</p>
+              <p>Address: 167-169 Great Portland Street, 5th Floor, London, W1W 5PF</p>
             </div>
           </section>
         </div>

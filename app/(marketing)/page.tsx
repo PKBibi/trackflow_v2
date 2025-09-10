@@ -30,10 +30,10 @@ export default function MarketingLandingPage() {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-                         <Link href="/signup" className="px-8 py-4 btn-primary text-white rounded-lg hover:bg-blue-800">
-               Start Free 14-Day Trial
-             </Link>
-            <Link href="/demo" className="px-8 py-4 bg-white text-gray-900 border-2 border-gray-200 rounded-lg hover:bg-gray-50">
+            <Link href="/signup" className="btn-cta">
+              Start Free 14-Day Trial
+            </Link>
+            <Link href="/demo" className="btn-cta-outline">
               Watch 2-min Demo
             </Link>
           </div>

@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import type { Metadata } from 'next'
 
 import { Mail, MessageSquare, Phone, MapPin, Send, ChevronDown, ChevronUp } from 'lucide-react'
+import Link from 'next/link'
 
 const faqs = [
   {
@@ -75,6 +77,21 @@ export default function ContactPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        {/* FAQ JSON-LD */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: faqs.map(f => ({
+                '@type': 'Question',
+                name: f.question,
+                acceptedAnswer: { '@type': 'Answer', text: f.answer }
+              }))
+            })
+          }}
+        />
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16">
           {/* Contact Form */}
           <div>
@@ -150,9 +167,9 @@ export default function ContactPage() {
                 <Mail className="h-5 w-5 text-blue-600" />
                 <span>
                   <strong>Email:</strong>{' '}
-                  <a href="mailto:support@trackflow.app" className="text-blue-600 hover:text-blue-500">
-                    support@trackflow.app
-                  </a>
+                <a href="mailto:support@track-flow.app" className="text-blue-600 hover:text-blue-500">
+                    support@track-flow.app
+                </a>
                 </span>
               </div>
               <div className="flex items-center space-x-3 text-gray-600">
@@ -211,12 +228,16 @@ export default function ContactPage() {
                 Check out our comprehensive documentation and video tutorials to get started quickly.
               </p>
               <div className="space-y-2">
-                <Button variant="outline" className="w-full" size="sm">
-                  View Documentation
-                </Button>
-                <Button variant="outline" className="w-full" size="sm">
-                  Watch Tutorials
-                </Button>
+                <Link href="/docs">
+                  <Button variant="outline" className="w-full" size="sm">
+                    View Documentation
+                  </Button>
+                </Link>
+                <Link href="/demo">
+                  <Button variant="outline" className="w-full" size="sm">
+                    Watch Tutorials
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -233,23 +254,19 @@ export default function ContactPage() {
               <MapPin className="h-8 w-8 text-blue-600" />
               <h3 className="font-semibold text-gray-900">Address</h3>
               <p className="text-gray-600 text-sm text-center">
-                123 Innovation Drive<br />
-                San Francisco, CA 94105
+                167-169 Great Portland Street, 5th Floor,<br />
+                London, W1W 5PF
               </p>
             </div>
             <div className="flex flex-col items-center space-y-2">
               <Phone className="h-8 w-8 text-blue-600" />
               <h3 className="font-semibold text-gray-900">Phone</h3>
-              <p className="text-gray-600 text-sm">
-                +1 (555) 123-4567
-              </p>
+              <p className="text-gray-600 text-sm">020 8156 6441</p>
             </div>
             <div className="flex flex-col items-center space-y-2">
               <Mail className="h-8 w-8 text-blue-600" />
               <h3 className="font-semibold text-gray-900">Email</h3>
-              <p className="text-gray-600 text-sm">
-                hello@trackflow.app
-              </p>
+              <p className="text-gray-600 text-sm">hello@track-flow.app</p>
             </div>
           </div>
         </div>

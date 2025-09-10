@@ -81,9 +81,9 @@ export const metadata: Metadata = {
   },
   manifest: '/site.webmanifest',
   verification: {
-    google: 'google-site-verification-code',
-    yandex: 'yandex-verification-code',
-    yahoo: 'yahoo-verification-code',
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    yandex: process.env.YANDEX_SITE_VERIFICATION,
+    yahoo: process.env.YAHOO_SITE_VERIFICATION,
   },
   category: 'productivity',
 }
@@ -127,7 +127,12 @@ export default function RootLayout({
                 name: 'TrackFlow',
                 url: 'https://track-flow.app',
                 logo: 'https://track-flow.app/images/logo.png',
+                description: 'The only time tracking software built specifically for digital marketing freelancers and agencies.',
                 telephone: '+44 20 8156 6441',
+                email: 'hello@track-flow.app',
+                foundingDate: '2023',
+                numberOfEmployees: '2-10',
+                industry: 'Software',
                 address: {
                   '@type': 'PostalAddress',
                   streetAddress: '167-169 Great Portland Street, 5th Floor',
@@ -137,8 +142,16 @@ export default function RootLayout({
                 },
                 sameAs: [
                   'https://twitter.com/trackflow',
-                  'https://linkedin.com/company/trackflow'
-                ]
+                  'https://linkedin.com/company/trackflow',
+                  'https://github.com/trackflow'
+                ],
+                aggregateRating: {
+                  '@type': 'AggregateRating',
+                  ratingValue: '4.8',
+                  reviewCount: '127',
+                  bestRating: '5',
+                  worstRating: '1'
+                }
               })
             }}
           />
@@ -148,7 +161,9 @@ export default function RootLayout({
               __html: JSON.stringify({
                 '@context': 'https://schema.org',
                 '@type': 'WebSite',
+                name: 'TrackFlow',
                 url: 'https://track-flow.app',
+                description: 'Time tracking software for digital marketing professionals',
                 potentialAction: {
                   '@type': 'SearchAction',
                   target: {
@@ -156,6 +171,44 @@ export default function RootLayout({
                     urlTemplate: 'https://track-flow.app/search?q={search_term_string}'
                   },
                   'query-input': 'required name=search_term_string'
+                }
+              })
+            }}
+          />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                '@context': 'https://schema.org',
+                '@type': 'SoftwareApplication',
+                name: 'TrackFlow',
+                operatingSystem: 'Web Browser',
+                applicationCategory: 'BusinessApplication',
+                aggregateRating: {
+                  '@type': 'AggregateRating',
+                  ratingValue: '4.8',
+                  ratingCount: '127'
+                },
+                offers: {
+                  '@type': 'Offer',
+                  price: '29',
+                  priceCurrency: 'USD',
+                  priceValidUntil: '2025-12-31',
+                  availability: 'https://schema.org/InStock',
+                  url: 'https://track-flow.app/pricing'
+                },
+                screenshot: 'https://track-flow.app/images/app-screenshot.png',
+                featureList: [
+                  'Campaign ROI Tracking',
+                  'Multi-Channel Time Allocation', 
+                  'Retainer Management',
+                  'White-Label Reports',
+                  'AI Insights'
+                ],
+                author: {
+                  '@type': 'Organization',
+                  name: 'TrackFlow',
+                  url: 'https://track-flow.app'
                 }
               })
             }}

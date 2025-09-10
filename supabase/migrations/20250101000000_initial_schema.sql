@@ -10,13 +10,19 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- ENUMS
 -- =============================================
 
-CREATE TYPE invoice_status AS ENUM (
-  'draft',
-  'sent', 
-  'paid',
-  'overdue',
-  'cancelled'
-);
+-- Create invoice_status enum only if it doesn't exist
+DO $$ 
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'invoice_status') THEN
+        CREATE TYPE invoice_status AS ENUM (
+          'draft',
+          'sent', 
+          'paid',
+          'overdue',
+          'cancelled'
+        );
+    END IF;
+END $$;
 
 -- =============================================
 -- 1. USER PROFILES TABLE

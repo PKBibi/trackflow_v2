@@ -1,29 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { HttpError, isHttpError } from '@/lib/errors'
 import { createClient } from '@/lib/supabase/server'
+import { validateInput, projectCreateSchema, rateLimitPerUser } from '@/lib/validation/middleware'
 
 // GET /api/v1/projects
 export async function GET(request: NextRequest) {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      throw new HttpError(401, 'Unauthorized')
-    }
-    
-    const { searchParams } = new URL(request.url);
-    
-    // Query parameters
-    const search = searchParams.get('search');
-    const status = searchParams.get('status');
-    const clientId = searchParams.get('clientId');
-    const priority = searchParams.get('priority');
-    const sortBy = searchParams.get('sortBy') || 'name';
-    const sortOrder = searchParams.get('sortOrder') || 'asc';
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = (page - 1) * limit;
+  return validateInput(projectCreateSchema)(request, async (validatedData, req) => {
+    try {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new HttpError(401, 'Unauthorized')
+      }
+      
+      // Apply rate limiting per user
+      await rateLimitPerUser(100, 60000)(user.id)
+      
+      // Extract validated parameters
+      const { search, status, page = 1, limit = 50 } = validatedData
+      const clientId = validatedData.client_id // From validation schema
+      const priority = validatedData.priority
+      const sortBy = 'name' // Default sort
+      const sortOrder = 'asc' // Default order
+      const offset = (page - 1) * limit
     
     // Build query - include related client name and project statistics
     let query = supabase

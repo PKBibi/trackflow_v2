@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { HttpError, isHttpError } from '@/lib/errors'
 
 // Mock database - replace with actual database queries
 // This would be imported from a shared location in production
@@ -32,10 +33,7 @@ export async function GET(
     const client = clients.find(c => c.id === params.id);
     
     if (!client) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      );
+      throw new HttpError(404, 'Client not found')
     }
     
     // In production, also fetch related data:
@@ -56,11 +54,17 @@ export async function GET(
       }
     });
   } catch (error) {
-    console.error('Error fetching client:', error);
+    console.error('Client route error:', error)
+    if (isHttpError(error)) {
+      return NextResponse.json(
+        { error: error.message, code: error.code }, 
+        { status: error.status }
+      )
+    }
     return NextResponse.json(
-      { error: 'Failed to fetch client' },
+      { error: 'Internal server error' }, 
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -75,10 +79,7 @@ export async function PUT(
     const clientIndex = clients.findIndex(c => c.id === params.id);
     
     if (clientIndex === -1) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      );
+      throw new HttpError(404, 'Client not found')
     }
     
     // Check for email uniqueness if email is being updated
@@ -88,10 +89,7 @@ export async function PUT(
       );
       
       if (emailExists) {
-        return NextResponse.json(
-          { error: 'A client with this email already exists' },
-          { status: 409 }
-        );
+        throw new HttpError(409, 'A client with this email already exists')
       }
     }
     
@@ -118,11 +116,17 @@ export async function PUT(
       message: 'Client updated successfully'
     });
   } catch (error) {
-    console.error('Error updating client:', error);
+    console.error('Client route error:', error)
+    if (isHttpError(error)) {
+      return NextResponse.json(
+        { error: error.message, code: error.code }, 
+        { status: error.status }
+      )
+    }
     return NextResponse.json(
-      { error: 'Failed to update client' },
+      { error: 'Internal server error' }, 
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -135,21 +139,12 @@ export async function DELETE(
     const clientIndex = clients.findIndex(c => c.id === params.id);
     
     if (clientIndex === -1) {
-      return NextResponse.json(
-        { error: 'Client not found' },
-        { status: 404 }
-      );
+      throw new HttpError(404, 'Client not found')
     }
     
     // Check for outstanding balance
     if (clients[clientIndex].outstandingBalance > 0) {
-      return NextResponse.json(
-        { 
-          error: 'Cannot delete client with outstanding balance',
-          outstandingBalance: clients[clientIndex].outstandingBalance
-        },
-        { status: 400 }
-      );
+      throw new HttpError(400, `Cannot delete client with outstanding balance of ${clients[clientIndex].outstandingBalance}`)
     }
     
     // Remove client
@@ -173,11 +168,17 @@ export async function DELETE(
       }
     });
   } catch (error) {
-    console.error('Error deleting client:', error);
+    console.error('Client route error:', error)
+    if (isHttpError(error)) {
+      return NextResponse.json(
+        { error: error.message, code: error.code }, 
+        { status: error.status }
+      )
+    }
     return NextResponse.json(
-      { error: 'Failed to delete client' },
+      { error: 'Internal server error' }, 
       { status: 500 }
-    );
+    )
   }
 }
 

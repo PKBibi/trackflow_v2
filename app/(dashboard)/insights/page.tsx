@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
-import InsightsDashboard from '@/components/insights/insights-dashboard'
+import dynamic from 'next/dynamic'
+const InsightsDashboard = dynamic(() => import('@/components/insights/insights-dashboard'), { ssr: false, loading: () => <div className="h-40 animate-pulse bg-muted rounded" /> })
 
 export const metadata: Metadata = {
   title: 'AI Insights | TrackFlow',

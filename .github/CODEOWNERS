@@ -1,0 +1,16 @@
+# CODEOWNERS
+# Ownership determines requested reviewers by default.
+# Adjust owners as maintainers change.
+
+# Global owner(s)
+* @PKBibi
+
+# Fine-grained paths (optional; currently same owner)
+app/**         @PKBibi
+components/**  @PKBibi
+lib/**         @PKBibi
+hooks/**       @PKBibi
+__tests__/**   @PKBibi
+docs/**        @PKBibi
+scripts/**     @PKBibi
+public/**      @PKBibi

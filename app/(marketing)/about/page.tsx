@@ -1,5 +1,23 @@
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import type { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'About | TrackFlow',
+  description: 'Learn the story and values behind TrackFlow, the time tracking tool built for digital marketers.',
+  openGraph: {
+    title: 'About TrackFlow',
+    description: 'TrackFlow helps marketers track time effortlessly with marketing-first features.',
+    url: 'https://track-flow.app/about',
+    images: [{ url: '/images/og-image.png', width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About TrackFlow',
+    description: 'Time tracking built for marketers.',
+    images: ['/images/twitter-image.png'],
+  },
+}
 
 export default function AboutPage() {
   return (

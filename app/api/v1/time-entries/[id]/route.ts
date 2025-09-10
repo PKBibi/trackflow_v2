@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { HttpError, isHttpError } from '@/lib/errors'
 
 // Mock database - replace with actual database queries
 // This would be imported from a shared location in production
@@ -34,19 +35,22 @@ export async function GET(
     const entry = timeEntries.find(e => e.id === params.id);
     
     if (!entry) {
-      return NextResponse.json(
-        { error: 'Time entry not found' },
-        { status: 404 }
-      );
+      throw new HttpError(404, 'Time entry not found')
     }
     
     return NextResponse.json({ data: entry });
   } catch (error) {
-    console.error('Error fetching time entry:', error);
+    console.error('Time entry route error:', error)
+    if (isHttpError(error)) {
+      return NextResponse.json(
+        { error: error.message, code: error.code }, 
+        { status: error.status }
+      )
+    }
     return NextResponse.json(
-      { error: 'Failed to fetch time entry' },
+      { error: 'Internal server error' }, 
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -61,10 +65,7 @@ export async function PUT(
     const entryIndex = timeEntries.findIndex(e => e.id === params.id);
     
     if (entryIndex === -1) {
-      return NextResponse.json(
-        { error: 'Time entry not found' },
-        { status: 404 }
-      );
+      throw new HttpError(404, 'Time entry not found')
     }
     
     // Update entry
@@ -95,11 +96,17 @@ export async function PUT(
       message: 'Time entry updated successfully'
     });
   } catch (error) {
-    console.error('Error updating time entry:', error);
+    console.error('Time entry route error:', error)
+    if (isHttpError(error)) {
+      return NextResponse.json(
+        { error: error.message, code: error.code }, 
+        { status: error.status }
+      )
+    }
     return NextResponse.json(
-      { error: 'Failed to update time entry' },
+      { error: 'Internal server error' }, 
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -112,10 +119,7 @@ export async function DELETE(
     const entryIndex = timeEntries.findIndex(e => e.id === params.id);
     
     if (entryIndex === -1) {
-      return NextResponse.json(
-        { error: 'Time entry not found' },
-        { status: 404 }
-      );
+      throw new HttpError(404, 'Time entry not found')
     }
     
     // Remove entry
@@ -131,11 +135,17 @@ export async function DELETE(
       message: 'Time entry deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting time entry:', error);
+    console.error('Time entry route error:', error)
+    if (isHttpError(error)) {
+      return NextResponse.json(
+        { error: error.message, code: error.code }, 
+        { status: error.status }
+      )
+    }
     return NextResponse.json(
-      { error: 'Failed to delete time entry' },
+      { error: 'Internal server error' }, 
       { status: 500 }
-    );
+    )
   }
 }
 

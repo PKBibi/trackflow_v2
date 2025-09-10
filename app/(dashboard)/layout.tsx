@@ -19,6 +19,7 @@ import {
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import ApiErrorBoundary from '@/components/api-error-boundary'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -71,6 +72,7 @@ export default function DashboardLayout({
             <button
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden"
+              aria-label="Close sidebar"
             >
               <X className="h-5 w-5" />
             </button>
@@ -129,6 +131,7 @@ export default function DashboardLayout({
             <button
               onClick={() => setSidebarOpen(true)}
               className="lg:hidden"
+              aria-label="Open sidebar"
             >
               <Menu className="h-6 w-6" />
             </button>
@@ -141,10 +144,11 @@ export default function DashboardLayout({
 
         {/* Page content */}
         <main className="p-4 sm:p-6 lg:p-8">
-          {children}
+          <ApiErrorBoundary>
+            {children}
+          </ApiErrorBoundary>
         </main>
       </div>
     </div>
   )
 }
-

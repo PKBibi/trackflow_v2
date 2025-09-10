@@ -52,14 +52,14 @@
       "short_name": "Timer",
       "description": "Start tracking time",
       "url": "/timer",
-      "icons": [{ "src": "/images/timer-icon.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/images/favicon-32x32.png", "sizes": "32x32" }]
     },
     {
       "name": "View Reports",
       "short_name": "Reports",
       "description": "View time tracking reports",
       "url": "/reports",
-      "icons": [{ "src": "/images/reports-icon.png", "sizes": "96x96" }]
+      "icons": [{ "src": "/images/favicon-32x32.png", "sizes": "32x32" }]
     }
   ]
 }

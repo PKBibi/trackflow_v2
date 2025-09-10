@@ -12,7 +12,7 @@
   ],
   "host_permissions": [
     "http://localhost:3000/*",
-    "https://*.trackflow.app/*"
+    "https://*.track-flow.app/*"
   ],
   "background": {
     "service_worker": "background.js"

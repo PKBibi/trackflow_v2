@@ -1,3 +1,4 @@
+import { HttpError } from '@/lib/errors'
 import { createClient } from '@/lib/supabase/client'
 
 export interface Client {
@@ -58,7 +59,7 @@ class ClientsAPI {
   async create(client: Omit<Client, 'id' | 'user_id' | 'created_at' | 'updated_at'>): Promise<Client> {
     const { data: { user }, error: authError } = await this.supabase.auth.getUser()
     if (authError || !user) {
-      throw new Error('User not authenticated')
+      throw new HttpError(401, 'Not authenticated', 'NOT_AUTHENTICATED')
     }
 
     const clientData = {
@@ -83,7 +84,7 @@ class ClientsAPI {
   async update(id: string, updates: Partial<Client>): Promise<Client> {
     const { data: { user }, error: authError } = await this.supabase.auth.getUser()
     if (authError || !user) {
-      throw new Error('User not authenticated')
+      throw new HttpError(401, 'Not authenticated', 'NOT_AUTHENTICATED')
     }
 
     const { data, error } = await this.supabase
@@ -105,7 +106,7 @@ class ClientsAPI {
   async getAll(): Promise<ClientWithStats[]> {
     const { data: { user }, error: authError } = await this.supabase.auth.getUser()
     if (authError || !user) {
-      throw new Error('User not authenticated')
+      throw new HttpError(401, 'Not authenticated', 'NOT_AUTHENTICATED')
     }
 
     const { data, error } = await this.supabase
@@ -136,7 +137,7 @@ class ClientsAPI {
   async getById(id: string): Promise<Client | null> {
     const { data: { user }, error: authError } = await this.supabase.auth.getUser()
     if (authError || !user) {
-      throw new Error('User not authenticated')
+      throw new HttpError(401, 'Not authenticated', 'NOT_AUTHENTICATED')
     }
 
     const { data, error } = await this.supabase
@@ -157,7 +158,7 @@ class ClientsAPI {
   async getRetainerClients(): Promise<ClientWithStats[]> {
     const { data: { user }, error: authError } = await this.supabase.auth.getUser()
     if (authError || !user) {
-      throw new Error('User not authenticated')
+      throw new HttpError(401, 'Not authenticated', 'NOT_AUTHENTICATED')
     }
 
     const { data, error } = await this.supabase
@@ -277,7 +278,7 @@ class ClientsAPI {
   async delete(id: string): Promise<void> {
     const { data: { user }, error: authError } = await this.supabase.auth.getUser()
     if (authError || !user) {
-      throw new Error('User not authenticated')
+      throw new HttpError(401, 'Not authenticated', 'NOT_AUTHENTICATED')
     }
 
     // Check if client has time entries or projects
@@ -292,7 +293,7 @@ class ClientsAPI {
       .eq('client_id', id)
 
     if ((timeEntriesCount || 0) > 0 || (projectsCount || 0) > 0) {
-      throw new Error('Cannot delete client with existing time entries or projects. Archive instead.')
+      throw new HttpError(409, 'Cannot delete client with existing time entries or projects. Archive instead.', 'CONFLICT')
     }
 
     const { error } = await this.supabase
@@ -323,7 +324,7 @@ class ClientsAPI {
   async getTotalMRR(): Promise<number> {
     const { data: { user }, error: authError } = await this.supabase.auth.getUser()
     if (authError || !user) {
-      throw new Error('User not authenticated')
+      throw new HttpError(401, 'Not authenticated', 'NOT_AUTHENTICATED')
     }
 
     const { data, error } = await this.supabase

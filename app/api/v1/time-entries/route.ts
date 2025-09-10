@@ -1,31 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { HttpError, isHttpError } from '@/lib/errors';
 import { createClient } from '@/lib/supabase/server';
+import { validateInput, timeEntryCreateSchema, rateLimitPerUser } from '@/lib/validation/middleware';
 
 // GET /api/v1/time-entries
 export async function GET(request: NextRequest) {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      throw new HttpError(401, 'Unauthorized')
-    }
-    
-    const { searchParams } = new URL(request.url);
-    
-    // Query parameters
-    const clientId = searchParams.get('clientId');
-    const projectId = searchParams.get('projectId');
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const billable = searchParams.get('billable');
-    const status = searchParams.get('status');
-    const marketingCategory = searchParams.get('marketingCategory');
-    const marketingChannel = searchParams.get('marketingChannel');
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = (page - 1) * limit;
+  return validateInput(timeEntryCreateSchema)(request, async (validatedData, req) => {
+    try {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new HttpError(401, 'Unauthorized')
+      }
+      
+      // Apply rate limiting per user
+      await rateLimitPerUser(100, 60000)(user.id)
+      
+      // Extract validated parameters
+      const { 
+        client_id: clientId, 
+        project_id: projectId, 
+        billable, 
+        status, 
+        marketing_category: marketingCategory,
+        marketing_channel: marketingChannel,
+        page = 1, 
+        limit = 50 
+      } = validatedData
+      
+      // Additional query parameters (dates need separate validation)
+      const { searchParams } = new URL(request.url)
+      const startDate = searchParams.get('startDate')
+      const endDate = searchParams.get('endDate')
+      const offset = (page - 1) * limit
     
     // Build query - include related client and project names
     let query = supabase

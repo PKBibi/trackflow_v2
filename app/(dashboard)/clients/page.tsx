@@ -28,7 +28,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { ClientForm } from '@/components/dashboard/client-form'
+import dynamic from 'next/dynamic'
+const ClientForm = dynamic(() => import('@/components/dashboard/client-form').then(m => m.ClientForm), { ssr: false, loading: () => <div className="h-64 bg-muted animate-pulse rounded" /> })
 import { clientsAPI, ClientWithStats } from '@/lib/api/clients'
 
 export default function ClientsPage() {
@@ -150,8 +151,9 @@ export default function ClientsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="flex items-center justify-center h-96" role="status" aria-live="polite" aria-busy="true">
+        <Loader2 className="w-8 h-8 animate-spin" aria-hidden="true" />
+        <span className="sr-only">Loading clients…</span>
       </div>
     )
   }
@@ -396,7 +398,7 @@ export default function ClientsPage() {
                 {/* Actions Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" aria-label="Open client actions menu">
                       <MoreHorizontal className="w-4 h-4" />
                     </Button>
                   </DropdownMenuTrigger>

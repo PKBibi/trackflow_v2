@@ -111,10 +111,20 @@
 .btn-primary {
   background: #2563eb;
   color: white;
+  transition: background-color 0.2s ease;
 }
 
 .btn-primary:hover {
   background: #1d4ed8;
+}
+
+/* CTA button styles for marketing pages */
+.btn-cta {
+  @apply px-8 py-4 bg-blue-600 text-white rounded-lg font-medium transition-all duration-200 hover:bg-blue-700 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.btn-cta-outline {
+  @apply px-8 py-4 bg-white text-gray-900 border-2 border-gray-200 rounded-lg font-medium transition-all duration-200 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
 }
 
 /* Navigation bar */

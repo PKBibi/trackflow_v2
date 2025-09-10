@@ -226,8 +226,8 @@ export default function CookiePolicyPage() {
               If you have questions about our use of cookies, please contact us:
             </p>
             <div className="mt-4">
-              <p>Email: privacy@trackflow.app</p>
-              <p>Address: [Your Business Address]</p>
+              <p>Email: privacy@track-flow.app</p>
+              <p>Address: 167-169 Great Portland Street, 5th Floor, London, W1W 5PF</p>
             </div>
           </section>
         </div>

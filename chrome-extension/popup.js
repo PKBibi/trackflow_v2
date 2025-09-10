@@ -1,6 +1,6 @@
 // TrackFlow Chrome Extension - Popup Script
 const API_URL = process.env.NODE_ENV === 'production' 
-  ? 'https://trackflow.app' 
+  ? 'https://track-flow.app' 
   : 'http://localhost:3000'
 
 let currentTimer = null

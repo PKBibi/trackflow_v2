@@ -7,11 +7,10 @@ export interface Project {
   name: string
   description?: string
   
-  // Marketing Campaign Details (columns don't exist in production DB)
-  // campaign_id?: string
-  // campaign_platform?: string
-  // campaign_objective?: string
-  // target_audience?: string
+  // Marketing Campaign Details
+  campaign_id?: string
+  campaign_platform?: string
+  campaign_objective?: string
   budget_amount?: number // in cents (matches database column name)
   start_date?: string
   end_date?: string
@@ -23,9 +22,8 @@ export interface Project {
   actual_hours?: number
   
   // Billing
-  hourly_rate: number // in cents, can override client rate
-  budget_alert_threshold?: number // percentage (e.g., 80 for 80%)
-  is_billable: boolean
+  hourly_rate?: number // in cents, can override client rate
+  billable?: boolean
   
   // Metadata
   tags?: string[]

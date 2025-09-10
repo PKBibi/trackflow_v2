@@ -12,13 +12,13 @@ export interface TimeEntry {
   marketing_channel: string
   task_title: string
   task_description?: string
-  // campaign_id?: string // Column doesn't exist in production DB
-  // campaign_platform?: string // Column doesn't exist in production DB
+  campaign_id?: string
+  campaign_platform?: string
   billable: boolean
   hourly_rate: number // in cents
   amount?: number // calculated amount in cents
-  // status: 'running' | 'stopped' | 'invoiced' | 'paid' // Column doesn't exist in DB
-  // is_timer_running: boolean // Temporarily disabled due to schema mismatch
+  status?: 'running' | 'stopped' | 'invoiced' | 'paid'
+  is_timer_running?: boolean
   notes?: string
   tags?: string[]
   created_at?: string
@@ -204,6 +204,7 @@ class TimeEntriesAPI {
       .from('time_entries')
       .select('*')
       .eq('user_id', user.id)
+      .eq('status', 'running')
       .is('end_time', null)
       .single()
 
@@ -226,10 +227,12 @@ class TimeEntriesAPI {
     const { error } = await this.supabase
       .from('time_entries')
       .update({
-        end_time: now
+        end_time: now,
+        status: 'stopped',
+        is_timer_running: false
       })
       .eq('user_id', user.id)
-      .is('end_time', null)
+      .eq('status', 'running')
 
     if (error) {
       throw new Error(`Failed to stop running timers: ${error.message}`)

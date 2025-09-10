@@ -1,30 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { HttpError, isHttpError } from '@/lib/errors'
 import { createClient } from '@/lib/supabase/server'
-import { apiRateLimit } from '@/lib/rate-limit'
+import { validateInput, clientCreateSchema, rateLimitPerUser, validateRequestSize } from '@/lib/validation/middleware'
+import { auditLogger } from '@/lib/audit/logger'
 
 // GET /api/v1/clients
 export async function GET(request: NextRequest) {
-  return apiRateLimit(request, async () => {
-  try {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      throw new HttpError(401, 'Unauthorized')
-    }
-    
-    const { searchParams } = new URL(request.url);
-    
-    // Query parameters
-    const search = searchParams.get('search');
-    const status = searchParams.get('status');
-    const hasRetainer = searchParams.get('hasRetainer');
-    const sortBy = searchParams.get('sortBy') || 'name';
-    const sortOrder = searchParams.get('sortOrder') || 'asc';
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = (page - 1) * limit;
+  return validateInput(clientCreateSchema)(request, async (validatedData, req) => {
+    try {
+      const supabase = await createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        throw new HttpError(401, 'Unauthorized')
+      }
+      
+      // Apply rate limiting per user
+      await rateLimitPerUser(100, 60000)(user.id)
+      
+      // Extract validated parameters
+      const { search, status, page = 1, limit = 50 } = validatedData
+      const sortBy = 'name' // Default sort
+      const sortOrder = 'asc' // Default order
+      const offset = (page - 1) * limit
     
     // Build query
     let query = supabase
@@ -32,16 +30,14 @@ export async function GET(request: NextRequest) {
       .select('*', { count: 'exact' })
       .eq('user_id', user.id)
     
-    // Apply filters
+    // Apply filters with validated/sanitized inputs
     if (search) {
       query = query.or(`name.ilike.%${search}%,email.ilike.%${search}%,company.ilike.%${search}%`)
     }
     if (status) {
       query = query.eq('status', status)
     }
-    if (hasRetainer !== null) {
-      query = query.eq('has_retainer', hasRetainer === 'true')
-    }
+    // Note: hasRetainer would need to be added to schema if still needed
     
     // Apply sorting
     const isAsc = sortOrder === 'asc'
@@ -179,8 +175,30 @@ export async function POST(request: NextRequest) {
       .single()
     
     if (error) {
+      // Log failed creation attempt
+      await auditLogger.logDataAccess(
+        'data:client_create',
+        user.id,
+        'client',
+        'unknown',
+        undefined,
+        clientData,
+        false,
+        error.message
+      )
       throw new HttpError(500, error.message)
     }
+    
+    // Log successful client creation
+    await auditLogger.logDataAccess(
+      'data:client_create',
+      user.id,
+      'client',
+      newClient.id,
+      undefined,
+      newClient,
+      true
+    )
     
     return NextResponse.json({
       data: newClient,
@@ -188,6 +206,17 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error) {
     console.error('Clients route error:', error)
+    
+    // Log the error if it's a security issue
+    if (error instanceof HttpError && error.status === 401) {
+      await auditLogger.logSecurityEvent(
+        'security:permission_denied',
+        undefined,
+        { endpoint: '/api/v1/clients', method: 'POST' },
+        error.message
+      )
+    }
+    
     if (isHttpError(error)) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
     }

@@ -22,7 +22,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { invoicesAPI, InvoiceWithDetails, InvoiceStats, InvoicePreview } from '@/lib/api/invoices'
-import { InvoiceForm } from '@/components/dashboard/invoice-form'
+import dynamic from 'next/dynamic'
+const InvoiceForm = dynamic(() => import('@/components/dashboard/invoice-form').then(m => m.InvoiceForm), { ssr: false, loading: () => <div className="h-64 bg-muted animate-pulse rounded" /> })
 
 export default function InvoicesPage() {
   const [loading, setLoading] = useState(true)
@@ -141,8 +142,9 @@ export default function InvoicesPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="flex items-center justify-center h-96" role="status" aria-live="polite" aria-busy="true">
+        <Loader2 className="w-8 h-8 animate-spin" aria-hidden="true" />
+        <span className="sr-only">Loading invoices…</span>
       </div>
     )
   }

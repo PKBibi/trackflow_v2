@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://trackflow.app';
+  const baseUrl = 'https://track-flow.app';
   const currentDate = new Date();
 
   // Main marketing pages
@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '',
     '/features',
     '/pricing',
+    '/pricing/simple',
     '/about',
     '/contact',
     '/templates',
@@ -63,12 +64,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.6,
   }));
 
-  // Blog posts 
-  const blogPosts = [
-    '/blog/10-time-tracking-tips-for-freelancers',
-    '/blog/how-to-price-your-services',
-    '/blog/state-of-digital-marketing-rates-2024',
-    '/blog/5-ways-to-automate-agency-workflow',
+  // Blog posts - only include existing pages
+  const blogPosts: Array<{
+    url: string;
+    lastModified: Date;
+    changeFrequency: 'weekly';
+    priority: number;
+  }> = [
+    // Add blog posts here when they exist
+    // '/blog/10-time-tracking-tips-for-freelancers',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,

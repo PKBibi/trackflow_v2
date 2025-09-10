@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -13,6 +13,7 @@ import { Mail, Lock, ArrowRight, AlertCircle } from 'lucide-react'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -38,8 +39,9 @@ export default function LoginPage() {
         return
       }
 
-      // Redirect to dashboard on successful login
-      router.push('/dashboard')
+      // Redirect to intended page or dashboard on successful login
+      const redirectTo = searchParams?.get('redirectTo') || '/dashboard'
+      router.push(redirectTo)
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
     } finally {

@@ -284,8 +284,8 @@ Required for production:
 ```bash
 # .env.production
 NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-NEXT_PUBLIC_API_URL=https://api.trackflow.app
-NEXT_PUBLIC_APP_URL=https://trackflow.app
+NEXT_PUBLIC_API_URL=https://api.track-flow.app
+NEXT_PUBLIC_APP_URL=https://track-flow.app
 ```
 
 ## 8. Performance Checklist

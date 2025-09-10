@@ -12,10 +12,10 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'TrackFlow Security - Your Data is Safe',
     description: 'Enterprise-grade security for your time tracking data.',
-    images: ['/og-security.png'],
+    images: ['/images/og-security.png'],
   },
   alternates: {
-    canonical: 'https://trackflow.app/security',
+    canonical: 'https://track-flow.app/security',
   },
 }
 
@@ -284,9 +284,9 @@ export default function SecurityPage() {
               Found a vulnerability? We appreciate responsible disclosure. 
               Please report security issues directly to our security team.
             </p>
-            <a href="mailto:security@trackflow.app">
+            <a href="mailto:security@track-flow.app">
               <Button size="lg" className="bg-yellow-600 hover:bg-yellow-700">
-                security@trackflow.app
+                security@track-flow.app
               </Button>
             </a>
             <p className="text-sm text-gray-500 mt-4">

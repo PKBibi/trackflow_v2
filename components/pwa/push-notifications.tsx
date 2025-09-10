@@ -30,11 +30,19 @@ export function PushNotificationManager() {
       checkSubscription()
     }
 
-    // Load saved settings
-    const savedSettings = localStorage.getItem('notification-settings')
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings))
+    // Load saved settings with encryption
+    const loadSettings = async () => {
+      try {
+        const { safeLocalStorage } = await import('@/lib/utils/encryption')
+        const savedSettings = await safeLocalStorage.getItem<typeof settings>('notification-settings')
+        if (savedSettings) {
+          setSettings(savedSettings)
+        }
+      } catch (error) {
+        console.error('Failed to load notification settings:', error)
+      }
     }
+    loadSettings()
   }, [])
 
   const checkSubscription = async () => {
@@ -207,7 +215,14 @@ export function PushNotificationManager() {
   const updateSettings = async (key: keyof NotificationSettings, value: boolean) => {
     const newSettings = { ...settings, [key]: value }
     setSettings(newSettings)
-    localStorage.setItem('notification-settings', JSON.stringify(newSettings))
+    
+    // Save settings with encryption
+    try {
+      const { safeLocalStorage } = await import('@/lib/utils/encryption')
+      await safeLocalStorage.setItem('notification-settings', newSettings)
+    } catch (error) {
+      console.error('Failed to save notification settings:', error)
+    }
 
     // Update settings on server if subscribed
     if (isSubscribed) {

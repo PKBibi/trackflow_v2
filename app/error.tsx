@@ -57,8 +57,8 @@ export default function Error({
         
         <p className="text-xs text-muted-foreground mt-8">
           If this problem persists, please contact{' '}
-          <a href="mailto:support@trackflow.app" className="text-primary hover:underline">
-            support@trackflow.app
+          <a href="mailto:support@track-flow.app" className="text-primary hover:underline">
+            support@track-flow.app
           </a>
         </p>
       </div>

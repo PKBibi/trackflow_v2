@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { 
   ChevronRight, 
   ChevronLeft,
@@ -334,7 +335,7 @@ export default function OnboardingPage() {
               <div className="relative">
                 <Avatar className="h-24 w-24">
                   {data.avatar ? (
-                    <img src={data.avatar} alt="Avatar" className="h-full w-full object-cover" />
+                    <Image src={data.avatar} alt="Profile avatar" width={96} height={96} className="h-full w-full object-cover rounded-full" />
                   ) : (
                     <div className="h-full w-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-2xl font-bold">
                       {data.name ? data.name.charAt(0).toUpperCase() : 'U'}
@@ -776,8 +777,8 @@ export default function OnboardingPage() {
           <div className="text-center mt-6">
             <p className="text-sm text-muted-foreground">
               Need help? Contact support at{' '}
-              <a href="mailto:support@trackflow.app" className="text-primary hover:underline">
-                support@trackflow.app
+              <a href="mailto:support@track-flow.app" className="text-primary hover:underline">
+                support@track-flow.app
               </a>
             </p>
           </div>

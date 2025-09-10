@@ -70,6 +70,11 @@ export default function InsightsDashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [lastUpdated, setLastUpdated] = useState<string | null>(null)
+  const [aiLoading, setAiLoading] = useState(false)
+  const [plan, setPlan] = useState<'free' | 'pro' | 'enterprise'>('free')
+  const [tab, setTab] = useState<'rule'|'ai'>('rule')
+  const [ruleInsights, setRuleInsights] = useState<Insight[]|null>(null)
+  const [aiInsights, setAiInsights] = useState<Insight[]|null>(null)
 
   const fetchInsights = async () => {
     try {
@@ -83,6 +88,7 @@ export default function InsightsDashboard() {
       
       const data: InsightsResponse = await response.json()
       setInsights(data.insights)
+      setRuleInsights(data.insights)
       setLastUpdated(data.generated_at)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch insights')
@@ -93,10 +99,34 @@ export default function InsightsDashboard() {
 
   useEffect(() => {
     fetchInsights()
+    // Load user plan (for AI access gating)
+    fetch('/api/me/plan').then(r => r.json()).then(d => setPlan((d.plan || 'free'))).catch(() => {})
   }, [])
 
   const handleRefresh = () => {
     fetchInsights()
+  }
+
+  const handleGenerateAI = async () => {
+    try {
+      setAiLoading(true)
+      setError(null)
+      try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('insights_ai_generate'); } catch {}
+      // For now, we call the AI endpoint without payload; server can fallback
+      const response = await fetch('/api/insights/generate', { method: 'POST' })
+      if (!response.ok) {
+        throw new Error('Failed to generate AI insights')
+      }
+      const data: InsightsResponse = await response.json()
+      setInsights(data.insights)
+      setAiInsights(data.insights)
+      setTab('ai')
+      setLastUpdated(data.generated_at)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate AI insights')
+    } finally {
+      setAiLoading(false)
+    }
   }
 
   if (loading) {
@@ -140,7 +170,7 @@ export default function InsightsDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">AI Insights</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Insights</h2>
           <p className="text-gray-600">
             {insights.length} insights generated from your data
             {lastUpdated && (
@@ -150,11 +180,37 @@ export default function InsightsDashboard() {
             )}
           </p>
         </div>
-        <Button onClick={handleRefresh} variant="outline" size="sm">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button onClick={async () => { try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('insights_rule_click'); } catch {}; setTab('rule'); if (ruleInsights) { setInsights(ruleInsights) } else { handleRefresh() } }} variant="outline" size="sm">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Rule-Based
+          </Button>
+          <Button onClick={() => { if (aiInsights) { setInsights(aiInsights); setTab('ai') } else { handleGenerateAI() } }} variant="default" size="sm" disabled={aiLoading || plan==='free'}>
+            {aiLoading ? (
+              <>
+                <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                AI
+              </>
+            ) : (
+              <>
+                <Zap className="w-4 h-4 mr-2" />
+                AI
+              </>
+            )}
+          </Button>
+          {plan==='free' && (
+            <a href="/pricing/simple" className="text-xs underline text-blue-600" onClick={async (e)=>{ try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('insights_upgrade_click'); } catch {} }}>
+              Upgrade
+            </a>
+          )}
+        </div>
       </div>
+
+      {plan === 'free' && (
+        <div className="text-sm text-muted-foreground">
+          Upgrade to Pro to unlock AI-generated insights. <a href="/pricing/simple" className="underline" onClick={async (e)=>{ try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('insights_upgrade_click_notice'); } catch {} }}>Upgrade now</a>.
+        </div>
+      )}
 
       {/* Insights Grid */}
       {insights.length === 0 ? (
@@ -163,7 +219,7 @@ export default function InsightsDashboard() {
             <Lightbulb className="w-12 h-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Insights Yet</h3>
             <p className="text-gray-600 mb-4">
-              Start tracking your time to generate personalized insights about your productivity and revenue.
+              {tab==='ai' ? 'Generate AI insights once you have some data.' : 'Start tracking your time to generate personalized insights about your productivity and revenue.'}
             </p>
             <Button>Start Tracking Time</Button>
           </CardContent>

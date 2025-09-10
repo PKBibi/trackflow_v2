@@ -61,20 +61,29 @@ export function ActivitySelector({
     timestamp: number;
   }>>([]);
 
-  // Load recent activities from localStorage
+  // Load recent activities from encrypted localStorage
   useEffect(() => {
-    const stored = localStorage.getItem('recentActivities');
-    if (stored) {
+    const loadRecentActivities = async () => {
       try {
-        setRecentActivities(JSON.parse(stored));
-      } catch (e) {
-        console.error('Failed to parse recent activities:', e);
+        const { safeLocalStorage } = await import('@/lib/utils/encryption')
+        const stored = await safeLocalStorage.getItem<Array<{
+          category: string;
+          activity: string;
+          timestamp: number;
+        }>>('recentActivities')
+        if (stored) {
+          setRecentActivities(stored)
+        }
+      } catch (error) {
+        console.error('Failed to load recent activities:', error)
       }
     }
+    
+    loadRecentActivities()
   }, []);
 
-  // Save recent activity
-  const saveRecentActivity = (category: string, activity: string) => {
+  // Save recent activity with encryption
+  const saveRecentActivity = async (category: string, activity: string) => {
     const newRecent = [
       { category, activity, timestamp: Date.now() },
       ...recentActivities.filter(r => 
@@ -83,7 +92,13 @@ export function ActivitySelector({
     ].slice(0, 5); // Keep only 5 most recent
     
     setRecentActivities(newRecent);
-    localStorage.setItem('recentActivities', JSON.stringify(newRecent));
+    
+    try {
+      const { safeLocalStorage } = await import('@/lib/utils/encryption')
+      await safeLocalStorage.setItem('recentActivities', newRecent)
+    } catch (error) {
+      console.error('Failed to save recent activities:', error)
+    }
   };
 
   // Get search results

@@ -100,7 +100,7 @@ export default function PrivacyPage() {
               <li><strong>Opt-out:</strong> Unsubscribe from marketing communications</li>
             </ul>
             <p className="mt-4">
-              To exercise these rights, contact us at privacy@trackflow.app. We will respond within 30 days.
+              To exercise these rights, contact us at privacy@track-flow.app. We will respond within 30 days.
             </p>
           </section>
 
@@ -180,9 +180,9 @@ export default function PrivacyPage() {
             <p>If you have questions or concerns about this Privacy Policy, please contact us:</p>
             <div className="mt-4">
               <p><strong>TrackFlow Privacy Team</strong></p>
-              <p>Email: privacy@trackflow.app</p>
-              <p>Data Protection Officer: dpo@trackflow.app</p>
-              <p>Address: [Your Business Address]</p>
+              <p>Email: privacy@track-flow.app</p>
+              <p>Data Protection Officer: dpo@track-flow.app</p>
+              <p>Address: 167-169 Great Portland Street, 5th Floor, London, W1W 5PF</p>
             </div>
           </section>
         </div>

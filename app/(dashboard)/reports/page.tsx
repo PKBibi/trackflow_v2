@@ -38,11 +38,16 @@ export default function ReportsPage() {
   const [filters, setFilters] = useState<ReportFilters>({})
   const [clients, setClients] = useState<any[]>([])
   const [showFilters, setShowFilters] = useState(false)
+  const [aiReportLoading, setAiReportLoading] = useState(false)
+  const [aiReport, setAiReport] = useState<any | null>(null)
+  const [plan, setPlan] = useState<'free'|'pro'|'enterprise'>('free')
+  const [printing, setPrinting] = useState(false)
 
   // Load initial data
   useEffect(() => {
     loadReportData()
     loadClients()
+    fetch('/api/me/plan').then(r=>r.json()).then(d=>setPlan(d.plan||'free')).catch(()=>{})
   }, [])
 
   // Reload data when filters change
@@ -110,8 +115,9 @@ export default function ReportsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="flex items-center justify-center h-96" role="status" aria-live="polite" aria-busy="true">
+        <Loader2 className="w-8 h-8 animate-spin" aria-hidden="true" />
+        <span className="sr-only">Loading reports…</span>
       </div>
     )
   }
@@ -135,6 +141,71 @@ export default function ReportsPage() {
             <Download className="h-4 w-4 mr-2" />
             Export Report
           </Button>
+          <Button 
+            variant="default" 
+            title={plan==='free' ? 'Upgrade to Pro to generate AI reports' : undefined}
+            onClick={async ()=>{
+              setAiReportLoading(true)
+              setError(null)
+              try {
+                try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('reports_ai_generate'); } catch {}
+                const res = await fetch('/api/ai/reports/weekly', { method: 'POST' })
+                if (!res.ok) throw new Error('AI report failed')
+                const data = await res.json()
+                setAiReport(data)
+              } catch (e:any) {
+                setError(e.message || 'Failed to generate AI report')
+              } finally { setAiReportLoading(false) }
+            }}
+            disabled={plan==='free' || aiReportLoading}
+          >
+            {aiReportLoading ? 'Generating…' : 'Generate Weekly (AI)'}
+          </Button>
+          {plan==='free' && (
+            <a href="/pricing/simple" className="text-xs underline text-blue-600" onClick={async (e)=>{ try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('reports_upgrade_click_generate'); } catch {} }}>Upgrade</a>
+          )}
+          {plan !== 'free' && aiReport && (
+            <Button variant="outline" onClick={() => {
+              // Simple print-to-PDF: open a print window with AI report content
+              try {
+                (async ()=>{ try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('reports_pdf_print'); } catch {} })()
+                const content = document.getElementById('ai-weekly-report-print')?.innerHTML || ''
+                const w = window.open('', 'PRINT', 'height=700,width=900')
+                if (!w) return
+                w.document.write('<html><head><title>AI Weekly Report</title>')
+                w.document.write('<style>body{font-family:Inter,system-ui,sans-serif;padding:24px;} .section{border:1px solid #e5e7eb;border-radius:8px;padding:12px;margin-bottom:12px;} h1{font-size:20px;margin:0 0 8px;} h2{font-size:16px;margin:8px 0;} ul{margin:6px 0 0 18px;}</style>')
+                w.document.write('</head><body>')
+                w.document.write(`<h1>AI Weekly Report</h1>`)
+                w.document.write(content)
+                w.document.write('</body></html>')
+                w.document.close();
+                w.focus();
+                w.print();
+                w.close();
+              } catch {}
+            }}>
+              Save as PDF
+            </Button>
+          )}
+          {plan !== 'free' && aiReport && (
+            <Button variant="ghost" onClick={async ()=>{
+              try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('reports_pdf_download'); } catch {}
+              const res = await fetch('/api/ai/reports/weekly/pdf')
+              if (res.status === 501) {
+                setError('PDF export will be available once the PDF library is enabled.')
+              } else if (res.ok) {
+                const blob = await res.blob()
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = 'weekly-report.pdf'
+                a.click()
+                URL.revokeObjectURL(url)
+              }
+            }}>
+              Download PDF (beta)
+            </Button>
+          )}
         </div>
       </div>
 
@@ -470,6 +541,44 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* AI Weekly Report Output */}
+      {aiReport && (
+        <Card id="ai-weekly-report-print">
+          <CardHeader>
+            <CardTitle>AI Weekly Report</CardTitle>
+            <CardDescription>Summary and highlights generated from your last 7 days</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {aiReport.executiveSummary && (
+              <div className="mb-4 text-sm text-muted-foreground">{aiReport.executiveSummary}</div>
+            )}
+            {Array.isArray(aiReport.reports) && aiReport.reports.map((r:any, idx:number)=> (
+              <div key={idx} className="border rounded-md p-3 mb-3 section">
+                <div className="font-medium">{r.client || 'Client'}</div>
+                {r.totals && (
+                  <div className="text-sm text-muted-foreground">{r.totals.hours} hrs • ${(r.totals.amount||0/100).toFixed(2)}</div>
+                )}
+                {r.summary && (
+                  <div className="text-sm mt-2">{r.summary}</div>
+                )}
+                {Array.isArray(r.highlights) && r.highlights.length>0 && (
+                  <ul className="list-disc pl-5 text-sm mt-2">
+                    {r.highlights.map((h:string,i:number)=>(<li key={i}>{h}</li>))}
+                  </ul>
+                )}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* AI Upsell for Free plan */}
+      {plan === 'free' && (
+        <div className="p-3 bg-blue-50 text-blue-900 rounded border border-blue-200 text-sm">
+          Generate Weekly (AI) reports is available on Pro. <a href="/pricing/simple" className="underline" onClick={async (e)=>{ try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('reports_upgrade_click_banner'); } catch {} }}>Upgrade to Pro</a>.
+        </div>
+      )}
     </div>
   )
 }

@@ -134,7 +134,15 @@ export default function NotificationSettingsPage() {
     setSaving(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to continue',
+          variant: 'destructive'
+        })
+        setSaving(false)
+        return
+      }
 
       const { error } = await supabase
         .from('notification_settings')

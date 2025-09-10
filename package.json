@@ -9,7 +9,13 @@
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:ci": "jest --ci --coverage --watchAll=false"
+    "test:ci": "jest --ci --coverage --watchAll=false",
+    "test:security": "jest --config security/jest.security.config.js",
+    "test:security:watch": "jest --config security/jest.security.config.js --watch",
+    "security:scan": "npm audit --audit-level=moderate && npm run test:security",
+    "security:fix": "npm audit fix",
+    "security:headers": "node -e \"const next=require('./next.config.js'); console.log(JSON.stringify(next.headers, null, 2))\"",
+    "security:check-deps": "npm audit --audit-level=high --production"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.1.2",

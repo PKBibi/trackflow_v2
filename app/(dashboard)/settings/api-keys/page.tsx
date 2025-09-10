@@ -115,7 +115,14 @@ export default function APIKeysPage() {
   const createAPIKey = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error('Not authenticated')
+      if (!user) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to continue',
+          variant: 'destructive'
+        })
+        return
+      }
 
       // Generate a secure API key
       const key = generateAPIKey()
@@ -627,12 +634,12 @@ export default function APIKeysPage() {
                 <TabsContent value="curl" className="space-y-2">
                   <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
                     <code>{`# Get all time entries
-curl -X GET https://trackflow.app/api/v1/time-entries \\
+curl -X GET https://track-flow.app/api/v1/time-entries \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json"
 
 # Create a new time entry
-curl -X POST https://trackflow.app/api/v1/time-entries \\
+curl -X POST https://track-flow.app/api/v1/time-entries \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -697,7 +704,7 @@ entry = client.time_entries.create(
                 
                 <TabsContent value="graphql" className="space-y-2">
                   <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
-                    <code>{`# GraphQL endpoint: https://trackflow.app/api/graphql
+                    <code>{`# GraphQL endpoint: https://track-flow.app/api/graphql
 
 query GetTimeEntries {
   timeEntries(

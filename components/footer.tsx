@@ -19,7 +19,7 @@ const footerLinks = {
     { label: 'Documentation', href: '/docs' },
     { label: 'Help Center', href: '/help' },
     { label: 'API', href: '/api-docs' },
-    { label: 'Status', href: 'https://status.trackflow.app', external: true },
+    { label: 'Status', href: 'https://status.track-flow.app', external: true },
   ],
   legal: [
     { label: 'Terms of Service', href: '/terms' },
@@ -225,6 +225,8 @@ export function Footer() {
             <span>© {currentYear} TrackFlow. All rights reserved.</span>
             <span className="hidden md:inline">•</span>
             <span>Made with ❤️ for digital marketers</span>
+            <span className="hidden md:inline">•</span>
+            <span>167-169 Great Portland Street, 5th Floor, London, W1W 5PF • 020 8156 6441</span>
           </div>
 
           {/* Compliance Badges */}

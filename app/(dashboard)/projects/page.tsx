@@ -38,7 +38,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ProjectForm } from '@/components/dashboard/project-form'
+import dynamic from 'next/dynamic'
+const ProjectForm = dynamic(() => import('@/components/dashboard/project-form').then(m => m.ProjectForm), { ssr: false, loading: () => <div className="h-64 bg-muted animate-pulse rounded" /> })
 import { projectsAPI, ProjectWithStats, ProjectSummary, Project } from '@/lib/api/projects'
 import { clientsAPI } from '@/lib/api/clients'
 
@@ -182,9 +183,10 @@ export default function ProjectsPage() {
 
   const getStatusColor = (status: Project['status']) => {
     switch (status) {
+      case 'planning': return 'bg-purple-100 text-purple-800'
       case 'active': return 'bg-green-100 text-green-800'
+      case 'paused': return 'bg-yellow-100 text-yellow-800'
       case 'completed': return 'bg-blue-100 text-blue-800'
-      case 'on_hold': return 'bg-yellow-100 text-yellow-800'
       case 'cancelled': return 'bg-gray-100 text-gray-800'
       default: return 'bg-gray-100 text-gray-800'
     }
@@ -210,8 +212,9 @@ export default function ProjectsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin" />
+      <div className="flex items-center justify-center h-96" role="status" aria-live="polite" aria-busy="true">
+        <Loader2 className="w-8 h-8 animate-spin" aria-hidden="true" />
+        <span className="sr-only">Loading projects…</span>
       </div>
     )
   }
@@ -446,9 +449,9 @@ export default function ProjectsPage() {
                       {/* Budget & Hours */}
                       <div className="space-y-2">
                         <h4 className="text-sm font-medium text-muted-foreground">Budget & Time</h4>
-                        {project.budget && (
+                        {project.budget_amount && (
                           <div className="text-sm">
-                            <strong>{formatCurrency(project.budget)}</strong>
+                            <strong>{formatCurrency(project.budget_amount)}</strong>
                             {project.budget_used_percentage && (
                               <span className="text-muted-foreground ml-2">
                                 ({project.budget_used_percentage}% used)
@@ -481,7 +484,7 @@ export default function ProjectsPage() {
                     </div>
 
                     {/* Budget Progress Bar */}
-                    {project.budget && project.budget_used_percentage !== undefined && (
+                    {project.budget_amount && project.budget_used_percentage !== undefined && (
                       <div className="mb-4">
                         <div className="flex items-center justify-between mb-1">
                           <span className="text-sm font-medium">Budget Usage</span>
@@ -506,7 +509,7 @@ export default function ProjectsPage() {
                   {/* Actions Menu */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" aria-label="Open project actions menu">
                         <MoreHorizontal className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>

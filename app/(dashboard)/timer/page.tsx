@@ -27,6 +27,7 @@ import { MarketingChannel, getCategoryById } from '@/lib/constants/marketing-cha
 import { timeEntriesAPI, TimeEntryWithDetails } from '@/lib/api/time-entries';
 import { clientsAPI, ClientWithStats } from '@/lib/api/clients';
 import { projectsAPI, ProjectWithStats } from '@/lib/api/projects';
+import { createClient } from '@/lib/supabase/client';
 
 interface TimerState {
   isRunning: boolean;
@@ -42,6 +43,8 @@ export default function TimerPage() {
   const [todayEntries, setTodayEntries] = useState<TimeEntryWithDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isGuest, setIsGuest] = useState<boolean>(false);
+  const [plan, setPlan] = useState<'free'|'pro'|'enterprise'>('free');
   
   // Timer state
   const [currentTimer, setCurrentTimer] = useState<TimerState>({
@@ -63,9 +66,36 @@ export default function TimerPage() {
   // Refs for timer intervals
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load initial data
+  // Guest storage keys
+  const GUEST_RUNNING_KEY = 'guest_running_timer';
+  const GUEST_TODAY_ENTRIES_KEY = 'guest_today_entries';
+
+  // Load initial data with auth detection
   useEffect(() => {
-    loadInitialData();
+    const init = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setIsGuest(true);
+          await loadGuestInitialData();
+        } else {
+          await loadInitialData();
+        }
+        // load plan for AI features
+        try {
+          const r = await fetch('/api/me/plan');
+          const d = await r.json();
+          setPlan((d.plan || 'free'))
+        } catch {}
+      } catch (err) {
+        // On any auth check error, fall back to guest mode
+        setIsGuest(true);
+        await loadGuestInitialData();
+      }
+    };
+    init();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadInitialData = async () => {
@@ -82,6 +112,7 @@ export default function TimerPage() {
       ]);
 
       setClients(clientsData);
+      setProjects(projectsData);
       setTodayEntries(entriesData);
 
       // If there's a running timer, restore it
@@ -125,6 +156,113 @@ export default function TimerPage() {
     }
   };
 
+  // Guest: seed demo lists, restore running timer and entries
+  const loadGuestInitialData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const guestClient: ClientWithStats = {
+        id: 'guest-client',
+        user_id: 'guest',
+        name: 'Guest Client',
+        company: 'Demo',
+        country: 'US',
+        hourly_rate: 15000,
+        currency: 'USD',
+        tax_rate: 0,
+        has_retainer: false,
+        retainer_hours: 0,
+        retainer_amount: 0,
+        retainer_auto_renew: false,
+        alert_at_75_percent: false,
+        alert_at_90_percent: false,
+        alert_at_100_percent: false,
+        status: 'active',
+        current_month_hours: 0,
+        current_month_earnings: 0,
+        projects_count: 1,
+      } as ClientWithStats;
+
+      const guestProject: ProjectWithStats = {
+        id: 'guest-project',
+        user_id: 'guest',
+        client_id: 'guest-client',
+        name: 'Guest Project',
+        status: 'active',
+        priority: 'medium',
+        billable: true,
+        hourly_rate: 15000,
+        client_name: 'Guest Client',
+        total_time_entries: 0,
+        total_hours: 0,
+        total_amount: 0,
+        is_over_budget: false,
+      } as ProjectWithStats;
+
+      setClients([guestClient]);
+      setProjects([guestProject]);
+
+      // Restore guest entries
+      const raw = typeof window !== 'undefined' ? localStorage.getItem(GUEST_TODAY_ENTRIES_KEY) : null;
+      const parsed: any[] = raw ? JSON.parse(raw) : [];
+      const entries: TimeEntryWithDetails[] = parsed.map((e) => ({
+        id: e.id || Math.random().toString(36).slice(2),
+        client_id: 'guest-client',
+        project_id: 'guest-project',
+        start_time: e.start_time || new Date().toISOString(),
+        duration: e.duration, // minutes
+        marketing_category: e.marketing_category || (e.channel?.category ?? 'strategy-analytics'),
+        marketing_channel: e.marketing_channel || (e.channel?.id ?? 'strategy-planning'),
+        task_title: e.task_title,
+        task_description: e.task_description || '',
+        billable: e.billable,
+        hourly_rate: e.hourly_rate ?? 15000,
+        amount: e.amount,
+        status: 'stopped',
+        is_timer_running: false,
+        client_name: 'Guest Client',
+        project_name: 'Guest Project',
+        channel_name: e.marketing_channel,
+        category_name: e.marketing_category,
+      }));
+      setTodayEntries(entries);
+
+      // Restore running timer
+      const rawRun = typeof window !== 'undefined' ? localStorage.getItem(GUEST_RUNNING_KEY) : null;
+      if (rawRun) {
+        try {
+          const run = JSON.parse(rawRun);
+          const startedAt = run.startedAt ? new Date(run.startedAt) : new Date();
+          const baseSeconds = Number(run.secondsElapsed || 0);
+          const extra = run.isRunning ? Math.floor((Date.now() - startedAt.getTime()) / 1000) : 0;
+          setCurrentTimer({
+            isRunning: !!run.isRunning,
+            seconds: baseSeconds + extra,
+            startTime: startedAt,
+          });
+          if (run.newEntry) {
+            setNewEntry((prev) => ({
+              ...prev,
+              clientId: 'guest-client',
+              projectId: 'guest-project',
+              channel: run.newEntry.channel || prev.channel,
+              taskTitle: run.newEntry.taskTitle || prev.taskTitle,
+              description: run.newEntry.description || prev.description,
+              hourlyRate: run.newEntry.hourlyRate ?? prev.hourlyRate,
+              billable: run.newEntry.billable ?? prev.billable,
+            }));
+          }
+        } catch {}
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load data');
+      console.error('Failed to load guest data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Reload today's entries
   const reloadTodayEntries = async () => {
     try {
@@ -150,6 +288,32 @@ export default function TimerPage() {
     return Math.round(hours * hourlyRate);
   };
 
+  // AI Estimate hint (Pro+): fetch predicted minutes when channel + task present
+  const [estimateHint, setEstimateHint] = useState<{ minutes: number; confidence: number; rationale?: string } | null>(null);
+  const [targetMinutes, setTargetMinutes] = useState<number | null>(null);
+  useEffect(() => {
+    const canEstimate = newEntry.channel?.id && (newEntry.taskTitle || newEntry.description)
+    if (!canEstimate) { setEstimateHint(null); return }
+    let cancelled = false
+    const run = async () => {
+      try {
+        const resp = await fetch('/api/me/plan')
+        const { plan } = await resp.json()
+        if (plan === 'free') { setEstimateHint(null); return }
+        const r = await fetch('/api/ai/estimate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channelId: newEntry.channel!.id, title: newEntry.taskTitle, description: newEntry.description })
+        })
+        if (!r.ok) return
+        const data = await r.json()
+        if (!cancelled) setEstimateHint({ minutes: data.predictedMinutes, confidence: data.confidence, rationale: data.rationale })
+      } catch {}
+    }
+    run()
+    return () => { cancelled = true }
+  }, [newEntry.channel?.id, newEntry.taskTitle, newEntry.description])
+
   // Start timer
   const startTimer = async () => {
     if (!newEntry.channel || !newEntry.taskTitle.trim()) {
@@ -169,36 +333,47 @@ export default function TimerPage() {
 
     try {
       setError(null);
-      
-      // Stop any existing running timers first
-      await timeEntriesAPI.stopAllRunningTimers();
-
       const startTime = new Date();
-      
-      // Create new time entry in database
-      const timeEntry = await timeEntriesAPI.create({
-        client_id: newEntry.clientId,
-        project_id: newEntry.projectId,
-        start_time: startTime.toISOString(),
-        marketing_category: newEntry.channel.category,
-        marketing_channel: newEntry.channel.id,
-        task_title: newEntry.taskTitle,
-        task_description: newEntry.description,
-        billable: newEntry.billable,
-        hourly_rate: newEntry.hourlyRate
-        // campaign_id: newEntry.campaign_id, // Column doesn't exist in production DB
-        // campaign_platform: newEntry.campaign_platform // Column doesn't exist in production DB
-        // status: 'running' // Column doesn't exist in DB
-        // is_timer_running: true // Column doesn't exist in DB
-        // Timer runs when end_time is null
-      });
 
-      setCurrentTimer({
-        isRunning: true,
-        seconds: 0,
-        startTime: startTime,
-        currentEntryId: timeEntry.id
-      });
+      if (isGuest) {
+        // Start guest timer (local only)
+        setCurrentTimer({ isRunning: true, seconds: 0, startTime });
+        // Persist running state
+        localStorage.setItem(
+          GUEST_RUNNING_KEY,
+          JSON.stringify({
+            isRunning: true,
+            startedAt: startTime.toISOString(),
+            secondsElapsed: 0,
+            newEntry,
+          })
+        );
+      } else {
+        // Stop any existing running timers first
+        await timeEntriesAPI.stopAllRunningTimers();
+
+        // Create new time entry in database
+        const timeEntry = await timeEntriesAPI.create({
+          client_id: newEntry.clientId,
+          project_id: newEntry.projectId,
+          start_time: startTime.toISOString(),
+          marketing_category: newEntry.channel.category,
+          marketing_channel: newEntry.channel.id,
+          task_title: newEntry.taskTitle,
+          task_description: newEntry.description,
+          billable: newEntry.billable,
+          hourly_rate: newEntry.hourlyRate,
+          status: 'running',
+          is_timer_running: true
+        });
+
+        setCurrentTimer({
+          isRunning: true,
+          seconds: 0,
+          startTime: startTime,
+          currentEntryId: timeEntry.id
+        });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start timer');
       console.error('Failed to start timer:', err);
@@ -208,7 +383,8 @@ export default function TimerPage() {
   // Stop timer and save entry
   const stopTimer = async () => {
     if (!currentTimer.currentEntryId || !currentTimer.startTime) {
-      return;
+      // Guest mode may not have currentEntryId
+      if (!isGuest) return;
     }
 
     try {
@@ -216,28 +392,60 @@ export default function TimerPage() {
       
       const endTime = new Date();
       
-      // Update the time entry in database
-      await timeEntriesAPI.update(currentTimer.currentEntryId, {
-        end_time: endTime.toISOString()
-        // status: 'stopped' // Column doesn't exist in DB
-        // is_timer_running: false // Column doesn't exist in DB
-      });
+      if (isGuest) {
+        // Save a local entry
+        const seconds = currentTimer.seconds;
+        const minutes = Math.max(1, Math.round(seconds / 60));
+        const amount = calculateEarnings(seconds, newEntry.hourlyRate);
+        const entry = {
+          id: Math.random().toString(36).slice(2),
+          task_title: newEntry.taskTitle,
+          task_description: newEntry.description,
+          marketing_channel: newEntry.channel?.id || 'strategy-planning',
+          marketing_category: newEntry.channel?.category || 'strategy-analytics',
+          billable: newEntry.billable,
+          hourly_rate: newEntry.hourlyRate,
+          amount,
+          duration: minutes,
+          start_time: currentTimer.startTime?.toISOString(),
+        };
+        const raw = localStorage.getItem(GUEST_TODAY_ENTRIES_KEY);
+        const list = raw ? JSON.parse(raw) : [];
+        list.push(entry);
+        localStorage.setItem(GUEST_TODAY_ENTRIES_KEY, JSON.stringify(list));
+        // Clear running timer
+        localStorage.removeItem(GUEST_RUNNING_KEY);
 
-      // Reset timer state
-      setCurrentTimer({
-        isRunning: false,
-        seconds: 0
-      });
+        // Reset timer state
+        setCurrentTimer({ isRunning: false, seconds: 0 });
+        // Clear form
+        setNewEntry(prev => ({ ...prev, taskTitle: '', description: '' }));
+        // Reload from local
+        await reloadTodayEntries();
+      } else {
+        // Update the time entry in database
+        await timeEntriesAPI.update(currentTimer.currentEntryId!, {
+          end_time: endTime.toISOString(),
+          status: 'stopped',
+          is_timer_running: false
+        });
 
-      // Clear form
-      setNewEntry(prev => ({
-        ...prev,
-        taskTitle: '',
-        description: ''
-      }));
+        // Reset timer state
+        setCurrentTimer({
+          isRunning: false,
+          seconds: 0
+        });
 
-      // Reload today's entries
-      await reloadTodayEntries();
+        // Clear form
+        setNewEntry(prev => ({
+          ...prev,
+          taskTitle: '',
+          description: ''
+        }));
+
+        // Reload today's entries
+        await reloadTodayEntries();
+      }
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to stop timer');
@@ -248,22 +456,32 @@ export default function TimerPage() {
   // Pause/Resume timer
   const toggleTimer = async () => {
     if (!currentTimer.currentEntryId) {
-      return;
+      if (!isGuest) return;
     }
 
     try {
       setError(null);
       const newIsRunning = !currentTimer.isRunning;
-      
-      // Temporarily disabled due to schema mismatch
-      // await timeEntriesAPI.update(currentTimer.currentEntryId, {
-      //   is_timer_running: newIsRunning
-      // });
-
-      setCurrentTimer(prev => ({
-        ...prev,
-        isRunning: newIsRunning
-      }));
+      if (isGuest) {
+        // Persist current elapsed seconds and running flag
+        const raw = localStorage.getItem(GUEST_RUNNING_KEY);
+        const run = raw ? JSON.parse(raw) : {};
+        localStorage.setItem(
+          GUEST_RUNNING_KEY,
+          JSON.stringify({
+            ...run,
+            isRunning: newIsRunning,
+            secondsElapsed: currentTimer.seconds,
+          })
+        );
+        setCurrentTimer(prev => ({ ...prev, isRunning: newIsRunning }));
+      } else {
+        await timeEntriesAPI.update(currentTimer.currentEntryId!, {
+          is_timer_running: newIsRunning,
+          status: newIsRunning ? 'running' : 'stopped'
+        });
+        setCurrentTimer(prev => ({ ...prev, isRunning: newIsRunning }));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to toggle timer');
       console.error('Failed to toggle timer:', err);
@@ -274,8 +492,12 @@ export default function TimerPage() {
   const resetTimer = async () => {
     if (currentTimer.currentEntryId) {
       try {
-        // Delete the current entry if it exists
-        await timeEntriesAPI.delete(currentTimer.currentEntryId);
+        if (!isGuest) {
+          // Delete the current entry if it exists
+          await timeEntriesAPI.delete(currentTimer.currentEntryId);
+        } else {
+          localStorage.removeItem(GUEST_RUNNING_KEY);
+        }
       } catch (err) {
         console.error('Failed to delete timer entry:', err);
       }
@@ -296,6 +518,19 @@ export default function TimerPage() {
           seconds: prev.seconds + 1
         }));
       }, 1000);
+      // Update guest running persisted seconds periodically
+      if (isGuest) {
+        const raw = localStorage.getItem(GUEST_RUNNING_KEY);
+        const run = raw ? JSON.parse(raw) : {};
+        localStorage.setItem(
+          GUEST_RUNNING_KEY,
+          JSON.stringify({
+            ...run,
+            isRunning: true,
+            secondsElapsed: currentTimer.seconds,
+          })
+        );
+      }
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
@@ -407,6 +642,38 @@ export default function TimerPage() {
               <div className="text-6xl font-mono font-bold text-blue-600 mb-4">
                 {formatTime(currentTimer.seconds)}
               </div>
+              {plan==='free' && !currentTimer.isRunning && newEntry.channel && (newEntry.taskTitle || newEntry.description) && (
+                <div className="text-xs text-muted-foreground mb-2">
+                  AI estimates available on Pro — <a href="/pricing/simple" className="underline" onClick={async (e)=>{ try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('timer_upgrade_click_estimate'); } catch {} }}>Upgrade</a>
+                </div>
+              )}
+              {plan==='free' && !currentTimer.isRunning && newEntry.channel && (newEntry.taskTitle || newEntry.description) && (
+                <div className="text-xs text-muted-foreground mb-2">
+                  AI estimates available on Pro — <a href="/pricing/simple" className="underline">Upgrade</a>
+                </div>
+              )}
+              {estimateHint && !currentTimer.isRunning && (
+                <div className="text-sm text-muted-foreground mb-2 flex items-center gap-2 justify-center">
+                  <span>Estimated: ~{Math.round(estimateHint.minutes)} min ({Math.round((estimateHint.confidence || 0)*100)}% conf)</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('timer_apply_estimate'); } catch {}
+                      const mins = Math.max(1, Math.round(estimateHint.minutes))
+                      setTargetMinutes(mins)
+                      try { localStorage.setItem('timer_target_minutes', String(mins)) } catch {}
+                    }}
+                  >
+                    Apply estimate
+                  </Button>
+                </div>
+              )}
+              {targetMinutes && !currentTimer.isRunning && (
+                <div className="text-xs text-blue-600 mb-2">
+                  Target: {targetMinutes} min
+                </div>
+              )}
               {currentTimer.isRunning && newEntry.channel && (
                 <div className="flex items-center justify-center gap-2 mb-4">
                   <div 
@@ -472,6 +739,18 @@ export default function TimerPage() {
 
             {/* Entry Form */}
             <div className="space-y-4">
+              {targetMinutes !== null && (
+                <div>
+                  <Label htmlFor="targetDuration">Target Duration (min)</Label>
+                  <Input
+                    id="targetDuration"
+                    type="number"
+                    className="w-32 mt-1"
+                    value={targetMinutes}
+                    onChange={(e) => setTargetMinutes(Math.max(1, Number(e.target.value || 0)))}
+                  />
+                </div>
+              )}
               <div className="grid grid-cols-1 gap-4">
                 <div>
                   <Label htmlFor="client">Client *</Label>
@@ -531,7 +810,7 @@ export default function TimerPage() {
                         variant="link" 
                         size="sm" 
                         className="p-0 h-auto text-blue-600"
-                        onClick={() => window.open('/dashboard/projects', '_blank')}
+                        onClick={() => window.open('/projects', '_blank')}
                       >
                         Create one →
                       </Button>
@@ -566,6 +845,52 @@ export default function TimerPage() {
                   value={newEntry.taskTitle}
                   onChange={(e) => setNewEntry(prev => ({ ...prev, taskTitle: e.target.value }))}
                 />
+                <div className="mt-2 flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    disabled={plan==='free'}
+                    title={plan==='free' ? 'Upgrade to Pro to use AI suggestions' : undefined}
+                    onClick={async () => {
+                      try {
+                        const text = (newEntry.taskTitle || newEntry.description || '').trim()
+                        if (!text) {
+                          setError('Enter a task title or description for suggestions')
+                          return
+                        }
+                        try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('timer_ai_suggest_click'); } catch {}
+                        const resp = await fetch('/api/ai/parse-time-entry', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ text })
+                        })
+                        if (!resp.ok) throw new Error('AI suggestion unavailable')
+                        const data = await resp.json()
+                        setNewEntry(prev => ({
+                          ...prev,
+                          taskTitle: data.suggestedTitle || prev.taskTitle,
+                          channel: data.channelId ? { 
+                            id: data.channelId, 
+                            name: data.channelId,
+                            category: data.categoryId || prev.channel?.category || 'strategy-analytics',
+                            description: '',
+                            icon: '',
+                            billableByDefault: data.billable ?? true,
+                            color: prev.channel?.color || '#3b82f6'
+                          } : prev.channel,
+                          billable: typeof data.billable === 'boolean' ? data.billable : prev.billable
+                        }))
+                      } catch (e) {
+                        setError('Failed to get AI suggestion. Ensure you are on Pro plan and try again.')
+                      }
+                    }}
+                  >
+                    Suggest
+                  </Button>
+                  {plan==='free' && (
+                    <span className="text-xs text-muted-foreground">Pro required for AI suggestions — <a href="/pricing/simple" className="underline">Upgrade</a></span>
+                  )}
+                </div>
               </div>
 
               <div>

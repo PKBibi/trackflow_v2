@@ -25,6 +25,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { QUICK_TEMPLATES } from '@/lib/constants/marketing-categories';
 import { useToast } from '@/components/ui/use-toast';
+import { LoadingSpinner } from '@/components/ui/loading';
 
 interface TimeEntryFormProps {
   projectId?: string;
@@ -60,6 +61,7 @@ export function TimeEntryForm({
 }: TimeEntryFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [appliedTarget, setAppliedTarget] = useState<number | null>(null);
   
   // Form state
   const [formData, setFormData] = useState<TimeEntryData>({
@@ -75,6 +77,20 @@ export function TimeEntryForm({
     billable: initialData?.billable !== undefined ? initialData.billable : true,
     rate: initialData?.rate
   });
+
+  // Apply suggested target duration from timer (if present)
+  useEffect(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem('timer_target_minutes') : null
+      const suggested = raw ? parseInt(raw) : 0
+      if (suggested && !formData.duration) {
+        setFormData(prev => ({ ...prev, duration: suggested }))
+        setAppliedTarget(suggested)
+        // clear after submit to allow reuse until saved
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Calculate duration when times change
   useEffect(() => {
@@ -170,6 +186,7 @@ export function TimeEntryForm({
       if (onSubmit) {
         await onSubmit(formData);
       }
+      try { localStorage.removeItem('timer_target_minutes') } catch {}
       
       toast({
         title: mode === 'create' ? "Time entry created" : "Time entry updated",
@@ -436,9 +453,13 @@ export function TimeEntryForm({
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="gap-2"
+              className="gap-2 min-w-[120px]"
             >
-              <Save className="h-4 w-4" />
+              {isSubmitting ? (
+                <LoadingSpinner size="sm" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
               {isSubmitting ? 'Saving...' : (mode === 'create' ? 'Log Time' : 'Update Entry')}
             </Button>
           </div>

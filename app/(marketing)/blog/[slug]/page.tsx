@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft, Calendar, Clock, User, Share2, Bookmark, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { BlogContent } from '@/components/blog/blog-content'
 
 // Blog post data - in production this would come from a CMS or database
 const blogPosts = {
@@ -1396,11 +1397,7 @@ export default function BlogPostPage({ params }: PageProps) {
         </header>
 
         {/* Content */}
-        <div 
-          className="prose prose-lg prose-gray dark:prose-invert max-w-none leading-relaxed"
-          style={{ lineHeight: '1.8' }}
-          dangerouslySetInnerHTML={{ __html: post.content }}
-        />
+        <BlogContent content={post.content} readTime={post.readTime} />
 
         {/* Author bio */}
         <div className="mt-12 p-6 bg-muted/50 rounded-lg">

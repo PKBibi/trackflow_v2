@@ -125,7 +125,7 @@ export default function SimplePricingPage() {
                       <ChevronRight className="w-4 h-4 ml-2"/>
                     </Button>
                     {(variant==='B' || variant==='C') && (
-                      <Button className="w-full" variant="default" onClick={()=>window.location.href='/billing'}>
+                      <Button className="w-full" variant="default" onClick={()=>window.location.href='/dashboard/billing'}>
                         Go to Billing
                         <ChevronRight className="w-4 h-4 ml-2"/>
                       </Button>

@@ -305,55 +305,71 @@ export default function ImportPage() {
   // Import data to API
   const importData = async () => {
     setIsProcessing(true);
+    setProgressText('Starting import...');
     
     try {
       const endpoint = importType === 'time_entries' 
-        ? '/api/v1/time-entries'
-        : '/api/v1/clients';
+        ? '/api/import/time-entries'
+        : '/api/import/clients';
       
-      // Import in batches
-      const batchSize = 50;
-      let imported = 0;
-      
-      for (let i = 0; i < processedData.length; i += batchSize) {
-        const batch = processedData.slice(i, i + batchSize);
-        
-        // Import each item
-        const promises = batch.map(item => 
-          fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(item),
-          })
-        );
-        
-        await Promise.all(promises);
-        imported += batch.length;
-        
-        // Update progress
-        const progress = (imported / processedData.length) * 100;
-        const text = `Imported ${imported} of ${processedData.length} (${progress.toFixed(1)}%)`;
-        setProgressText(text);
-        console.log(text);
-      }
-      
-      toast({
-        title: 'Import successful',
-        description: `Imported ${processedData.length} ${importType === 'time_entries' ? 'time entries' : 'clients'}`,
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          entries: processedData,
+          mappings: mappings
+        }),
       });
       
-      // Reset form
-      resetImport();
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Import failed');
+      }
+      
+      if (result.success) {
+        const { results } = result;
+        let description = `Successfully imported ${results.successful} ${importType === 'time_entries' ? 'time entries' : 'clients'}`;
+        
+        if (results.clientsCreated > 0) {
+          description += `, created ${results.clientsCreated} new clients`;
+        }
+        if (results.projectsCreated > 0) {
+          description += `, created ${results.projectsCreated} new projects`;
+        }
+        if (results.failed > 0) {
+          description += `. ${results.failed} entries failed.`;
+        }
+        if (results.skipped > 0) {
+          description += `. ${results.skipped} entries skipped (duplicates).`;
+        }
+        
+        toast({
+          title: 'Import completed',
+          description,
+          duration: results.errors.length > 0 ? 10000 : 5000
+        });
+        
+        // Show errors if any
+        if (results.errors.length > 0) {
+          console.error('Import errors:', results.errors);
+          setValidationErrors(results.errors);
+        } else {
+          // Move to success step if no errors
+          setCurrentStep(4);
+        }
+      }
       
     } catch (error) {
       console.error('Import error:', error);
       toast({
         title: 'Import failed',
-        description: 'Failed to import data. Please try again.',
+        description: error instanceof Error ? error.message : 'Failed to import data. Please try again.',
         variant: 'destructive',
       });
     } finally {
       setIsProcessing(false);
+      setProgressText('');
     }
   };
 

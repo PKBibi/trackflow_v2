@@ -53,71 +53,83 @@ import {
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
-import type { TeamMember, TeamInvite } from '@/types/team';
-
-// Mock data - replace with actual API calls
-const mockTeamMembers: TeamMember[] = [
-  {
-    id: '1',
-    email: 'owner@company.com',
-    name: 'John Doe',
-    role: 'owner',
-    hourlyRate: 150,
-    avatar: '',
-    joinedAt: new Date('2024-01-01'),
-    lastActive: new Date(),
-    status: 'active'
-  },
-  {
-    id: '2',
-    email: 'admin@company.com',
-    name: 'Jane Smith',
-    role: 'admin',
-    hourlyRate: 120,
-    avatar: '',
-    joinedAt: new Date('2024-02-01'),
-    lastActive: new Date(Date.now() - 3600000),
-    status: 'active'
-  },
-  {
-    id: '3',
-    email: 'member@company.com',
-    name: 'Bob Wilson',
-    role: 'member',
-    hourlyRate: 80,
-    avatar: '',
-    joinedAt: new Date('2024-03-01'),
-    lastActive: new Date(Date.now() - 86400000),
-    status: 'active'
-  }
-];
-
-const mockPendingInvites: TeamInvite[] = [
-  {
-    id: '1',
-    email: 'newmember@example.com',
-    role: 'member',
-    invitedBy: '1',
-    invitedAt: new Date(Date.now() - 86400000),
-    expiresAt: new Date(Date.now() + 6 * 86400000),
-    status: 'pending',
-    token: 'abc123'
-  }
-];
+import { teamAPI, type TeamMember, type TeamInvitation } from '@/lib/api/team';
+import { Loader2 } from 'lucide-react';
 
 export default function TeamManagementPage() {
   const { toast } = useToast();
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>(mockTeamMembers);
-  const [pendingInvites, setPendingInvites] = useState<TeamInvite[]>(mockPendingInvites);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [pendingInvites, setPendingInvites] = useState<TeamInvitation[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [currentUserRole, setCurrentUserRole] = useState<string>('member');
+  const [teamId, setTeamId] = useState<string>('');
 
-  // Check subscription plan (mock)
-  const hasTeamFeatures = true; // This would come from subscription data
-  const teamLimit = 10;
+  // Check subscription plan
+  const [plan, setPlan] = useState<'free' | 'pro' | 'enterprise'>('free');
+  const teamLimit = plan === 'enterprise' ? 999 : plan === 'pro' ? 10 : 3;
   const currentTeamSize = teamMembers.length;
+  const hasTeamFeatures = plan !== 'free';
+  
+  // Load team data on mount
+  useEffect(() => {
+    loadTeamData();
+    loadPlan();
+  }, []);
+  
+  const loadPlan = async () => {
+    try {
+      const response = await fetch('/api/me/plan');
+      const data = await response.json();
+      setPlan(data.plan || 'free');
+    } catch (error) {
+      console.error('Failed to load plan:', error);
+    }
+  };
+  
+  const loadTeamData = async () => {
+    setIsLoading(true);
+    try {
+      // Load team members
+      const { members, team_id } = await teamAPI.getMembers();
+      setTeamMembers(members);
+      setTeamId(team_id);
+      
+      // Find current user's role
+      const currentUserEmail = await getCurrentUserEmail();
+      const currentMember = members.find(m => m.email === currentUserEmail);
+      if (currentMember) {
+        setCurrentUserRole(currentMember.role);
+      }
+      
+      // Load pending invitations if user is admin/owner
+      if (currentMember && ['owner', 'admin'].includes(currentMember.role)) {
+        const { invitations } = await teamAPI.getInvitations();
+        setPendingInvites(invitations);
+      }
+    } catch (error) {
+      console.error('Failed to load team data:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load team data',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  
+  const getCurrentUserEmail = async () => {
+    try {
+      const response = await fetch('/api/me/plan');
+      const data = await response.json();
+      return data.email || '';
+    } catch {
+      return '';
+    }
+  };
 
   // Invite form state
   const [inviteForm, setInviteForm] = useState({
@@ -137,21 +149,12 @@ export default function TeamManagementPage() {
   const handleSendInvite = async () => {
     setIsLoading(true);
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { invitation } = await teamAPI.sendInvitation(
+        inviteForm.email,
+        inviteForm.role as 'owner' | 'admin' | 'member' | 'viewer'
+      );
       
-      const newInvite: TeamInvite = {
-        id: Date.now().toString(),
-        email: inviteForm.email,
-        role: inviteForm.role,
-        invitedBy: '1', // Current user ID
-        invitedAt: new Date(),
-        expiresAt: new Date(Date.now() + 7 * 86400000), // 7 days
-        status: 'pending',
-        token: Math.random().toString(36).substr(2, 9)
-      };
-      
-      setPendingInvites([...pendingInvites, newInvite]);
+      setPendingInvites([...pendingInvites, invitation]);
       
       toast({
         title: "Invitation sent",
@@ -165,10 +168,10 @@ export default function TeamManagementPage() {
         hourlyRate: 100,
         message: ''
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to send invitation. Please try again.",
+        description: error.message || "Failed to send invitation. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -179,25 +182,27 @@ export default function TeamManagementPage() {
   // Cancel invite
   const handleCancelInvite = async (inviteId: string) => {
     try {
+      await teamAPI.cancelInvitation(inviteId);
       setPendingInvites(pendingInvites.filter(inv => inv.id !== inviteId));
       toast({
         title: "Invitation cancelled",
         description: "The invitation has been cancelled.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to cancel invitation.",
+        description: error.message || "Failed to cancel invitation.",
         variant: "destructive",
       });
     }
   };
 
   // Update member
-  const handleUpdateMember = async (memberId: string, updates: Partial<TeamMember>) => {
+  const handleUpdateMember = async (memberId: string, updates: { role?: TeamMember['role'], status?: TeamMember['status'] }) => {
     try {
-      setTeamMembers(teamMembers.map(member => 
-        member.id === memberId ? { ...member, ...updates } : member
+      const { member } = await teamAPI.updateMember(memberId, updates);
+      setTeamMembers(teamMembers.map(m => 
+        m.id === memberId ? { ...m, ...updates } : m
       ));
       
       toast({
@@ -218,23 +223,25 @@ export default function TeamManagementPage() {
   // Remove member
   const handleRemoveMember = async (memberId: string) => {
     try {
+      await teamAPI.removeMember(memberId);
       setTeamMembers(teamMembers.filter(member => member.id !== memberId));
       
       toast({
         title: "Member removed",
         description: "Team member has been removed.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to remove member.",
+        description: error.message || "Failed to remove member.",
         variant: "destructive",
       });
     }
   };
 
   // Format last active time
-  const formatLastActive = (date: Date) => {
+  const formatLastActive = (dateStr: string) => {
+    const date = new Date(dateStr);
     const diff = Date.now() - date.getTime();
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
@@ -269,8 +276,8 @@ export default function TeamManagementPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center">
-            <Button className="mt-4">
-              Upgrade to Agency Plan
+            <Button className="mt-4" onClick={() => window.location.href = '/pricing'}>
+              Upgrade to Pro Plan
             </Button>
           </CardContent>
         </Card>
@@ -301,7 +308,7 @@ export default function TeamManagementPage() {
           <CardHeader className="pb-3">
             <CardDescription>Active Now</CardDescription>
             <CardTitle className="text-2xl">
-              {teamMembers.filter(m => Date.now() - m.lastActive!.getTime() < 300000).length}
+              {teamMembers.filter(m => Date.now() - new Date(m.lastActive).getTime() < 300000).length}
             </CardTitle>
           </CardHeader>
         </Card>
@@ -315,7 +322,7 @@ export default function TeamManagementPage() {
           <CardHeader className="pb-3">
             <CardDescription>Avg. Hourly Rate</CardDescription>
             <CardTitle className="text-2xl">
-              ${Math.round(teamMembers.reduce((acc, m) => acc + m.hourlyRate, 0) / teamMembers.length)}
+              {teamMembers.length > 0 ? `$${Math.round(teamMembers.reduce((acc, m) => acc + (m.hourlyRate || 0), 0) / teamMembers.length)}` : '$0'}
             </CardTitle>
           </CardHeader>
         </Card>

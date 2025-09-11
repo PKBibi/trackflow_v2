@@ -216,12 +216,32 @@ export default function InsightsDashboard() {
       {insights.length === 0 ? (
         <Card className="border-dashed border-gray-300">
           <CardContent className="py-12 text-center">
-            <Lightbulb className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Insights Yet</h3>
-            <p className="text-gray-600 mb-4">
-              {tab==='ai' ? 'Generate AI insights once you have some data.' : 'Start tracking your time to generate personalized insights about your productivity and revenue.'}
+            <div className="mx-auto mb-4 w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <Lightbulb className="w-6 h-6 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              {tab==='ai' ? 'Ready for AI Insights?' : 'No Insights Yet'}
+            </h3>
+            <p className="text-gray-600 mb-6 max-w-sm mx-auto">
+              {tab==='ai' 
+                ? 'Track some time entries to generate personalized AI-powered insights about your productivity and revenue patterns.' 
+                : 'Start tracking your time to generate personalized insights about your productivity and revenue patterns.'
+              }
             </p>
-            <Button>Start Tracking Time</Button>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button asChild>
+                <a href="/timer">
+                  <Clock className="w-4 h-4 mr-2" />
+                  Start Tracking Time
+                </a>
+              </Button>
+              <Button variant="outline" asChild>
+                <a href="/timesheet">
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Log Past Work
+                </a>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ) : (

@@ -277,7 +277,7 @@ export default function PricingPage() {
                     } else if (plan.name === 'Agency Growth') {
                       if (auth) startCheckout('enterprise'); else window.location.href = '/signup'
                     } else {
-                      window.location.href = auth ? '/billing' : '/signup'
+                      window.location.href = auth ? '/dashboard/billing' : '/signup'
                     }
                   }}
                 >

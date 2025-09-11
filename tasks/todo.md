@@ -1,221 +1,93 @@
-# TrackFlow V2 - Issue Resolution Plan
+# TrackFlow Feature Implementation Plan
 
-## ✅ Priority 1: Critical Database Integration Issues (COMPLETED)
+## ✅ COMPLETED: Team Management System (2025-09-11)
 
-### 1. Connect clients API to Supabase database
-- [x] Replace mock data with Supabase queries in `/api/v1/clients/route.ts`
-- [x] Implement proper CRUD operations using Supabase client
-- [x] Add proper error handling with HttpError class
-- [x] Test all endpoints (GET, POST, PUT, DELETE)
+## Quick Wins (High Impact, Low Effort)
 
-### 2. Connect time-entries API to Supabase database  
-- [x] Replace mock data with Supabase queries in `/api/v1/time-entries/route.ts`
-- [x] Implement duration calculation and amount computation
-- [x] Add proper filtering and pagination
-- [x] Test timer integration with database
+### 1. ✅ Fix Team Management System - COMPLETED
+**Priority: CRITICAL** - Currently using mock data only
+- [x] Create Supabase tables:
+  - [x] `team_members` table with user_id, role, permissions, invited_by, joined_at
+  - [x] `team_invitations` table with email, role, token, expires_at, accepted
+- [x] Implement backend API endpoints:
+  - [x] GET /api/team/members - List team members
+  - [x] POST /api/team/invite - Send invitation
+  - [x] POST /api/team/accept - Accept invitation
+  - [x] PUT /api/team/members/[id] - Update member role
+  - [x] DELETE /api/team/members/[id] - Remove member
+- [x] Connect UI to real data:
+  - [x] Replace mock data in settings/team/page.tsx
+  - [x] Add invitation email sending via Resend (partial - needs API key)
+  - [x] Implement role-based access control
+- [x] Add team member limits based on plan (3 for Free, 10 for Pro, unlimited for Enterprise)
 
-### 3. Connect projects API to Supabase database
-- [x] Create `/api/v1/projects/route.ts` with Supabase integration
-- [x] Implement project CRUD operations
-- [x] Add project statistics calculations
-- [x] Link with clients and time entries
+### 2. ✅ Complete Import Functionality - COMPLETED
+**Priority: HIGH** - UI exists but not wired up
+- [x] Implement CSV/Excel parsing logic:
+  - [x] Parse uploaded files using existing XLSX library
+  - [x] Map columns to database fields
+  - [x] Validate data before import
+- [x] Create import API endpoint:
+  - [x] POST /api/import/time-entries
+  - [x] POST /api/import/clients
+  - [x] Add batch insert with transaction support
+- [x] Add progress tracking and error handling
+- [x] Show import results summary
 
-## ✅ Priority 2: Code Quality Fixes (COMPLETED)
+### 3. ✅ Create API Documentation - COMPLETED
+**Priority: HIGH** - Easy fix for broken links
+- [x] Create /app/(marketing)/docs/api/page.tsx
+- [x] Document existing endpoints:
+  - [x] REST API (v1/time-entries, v1/clients, v1/projects)
+  - [x] GraphQL endpoint
+  - [x] Authentication requirements
+- [x] Add code examples for common operations
+- [x] Include rate limiting information
 
-### 4. Fix duplicate error throwing in hooks/use-api.ts
-- [x] Remove duplicate error throwing at lines 163-164
-- [x] Review error handling throughout the file
-- [x] Test error propagation
+## Medium Effort Features (1-2 days each)
 
-### 5. Consolidate database migrations
-- [x] Combine phase9, phase10, and phase11 migrations
-- [x] Create single comprehensive migration file
-- [x] Test migration on fresh database
-- [x] Update documentation
+### 4. Complete Client/Project Management UI
+- [ ] Add create client modal/page
+- [ ] Add edit client functionality
+- [ ] Add create project modal/page
+- [ ] Add edit project functionality
+- [ ] Implement archiving instead of hard delete
 
-## ✅ Priority 3: Feature Completion (COMPLETED)
+### 5. Implement Retainer Alerts
+- [ ] Add retainer_limit and alert_thresholds to clients table
+- [ ] Create background job to check retainer usage
+- [ ] Send email alerts at 75%, 90%, 100%
+- [ ] Add in-app notifications
+- [ ] Show retainer burndown in client view
 
-### 6. Implement GraphQL resolvers
-- [x] Complete GraphQL schema definition
-- [x] Add resolvers for all entities
-- [x] Connect resolvers to Supabase
-- [x] Add proper error handling
+### 6. Enhanced Export Features
+- [ ] Add PDF export using React PDF or similar
+- [ ] Implement Excel export with formatting
+- [ ] Add scheduled/recurring exports
+- [ ] Create export templates
 
-### 7. Add error boundaries
-- [x] Create ErrorBoundary component
-- [x] Wrap main application sections
-- [x] Add fallback UI for errors
-- [x] Log errors appropriately
+## Which to Start With?
 
-### 8. Add loading states
-- [x] Review all async operations
-- [x] Add loading skeletons for data fetching
-- [x] Implement suspense boundaries where appropriate
-- [x] Ensure consistent loading UX
+I recommend starting with:
 
-## ✅ Priority 4: Security & Performance (COMPLETED)
+1. **Team Management** - It's a critical missing feature that's advertised
+2. **Import Functionality** - High user value, UI already built
+3. **API Documentation** - Quick win that fixes broken links
 
-### 9. Implement rate limiting
-- [x] Add rate limiting middleware
-- [x] Configure limits per endpoint
-- [x] Add rate limit headers to responses
-- [x] Test with load testing tools
+These can likely all be completed within 2-3 days and would significantly improve the app's completeness.
 
-### 10. Add basic test structure
-- [x] Set up Jest and React Testing Library
-- [x] Create example unit tests for utilities
-- [x] Add integration tests for API routes
-- [x] Create component testing examples
+## Implementation Approach
 
-## Execution Order
-
-**Week 1**: Complete Priority 1 (Database Integration)
-- Days 1-2: Connect clients API
-- Days 3-4: Connect time-entries API  
-- Days 5-6: Connect projects API
-- Day 7: Integration testing
-
-**Week 2**: Complete Priority 2 & 3
-- Days 1-2: Fix code quality issues
-- Days 3-4: GraphQL implementation
-- Days 5-6: Error boundaries and loading states
-- Day 7: Testing and refinement
-
-**Week 3**: Complete Priority 4
-- Days 1-2: Rate limiting
-- Days 3-5: Test structure and examples
-- Days 6-7: Documentation and final testing
-
-## Success Criteria
-
-- All API endpoints connected to real database
-- Zero mock data in production code
-- Proper error handling throughout
-- Loading states for all async operations
-- Basic test coverage established
-- Rate limiting protecting all endpoints
-- Migration scripts consolidated and tested
-
-## ✅ COMPLETED - PROJECT RESOLUTION SUMMARY
-
-All 10 priority tasks have been successfully completed:
-
-**Priority 1: Critical Database Integration Issues**
-- ✅ Connected clients API to Supabase database with full CRUD operations
-- ✅ Connected time-entries API to Supabase with duration calculation and amount computation
-- ✅ Connected projects API to Supabase with statistics and client linking
-
-**Priority 2: Code Quality Fixes** 
-- ✅ Fixed duplicate error throwing in hooks/use-api.ts (lines 163-164)
-- ✅ Consolidated database migrations from 3 files into single comprehensive schema
-
-**Priority 3: Feature Completion**
-- ✅ Implemented comprehensive GraphQL resolvers with full Supabase integration
-- ✅ Added error boundaries with DefaultErrorFallback component
-- ✅ Added loading states and skeletons for all async operations
-
-**Priority 4: Security & Performance**
-- ✅ Implemented rate limiting middleware for API protection
-- ✅ Set up Jest testing framework with proper mocks and example tests
-
-**Key Improvements Made:**
-- Replaced all mock data with real database queries
-- Added HttpError class for consistent API error handling
-- Implemented rate limiting on all API endpoints
-- Created comprehensive error boundaries for React components
-- Set up testing infrastructure with Jest + React Testing Library
-- Enhanced GraphQL schema with Client, Project, TimeEntry, and Invoice types
-- Added proper authentication and user context to all operations
-- Implemented RLS (Row Level Security) throughout database operations
-
-**Build Status:** ✅ Successful compilation confirmed
+For each feature:
+1. Create database migrations if needed
+2. Build API endpoints with proper validation
+3. Connect existing UI or build minimal new UI
+4. Add error handling and loading states
+5. Test with real data
+6. Update any related documentation
 
 ## Notes
-
-- Each task was tested individually before moving to next
-- Changes were minimal and focused on specific issues
-- New patterns documented in components and lib folders
-- All architectural changes maintain existing conventions
-
----
-
-# Comprehensive Codebase Audit - SEO, UI/UX, and Performance
-
-## Plan Overview
-Systematic audit of the TrackFlow v2 Next.js application to identify issues across three key areas:
-1. SEO optimization issues
-2. UI/UX and accessibility problems  
-3. Performance bottlenecks
-
-## Todo Items
-
-### Phase 1: Codebase Structure Analysis
-- [ ] Analyze project structure and configuration files
-- [ ] Review Next.js configuration and build settings
-- [ ] Examine package.json for dependencies and scripts
-- [ ] Check for existing SEO implementations
-
-### Phase 2: SEO Audit
-- [ ] Audit page metadata (titles, descriptions, Open Graph)
-- [ ] Check sitemap.xml implementation and structure
-- [ ] Verify robots.txt configuration
-- [ ] Analyze URL structure and routing
-- [ ] Review structured data implementation
-- [ ] Check image alt tags and SEO-friendly markup
-- [ ] Examine heading hierarchy across pages
-
-### Phase 3: UI/UX and Accessibility Audit
-- [ ] Test accessibility compliance (ARIA, keyboard navigation)
-- [ ] Check color contrast ratios
-- [ ] Analyze mobile responsiveness
-- [ ] Review loading states and error handling
-- [ ] Examine form validation and user feedback
-- [ ] Test user navigation flows
-- [ ] Check for proper semantic HTML usage
-
-### Phase 4: Performance Audit
-- [ ] Analyze bundle size and unused imports
-- [ ] Check image optimization strategies
-- [ ] Review database queries for efficiency
-- [ ] Examine client-side rendering patterns
-- [ ] Test Core Web Vitals compliance
-- [ ] Check caching strategies
-- [ ] Analyze lazy loading implementations
-
-### Phase 5: Report Generation
-- [ ] Compile findings by severity (Critical, High, Medium, Low)
-- [ ] Provide actionable recommendations for each issue
-- [ ] Create prioritized fix list with file paths and line numbers
-
-## Notes
-- Focus on systematic examination of all pages and components
-- Prioritize issues that impact user experience and search visibility
-- Provide specific, actionable recommendations with code examples
-
-## Findings Summary
-(To be populated during audit)
-
-## Review Section
-(To be completed after audit)
-
----
-
-# Previous MVP Implementation Plan (For Reference)
-
-## ✅ Completed Tasks
-
-### Audit & Analysis
-- [x] Audit navigation and links for broken paths
-- [x] Check authentication flow and security vulnerabilities
-- [x] Review database schema and API endpoints
-- [x] Identify missing core functionality
-- [x] Create comprehensive audit report
-
-### Critical Fixes Implemented
-- [x] Added .env.local to .gitignore (security fix)
-- [x] Created demo page (/demo) to fix broken link
-- [x] Implemented Supabase authentication in login page
-- [x] Implemented Supabase authentication in signup page
-- [x] Added middleware for protected route authentication
-- [x] Added error handling and loading states to auth forms
-- [x] Added form validation to signup (password minimum length)
+- Keep changes simple and focused
+- Use existing patterns from the codebase
+- Test each feature thoroughly before moving to the next
+- Prioritize functionality over perfect UI

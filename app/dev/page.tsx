@@ -27,7 +27,7 @@ const devRoutes = {
     { name: 'Invoices', path: '/invoices', icon: FileText, description: 'Invoice management', status: 'ready' },
     { name: 'Timesheet', path: '/timesheet', icon: Calendar, description: 'Time entries', status: 'ready' },
     { name: 'Reports', path: '/reports', icon: BarChart3, description: 'Analytics & reports', status: 'ready' },
-    { name: 'Billing', path: '/billing', icon: CreditCard, description: 'Subscription & billing', status: 'ready' },
+    { name: 'Billing', path: '/dashboard/billing', icon: CreditCard, description: 'Subscription & billing', status: 'ready' },
   ],
   settings: [
     { name: 'Settings Main', path: '/settings', icon: Settings, description: 'Main settings page' },

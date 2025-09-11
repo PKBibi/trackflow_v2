@@ -1,4 +1,5 @@
-import { Metadata } from 'next'
+'use client'
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -11,25 +12,55 @@ import {
   Activity,
   ChevronRight,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  RefreshCw
 } from 'lucide-react'
 import Link from 'next/link'
-
-export const metadata: Metadata = {
-  title: 'Dashboard - TrackFlow',
-  description: 'Your marketing time tracking dashboard',
-}
+import { RetainerAlerts } from '@/components/dashboard/retainer-alerts'
+import { useDashboardStats } from '@/hooks/use-dashboard-stats'
+import { toastUtils } from '@/lib/toast-utils'
 
 export default function DashboardPage() {
+  const { data: stats, loading, error, refresh } = useDashboardStats()
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back! Here's your activity overview.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back! Here's your activity overview.
+            {stats && (
+              <span className="text-xs ml-2">
+                • Last updated {new Date(stats.lastUpdated).toLocaleTimeString()}
+              </span>
+            )}
+          </p>
+        </div>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={refresh}
+          disabled={loading}
+        >
+          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
+
+      {error && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-red-800">
+              <AlertCircle className="h-4 w-4" />
+              <span className="text-sm">Failed to load dashboard data: {error}</span>
+              <Button variant="outline" size="sm" onClick={refresh} className="ml-auto">
+                Try Again
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -39,10 +70,25 @@ export default function DashboardPage() {
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">5.2</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+12%</span> from yesterday
-            </p>
+            {loading ? (
+              <div className="space-y-2">
+                <div className="h-8 w-16 bg-muted animate-pulse rounded" />
+                <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">
+                  {stats?.today.hours || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {stats?.today.changeFromYesterday !== undefined && (
+                    <span className={stats.today.changeFromYesterday >= 0 ? "text-green-600" : "text-red-600"}>
+                      {stats.today.changeFromYesterday >= 0 ? '+' : ''}{stats.today.changeFromYesterday}%
+                    </span>
+                  )} from yesterday
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -52,10 +98,21 @@ export default function DashboardPage() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">32.5 hrs</div>
-            <p className="text-xs text-muted-foreground">
-              82% billable rate
-            </p>
+            {loading ? (
+              <div className="space-y-2">
+                <div className="h-8 w-20 bg-muted animate-pulse rounded" />
+                <div className="h-4 w-28 bg-muted animate-pulse rounded" />
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">
+                  {stats?.week.hours || 0} hrs
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {stats?.week.billableRate || 0}% billable rate
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -65,10 +122,25 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$4,875</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">+18%</span> from last week
-            </p>
+            {loading ? (
+              <div className="space-y-2">
+                <div className="h-8 w-20 bg-muted animate-pulse rounded" />
+                <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">
+                  ${stats?.week.revenue?.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) || '0'}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {stats?.week.changeFromLastWeek !== undefined && (
+                    <span className={stats.week.changeFromLastWeek >= 0 ? "text-green-600" : "text-red-600"}>
+                      {stats.week.changeFromLastWeek >= 0 ? '+' : ''}{stats.week.changeFromLastWeek}%
+                    </span>
+                  )} from last week
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -78,10 +150,21 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">8</div>
-            <p className="text-xs text-muted-foreground">
-              3 retainers, 5 projects
-            </p>
+            {loading ? (
+              <div className="space-y-2">
+                <div className="h-8 w-8 bg-muted animate-pulse rounded" />
+                <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+              </div>
+            ) : (
+              <>
+                <div className="text-2xl font-bold">
+                  {stats?.clients.total || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {stats?.clients.retainers || 0} retainers, {stats?.clients.projects || 0} projects
+                </p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -200,6 +283,9 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Retainer Alerts */}
+      <RetainerAlerts />
 
       {/* Quick Actions */}
       <Card>

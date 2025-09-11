@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Download, 
   FileText, 
@@ -10,7 +10,13 @@ import {
   CheckCircle2,
   AlertCircle,
   Loader2,
-  FileDown
+  FileDown,
+  Clock,
+  Plus,
+  Settings,
+  Play,
+  Pause,
+  Trash2
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,6 +33,8 @@ import {
 } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
 import {
   Popover,
@@ -34,6 +42,15 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
 interface ExportOptions {
@@ -63,6 +80,27 @@ interface ExportHistory {
   createdAt: Date;
   status: 'completed' | 'failed' | 'processing';
   downloadUrl?: string;
+}
+
+interface ScheduledExport {
+  id: string;
+  name: string;
+  description?: string;
+  format: 'csv' | 'excel' | 'pdf';
+  data_type: 'time_entries' | 'clients' | 'projects';
+  filters: Record<string, any>;
+  frequency: 'daily' | 'weekly' | 'monthly';
+  day_of_week?: number;
+  day_of_month?: number;
+  time_of_day: string;
+  email_to: string;
+  email_subject: string;
+  email_body: string;
+  is_active: boolean;
+  next_run_at?: string;
+  last_run_at?: string;
+  last_run_status?: string;
+  created_at: string;
 }
 
 // Mock clients and projects
@@ -105,6 +143,10 @@ export default function DataExportPage() {
   const { toast } = useToast();
   const [isExporting, setIsExporting] = useState(false);
   const [exportHistory, setExportHistory] = useState<ExportHistory[]>(mockExportHistory);
+  const [scheduledExports, setScheduledExports] = useState<ScheduledExport[]>([]);
+  const [isLoadingScheduled, setIsLoadingScheduled] = useState(true);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [isCreatingSchedule, setIsCreatingSchedule] = useState(false);
   
   const [exportOptions, setExportOptions] = useState<ExportOptions>({
     format: 'csv',
@@ -122,36 +164,108 @@ export default function DataExportPage() {
     groupBy: 'none'
   });
 
+  const [scheduleForm, setScheduleForm] = useState({
+    name: '',
+    description: '',
+    format: 'csv' as const,
+    dataType: 'time_entries' as const,
+    frequency: 'weekly' as const,
+    dayOfWeek: 1, // Monday
+    dayOfMonth: 1,
+    timeOfDay: '09:00',
+    emailTo: '',
+    emailSubject: '',
+    emailBody: ''
+  });
+
+  useEffect(() => {
+    loadScheduledExports();
+  }, []);
+
+  const loadScheduledExports = async () => {
+    try {
+      setIsLoadingScheduled(true);
+      const response = await fetch('/api/scheduled-exports');
+      if (response.ok) {
+        const data = await response.json();
+        setScheduledExports(data.scheduledExports || []);
+      }
+    } catch (error) {
+      console.error('Failed to load scheduled exports:', error);
+    } finally {
+      setIsLoadingScheduled(false);
+    }
+  };
+
   const handleExport = async () => {
     setIsExporting(true);
     
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      const requestBody = {
+        format: exportOptions.format,
+        dataType: exportOptions.dataType,
+        dateRange: {
+          start: exportOptions.dateRange.from?.toISOString(),
+          end: exportOptions.dateRange.to?.toISOString()
+        },
+        clientIds: exportOptions.filters.clientId ? [exportOptions.filters.clientId] : undefined,
+        projectIds: exportOptions.filters.projectId ? [exportOptions.filters.projectId] : undefined,
+        includeBillableOnly: exportOptions.filters.billableOnly
+      };
+
+      const response = await fetch('/api/export/enhanced', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(requestBody)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Export failed');
+      }
+
+      const timestamp = format(new Date(), 'yyyy_MM_dd');
+      const filename = `${exportOptions.dataType}_${timestamp}.${exportOptions.format}`;
+
+      if (exportOptions.format === 'pdf') {
+        // Handle PDF response (JSON with data)
+        const result = await response.json();
+        // For now, just show success - PDF generation can be added later
+        toast({
+          title: "PDF Export Ready",
+          description: `Generated report with ${result.recordCount} records. PDF generation coming soon!`,
+        });
+      } else {
+        // Handle file download for CSV/Excel
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        toast({
+          title: "Export completed",
+          description: `Your ${exportOptions.format.toUpperCase()} file has been downloaded.`,
+        });
+      }
+
+      // Add to export history
       const newExport: ExportHistory = {
         id: Date.now().toString(),
-        fileName: `${exportOptions.dataType}_${format(new Date(), 'yyyy_MM_dd')}.${exportOptions.format}`,
+        fileName: filename,
         format: exportOptions.format.toUpperCase(),
         dataType: exportOptions.dataType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        size: '512 KB',
+        size: '---',
         createdAt: new Date(),
         status: 'completed',
         downloadUrl: '#'
       };
       
       setExportHistory([newExport, ...exportHistory]);
-      
-      toast({
-        title: "Export completed",
-        description: "Your data has been exported successfully.",
-      });
-      
-      // Trigger download (in real app, would download the actual file)
-      const link = document.createElement('a');
-      link.href = '#';
-      link.download = newExport.fileName;
-      link.click();
       
     } catch (error) {
       toast({
@@ -161,6 +275,162 @@ export default function DataExportPage() {
       });
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const createScheduledExport = async () => {
+    setIsCreatingSchedule(true);
+    
+    try {
+      const response = await fetch('/api/scheduled-exports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: scheduleForm.name,
+          description: scheduleForm.description,
+          format: scheduleForm.format,
+          dataType: scheduleForm.dataType,
+          filters: {
+            dateRange: exportOptions.dateRange,
+            clientIds: exportOptions.filters.clientId ? [exportOptions.filters.clientId] : undefined,
+            projectIds: exportOptions.filters.projectId ? [exportOptions.filters.projectId] : undefined,
+            includeBillableOnly: exportOptions.filters.billableOnly
+          },
+          frequency: scheduleForm.frequency,
+          dayOfWeek: scheduleForm.frequency === 'weekly' ? scheduleForm.dayOfWeek : undefined,
+          dayOfMonth: scheduleForm.frequency === 'monthly' ? scheduleForm.dayOfMonth : undefined,
+          timeOfDay: scheduleForm.timeOfDay,
+          emailTo: scheduleForm.emailTo,
+          emailSubject: scheduleForm.emailSubject || `TrackFlow ${scheduleForm.dataType} Export - ${scheduleForm.name}`,
+          emailBody: scheduleForm.emailBody || `Please find your ${scheduleForm.dataType.replace('_', ' ')} export attached.`
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create scheduled export');
+      }
+
+      toast({
+        title: "Scheduled export created",
+        description: "Your export will run automatically according to the schedule.",
+      });
+
+      setShowScheduleDialog(false);
+      setScheduleForm({
+        name: '',
+        description: '',
+        format: 'csv',
+        dataType: 'time_entries',
+        frequency: 'weekly',
+        dayOfWeek: 1,
+        dayOfMonth: 1,
+        timeOfDay: '09:00',
+        emailTo: '',
+        emailSubject: '',
+        emailBody: ''
+      });
+      await loadScheduledExports();
+      
+    } catch (error) {
+      toast({
+        title: "Failed to create scheduled export",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatingSchedule(false);
+    }
+  };
+
+  const toggleScheduledExport = async (id: string, isActive: boolean) => {
+    try {
+      const response = await fetch(`/api/scheduled-exports/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isActive })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update scheduled export');
+      }
+
+      await loadScheduledExports();
+      
+      toast({
+        title: isActive ? "Scheduled export enabled" : "Scheduled export disabled",
+        description: isActive ? "Export will run according to schedule" : "Export has been paused",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to update scheduled export",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteScheduledExport = async (id: string) => {
+    try {
+      const response = await fetch(`/api/scheduled-exports/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete scheduled export');
+      }
+
+      await loadScheduledExports();
+      
+      toast({
+        title: "Scheduled export deleted",
+        description: "The scheduled export has been removed.",
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to delete scheduled export",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const runScheduledExport = async (id: string) => {
+    try {
+      const response = await fetch(`/api/scheduled-exports/${id}/execute`, {
+        method: 'POST'
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to run scheduled export');
+      }
+
+      const result = await response.json();
+      
+      toast({
+        title: "Export executed successfully",
+        description: result.message,
+      });
+    } catch (error) {
+      toast({
+        title: "Failed to execute export",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const formatFrequency = (export_: ScheduledExport) => {
+    if (export_.frequency === 'daily') {
+      return `Daily at ${export_.time_of_day}`;
+    } else if (export_.frequency === 'weekly') {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      return `${days[export_.day_of_week || 0]} at ${export_.time_of_day}`;
+    } else {
+      return `Monthly on day ${export_.day_of_month} at ${export_.time_of_day}`;
     }
   };
 
@@ -214,6 +484,7 @@ export default function DataExportPage() {
       <Tabs defaultValue="export" className="space-y-4">
         <TabsList>
           <TabsTrigger value="export">Export Data</TabsTrigger>
+          <TabsTrigger value="scheduled">Scheduled Exports</TabsTrigger>
           <TabsTrigger value="history">Export History</TabsTrigger>
         </TabsList>
 
@@ -582,6 +853,304 @@ export default function DataExportPage() {
                   </p>
                 </div>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="scheduled" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <h2 className="text-2xl font-semibold">Scheduled Exports</h2>
+              <p className="text-muted-foreground">Automate your data exports with recurring schedules</p>
+            </div>
+            <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Schedule Export
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Schedule Export</DialogTitle>
+                  <DialogDescription>
+                    Set up an automated export that runs on a recurring schedule
+                  </DialogDescription>
+                </DialogHeader>
+                
+                <div className="space-y-4 py-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Export Name *</Label>
+                      <Input
+                        value={scheduleForm.name}
+                        onChange={(e) => setScheduleForm({...scheduleForm, name: e.target.value})}
+                        placeholder="Weekly Time Report"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Email Address *</Label>
+                      <Input
+                        type="email"
+                        value={scheduleForm.emailTo}
+                        onChange={(e) => setScheduleForm({...scheduleForm, emailTo: e.target.value})}
+                        placeholder="you@example.com"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Description</Label>
+                    <Textarea
+                      value={scheduleForm.description}
+                      onChange={(e) => setScheduleForm({...scheduleForm, description: e.target.value})}
+                      placeholder="Optional description..."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Data Type</Label>
+                      <Select 
+                        value={scheduleForm.dataType}
+                        onValueChange={(value: typeof scheduleForm.dataType) => 
+                          setScheduleForm({...scheduleForm, dataType: value})
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="time_entries">Time Entries</SelectItem>
+                          <SelectItem value="clients">Clients</SelectItem>
+                          <SelectItem value="projects">Projects</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Format</Label>
+                      <Select 
+                        value={scheduleForm.format}
+                        onValueChange={(value: typeof scheduleForm.format) => 
+                          setScheduleForm({...scheduleForm, format: value})
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="csv">CSV</SelectItem>
+                          <SelectItem value="excel">Excel</SelectItem>
+                          <SelectItem value="pdf">PDF</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Frequency</Label>
+                      <Select 
+                        value={scheduleForm.frequency}
+                        onValueChange={(value: typeof scheduleForm.frequency) => 
+                          setScheduleForm({...scheduleForm, frequency: value})
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                          <SelectItem value="monthly">Monthly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    {scheduleForm.frequency === 'weekly' && (
+                      <div className="space-y-2">
+                        <Label>Day of Week</Label>
+                        <Select 
+                          value={scheduleForm.dayOfWeek.toString()}
+                          onValueChange={(value) => 
+                            setScheduleForm({...scheduleForm, dayOfWeek: parseInt(value)})
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="0">Sunday</SelectItem>
+                            <SelectItem value="1">Monday</SelectItem>
+                            <SelectItem value="2">Tuesday</SelectItem>
+                            <SelectItem value="3">Wednesday</SelectItem>
+                            <SelectItem value="4">Thursday</SelectItem>
+                            <SelectItem value="5">Friday</SelectItem>
+                            <SelectItem value="6">Saturday</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    {scheduleForm.frequency === 'monthly' && (
+                      <div className="space-y-2">
+                        <Label>Day of Month</Label>
+                        <Select 
+                          value={scheduleForm.dayOfMonth.toString()}
+                          onValueChange={(value) => 
+                            setScheduleForm({...scheduleForm, dayOfMonth: parseInt(value)})
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Array.from({length: 28}, (_, i) => i + 1).map(day => (
+                              <SelectItem key={day} value={day.toString()}>{day}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <Label>Time</Label>
+                      <Input
+                        type="time"
+                        value={scheduleForm.timeOfDay}
+                        onChange={(e) => setScheduleForm({...scheduleForm, timeOfDay: e.target.value})}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Email Subject</Label>
+                    <Input
+                      value={scheduleForm.emailSubject}
+                      onChange={(e) => setScheduleForm({...scheduleForm, emailSubject: e.target.value})}
+                      placeholder={`TrackFlow ${scheduleForm.dataType} Export - ${scheduleForm.name}`}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Email Body</Label>
+                    <Textarea
+                      value={scheduleForm.emailBody}
+                      onChange={(e) => setScheduleForm({...scheduleForm, emailBody: e.target.value})}
+                      placeholder={`Please find your ${scheduleForm.dataType.replace('_', ' ')} export attached.`}
+                      rows={3}
+                    />
+                  </div>
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowScheduleDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={createScheduledExport}
+                    disabled={isCreatingSchedule || !scheduleForm.name || !scheduleForm.emailTo}
+                  >
+                    {isCreatingSchedule ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Creating...
+                      </>
+                    ) : (
+                      'Create Schedule'
+                    )}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Your Scheduled Exports</CardTitle>
+              <CardDescription>
+                Manage your automated export schedules
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoadingScheduled ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                  Loading scheduled exports...
+                </div>
+              ) : scheduledExports.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p className="mb-2">No scheduled exports yet</p>
+                  <p className="text-sm">Create your first automated export to save time!</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {scheduledExports.map((export_) => (
+                    <div key={export_.id} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-medium">{export_.name}</h3>
+                            <Badge variant={export_.is_active ? "default" : "secondary"}>
+                              {export_.is_active ? "Active" : "Paused"}
+                            </Badge>
+                            <Badge variant="outline">
+                              {export_.format.toUpperCase()}
+                            </Badge>
+                          </div>
+                          
+                          {export_.description && (
+                            <p className="text-sm text-muted-foreground mb-2">{export_.description}</p>
+                          )}
+                          
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <span>{export_.data_type.replace('_', ' ')}</span>
+                            <span>•</span>
+                            <span>{formatFrequency(export_)}</span>
+                            <span>•</span>
+                            <span>{export_.email_to}</span>
+                          </div>
+                          
+                          {export_.next_run_at && (
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Next run: {format(new Date(export_.next_run_at), 'MMM d, yyyy h:mm a')}
+                            </p>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => runScheduledExport(export_.id)}
+                          >
+                            <Play className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => toggleScheduledExport(export_.id, !export_.is_active)}
+                          >
+                            {export_.is_active ? (
+                              <Pause className="h-4 w-4" />
+                            ) : (
+                              <Play className="h-4 w-4" />
+                            )}
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => deleteScheduledExport(export_.id)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

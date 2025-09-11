@@ -23,7 +23,7 @@ const settingsSections = [
     title: 'Billing & Subscription',
     description: 'Manage your subscription and payment methods',
     icon: CreditCard,
-    href: '/billing',
+    href: '/dashboard/billing',
     color: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
   },
   {

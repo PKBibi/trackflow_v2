@@ -317,7 +317,7 @@ export default function APIKeysPage() {
         <AlertTitle>API Documentation</AlertTitle>
         <AlertDescription>
           Learn how to use the TrackFlow API with our{' '}
-          <a href="/docs/api" className="font-medium underline">
+          <a href="/docs" className="font-medium underline">
             comprehensive documentation
           </a>
           . Available endpoints include REST API and GraphQL.

@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import Link from 'next/link'
 import { 
   Users, 
   Plus, 
@@ -18,6 +19,7 @@ import {
   Mail,
   Phone,
   Globe,
+  Activity,
   Loader2,
   AlertCircle,
   Archive
@@ -168,10 +170,18 @@ export default function ClientsPage() {
             Manage your clients and track retainer usage
           </p>
         </div>
-        <Button onClick={() => setIsFormOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Client
-        </Button>
+        <div className="flex gap-2">
+          <Link href="/clients/health">
+            <Button variant="outline">
+              <Activity className="w-4 h-4 mr-2" />
+              Health Dashboard
+            </Button>
+          </Link>
+          <Button onClick={() => setIsFormOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Client
+          </Button>
+        </div>
       </div>
 
       {/* Error Alert */}

@@ -3,6 +3,8 @@ const API_URL = 'http://localhost:3000' // Change to production URL when deployi
 
 let currentTimer = null
 let notificationInterval = null
+let lastDetected = null
+let lastDetectNotifiedAt = 0
 
 // Listen for messages from popup and content scripts
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -26,6 +28,25 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: true })
       })
       return true // Keep channel open for async response
+    
+    case 'detectedContext':
+      lastDetected = request.data || null
+      try { chrome.storage.local.set({ detected_context: lastDetected }) } catch (_) {}
+      // Privacy-first gentle prompt when detected and no timer running (throttle to 60s)
+      const now = Date.now()
+      if (!currentTimer && now - lastDetectNotifiedAt > 60000 && lastDetected) {
+        lastDetectNotifiedAt = now
+        try {
+          chrome.notifications.create('tf-detected', {
+            type: 'basic',
+            title: 'Platform detected',
+            iconUrl: 'icons/icon-128.png',
+            message: `Detected ${lastDetected.channel}. Open TrackFlow to start a timer?`
+          })
+        } catch (_) {}
+      }
+      sendResponse({ success: true })
+      break
     
     case 'logout':
       logout()

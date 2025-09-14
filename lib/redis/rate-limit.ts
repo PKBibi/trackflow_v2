@@ -1,19 +1,24 @@
 // Redis-based rate limiting for production
-import { Redis } from '@upstash/redis'
 import { HttpError } from '@/lib/errors'
 
 // Redis client configuration
-let redis: Redis | null = null
+let redis: any | null = null
 
 // Initialize Redis connection
-function getRedisClient(): Redis | null {
+async function getRedisClient(): Promise<any | null> {
   if (typeof window !== 'undefined') return null // Client-side guard
   
   if (!redis && process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-    redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    })
+    try {
+      const { Redis } = await import('@upstash/redis')
+      redis = new Redis({
+        url: process.env.UPSTASH_REDIS_REST_URL,
+        token: process.env.UPSTASH_REDIS_REST_TOKEN,
+      })
+    } catch (e) {
+      console.warn('Redis client not available, rate limiting will use in-memory fallback')
+      return null
+    }
   }
   
   return redis
@@ -21,11 +26,11 @@ function getRedisClient(): Redis | null {
 
 // Production Redis rate limiter
 export class RedisRateLimiter {
-  private redis: Redis | null
+  private redis: any | null = null
   private fallbackLimiter: Map<string, { count: number; resetTime: number }> = new Map()
   
-  constructor() {
-    this.redis = getRedisClient()
+  async initialize() {
+    this.redis = await getRedisClient()
   }
   
   async limit(
@@ -63,7 +68,10 @@ export class RedisRateLimiter {
     windowMs: number,
     resetTime: number
   ) {
-    const pipeline = this.redis!.pipeline()
+    if (!this.redis) {
+      throw new Error('Redis not initialized')
+    }
+    const pipeline = this.redis.pipeline()
     
     // Increment counter
     pipeline.incr(key)
@@ -125,8 +133,16 @@ export class RedisRateLimiter {
   }
 }
 
-// Singleton instance
-export const rateLimiter = new RedisRateLimiter()
+// Singleton instance with lazy initialization
+let rateLimiterInstance: RedisRateLimiter | null = null
+
+async function getRateLimiter(): Promise<RedisRateLimiter> {
+  if (!rateLimiterInstance) {
+    rateLimiterInstance = new RedisRateLimiter()
+    await rateLimiterInstance.initialize()
+  }
+  return rateLimiterInstance
+}
 
 // Enhanced rate limiting middleware with Redis
 export async function enhancedRateLimit(
@@ -139,6 +155,8 @@ export async function enhancedRateLimit(
   }
 ): Promise<void> {
   const { requests = 100, window = 60000, burst = 10 } = limits || {}
+  
+  const rateLimiter = await getRateLimiter()
   
   // Check normal rate limit
   const result = await rateLimiter.limit(userId, requests, window, context)
@@ -180,6 +198,7 @@ export async function ipRateLimit(
   const realIp = request.headers.get('x-real-ip')
   const ip = forwarded?.split(',')[0] || realIp || 'unknown'
   
+  const rateLimiter = await getRateLimiter()
   const result = await rateLimiter.limit(ip, requests, window, 'ip')
   
   if (!result.success) {
@@ -214,6 +233,7 @@ export function createRateLimitMiddleware(routeKey: keyof typeof routeLimits) {
 }
 
 // Global rate limit cleanup (run periodically)
-setInterval(() => {
+setInterval(async () => {
+  const rateLimiter = await getRateLimiter()
   rateLimiter.cleanup()
 }, 300000) // Clean up every 5 minutes

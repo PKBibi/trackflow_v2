@@ -1,22 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { HttpError, isHttpError } from '@/lib/errors'
 import { createClient } from '@/lib/supabase/server'
-import { validateInput, clientCreateSchema, rateLimitPerUser, validateRequestSize } from '@/lib/validation/middleware'
+import { validateInput, clientCreateSchema, clientListSchema, rateLimitPerUser, validateRequestSize } from '@/lib/validation/middleware'
+import { getAuthenticatedUser } from '@/lib/auth/api-key'
 import { auditLogger } from '@/lib/audit/logger'
 
 // GET /api/v1/clients
 export async function GET(request: NextRequest) {
-  return validateInput(clientCreateSchema)(request, async (validatedData, req) => {
+  return validateInput(clientListSchema)(request, async (validatedData, req) => {
     try {
       const supabase = await createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const user = await getAuthenticatedUser(request)
       
       if (!user) {
         throw new HttpError(401, 'Unauthorized')
       }
       
       // Apply rate limiting per user
-      await rateLimitPerUser(100, 60000)(user.id)
+      const rateLimit = await rateLimitPerUser(100, 60000)
+      await rateLimit(user.id)
       
       // Extract validated parameters
       const { search, status, page = 1, limit = 50 } = validatedData
@@ -107,7 +109,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthenticatedUser(request)
     
     if (!user) {
       throw new HttpError(401, 'Unauthorized')

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 
 export const metadata: Metadata = {
   title: 'Features | TrackFlow – Time Tracking for Marketers',
-  description: 'TrackFlow features built for digital marketers: channel tracking, retainer alerts, AI insights, and white-label client reports.',
+  description: 'TrackFlow features built for digital marketers: channel tracking, retainer alerts, data-driven insights, and white-label client reports.',
   openGraph: {
     title: 'TrackFlow Features',
     description: 'Marketing-first time tracking: channels, campaigns, retainers, and AI insights.',
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'TrackFlow Features',
-    description: 'Marketing-first time tracking with AI insights and reporting.',
+    description: 'Marketing-first time tracking with data-driven insights and reporting.',
     images: ['/images/twitter-image.png'],
   },
 }
@@ -58,17 +58,24 @@ const features = [
   },
   {
     icon: Zap,
-    title: "Platform Auto-Detection",
-    description: "Browser extension detects when you're in Google Ads, Meta Business, or Analytics.",
+    title: "Platform Auto-Detection (Coming Soon)",
+    description: "Browser extension will detect when you're in Google Ads, Meta Business, or Analytics.",
     category: "Automation",
     highlight: "Automatic platform detection"
   },
   {
     icon: Brain,
-    title: "AI Insights & Predictions",
-    description: "Get daily insights on productivity patterns and time predictions for similar tasks.",
+    title: "Data-Driven Insights",
+    description: "Get smart insights on productivity patterns, channel profitability, and billable rate optimization.",
     category: "Intelligence",
-    highlight: "AI-powered insights"
+    highlight: "Smart analytics"
+  },
+  {
+    icon: BarChart3,
+    title: "Service Margin Analysis",
+    description: "Advanced profitability analytics showing exactly which marketing channels and services deliver the highest margins.",
+    category: "Analytics",
+    highlight: "Detailed profitability insights"
   },
   {
     icon: Clock,

@@ -71,6 +71,12 @@ interface ExportOptions {
   groupBy?: 'none' | 'date' | 'client' | 'project' | 'activity';
 }
 
+interface BrandingOptions {
+  companyName: string
+  logoUrl: string
+  contactEmail: string
+}
+
 interface ExportHistory {
   id: string;
   fileName: string;
@@ -178,8 +184,32 @@ export default function DataExportPage() {
     emailBody: ''
   });
 
+  // Optional white-label branding
+  const [branding, setBranding] = useState<BrandingOptions>({
+    companyName: '',
+    logoUrl: '',
+    contactEmail: ''
+  })
+
   useEffect(() => {
     loadScheduledExports();
+    // Load branding preferences
+    (async ()=>{
+      try {
+        const res = await fetch('/api/me/branding')
+        if (res.ok) {
+          const d = await res.json()
+          if (d.branding) setBranding(d.branding)
+          else {
+            const local = localStorage.getItem('branding_prefs')
+            if (local) setBranding(JSON.parse(local))
+          }
+        }
+      } catch {
+        const local = localStorage.getItem('branding_prefs')
+        if (local) setBranding(JSON.parse(local))
+      }
+    })()
   }, []);
 
   const loadScheduledExports = async () => {
@@ -210,7 +240,8 @@ export default function DataExportPage() {
         },
         clientIds: exportOptions.filters.clientId ? [exportOptions.filters.clientId] : undefined,
         projectIds: exportOptions.filters.projectId ? [exportOptions.filters.projectId] : undefined,
-        includeBillableOnly: exportOptions.filters.billableOnly
+        includeBillableOnly: exportOptions.filters.billableOnly,
+        branding: (branding.companyName || branding.logoUrl || branding.contactEmail) ? branding : undefined
       };
 
       const response = await fetch('/api/export/enhanced', {
@@ -296,6 +327,7 @@ export default function DataExportPage() {
             projectIds: exportOptions.filters.projectId ? [exportOptions.filters.projectId] : undefined,
             includeBillableOnly: exportOptions.filters.billableOnly
           },
+          branding: (branding.companyName || branding.logoUrl || branding.contactEmail) ? branding : undefined,
           frequency: scheduleForm.frequency,
           dayOfWeek: scheduleForm.frequency === 'weekly' ? scheduleForm.dayOfWeek : undefined,
           dayOfMonth: scheduleForm.frequency === 'monthly' ? scheduleForm.dayOfMonth : undefined,
@@ -768,6 +800,52 @@ export default function DataExportPage() {
                 </div>
               )}
 
+              {/* Branding (optional) */}
+              <div className="space-y-3">
+                <Label>Branding (optional)</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm">Company Name</Label>
+                    <Input
+                      placeholder="e.g., Acme Agency"
+                      value={branding.companyName}
+                      onChange={(e)=>setBranding({...branding, companyName: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Logo URL</Label>
+                    <Input
+                      placeholder="https://example.com/logo.png"
+                      value={branding.logoUrl}
+                      onChange={(e)=>setBranding({...branding, logoUrl: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm">Contact Email</Label>
+                    <Input
+                      type="email"
+                      placeholder="ops@agency.com"
+                      value={branding.contactEmail}
+                      onChange={(e)=>setBranding({...branding, contactEmail: e.target.value})}
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <p className="text-xs text-muted-foreground flex-1">Branding appears in CSV/Excel headers and PDF metadata.</p>
+                  <Button type="button" variant="outline" size="sm" onClick={async ()=>{
+                    try {
+                      const res = await fetch('/api/me/branding', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ branding }) })
+                      if (!res.ok) throw new Error('Save failed')
+                      localStorage.setItem('branding_prefs', JSON.stringify(branding))
+                      toast({ title: 'Branding saved' })
+                    } catch {
+                      localStorage.setItem('branding_prefs', JSON.stringify(branding))
+                      toast({ title: 'Branding saved locally' })
+                    }
+                  }}>Save Branding</Button>
+                </div>
+              </div>
+
               {/* Group By (for summary view) */}
               {exportOptions.viewType === 'summary' && (
                 <div className="space-y-2">
@@ -1040,6 +1118,30 @@ export default function DataExportPage() {
                       placeholder={`Please find your ${scheduleForm.dataType.replace('_', ' ')} export attached.`}
                       rows={3}
                     />
+                  </div>
+                </div>
+
+                {/* Branding in schedule */}
+                <div className="mt-2 p-3 border rounded-md">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label>Branding (optional)</Label>
+                    <Button variant="outline" size="sm" type="button" onClick={async ()=>{
+                      try { const r = await fetch('/api/me/branding'); if (r.ok){ const d = await r.json(); if (d.branding) setBranding(d.branding) } } catch {}
+                    }}>Use Saved</Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="space-y-2">
+                      <Label>Company</Label>
+                      <Input value={branding.companyName} onChange={(e)=>setBranding({...branding, companyName: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Logo URL</Label>
+                      <Input value={branding.logoUrl} onChange={(e)=>setBranding({...branding, logoUrl: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Contact Email</Label>
+                      <Input type="email" value={branding.contactEmail} onChange={(e)=>setBranding({...branding, contactEmail: e.target.value})} />
+                    </div>
                   </div>
                 </div>
 

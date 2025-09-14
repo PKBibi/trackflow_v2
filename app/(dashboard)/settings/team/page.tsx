@@ -135,7 +135,6 @@ export default function TeamManagementPage() {
   const [inviteForm, setInviteForm] = useState({
     email: '',
     role: 'member' as 'admin' | 'member',
-    hourlyRate: 100,
     message: ''
   });
 
@@ -165,7 +164,6 @@ export default function TeamManagementPage() {
       setInviteForm({
         email: '',
         role: 'member',
-        hourlyRate: 100,
         message: ''
       });
     } catch (error: any) {
@@ -322,7 +320,7 @@ export default function TeamManagementPage() {
           <CardHeader className="pb-3">
             <CardDescription>Avg. Hourly Rate</CardDescription>
             <CardTitle className="text-2xl">
-              {teamMembers.length > 0 ? `$${Math.round(teamMembers.reduce((acc, m) => acc + (m.hourlyRate || 0), 0) / teamMembers.length)}` : '$0'}
+              $0
             </CardTitle>
           </CardHeader>
         </Card>
@@ -390,15 +388,7 @@ export default function TeamManagementPage() {
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="space-y-2">
-                          <Label>Default Hourly Rate</Label>
-                          <Input
-                            type="number"
-                            placeholder="100"
-                            value={inviteForm.hourlyRate}
-                            onChange={(e) => setInviteForm({...inviteForm, hourlyRate: parseInt(e.target.value) || 0})}
-                          />
-                        </div>
+                        {/* Hourly rate removed - not supported in current schema */}
                         <div className="space-y-2">
                           <Label>Personal Message (Optional)</Label>
                           <textarea
@@ -461,8 +451,8 @@ export default function TeamManagementPage() {
                           {member.role}
                         </Badge>
                       </TableCell>
-                      <TableCell>${member.hourlyRate}/hr</TableCell>
-                      <TableCell>{member.joinedAt.toLocaleDateString()}</TableCell>
+                      <TableCell>No rate set</TableCell>
+                      <TableCell>{new Date(member.joinedAt).toLocaleDateString()}</TableCell>
                       <TableCell>
                         <span className="text-sm text-muted-foreground">
                           {formatLastActive(member.lastActive!)}
@@ -535,7 +525,7 @@ export default function TeamManagementPage() {
                         <div>
                           <p className="font-medium">{invite.email}</p>
                           <p className="text-sm text-muted-foreground">
-                            Invited as {invite.role} • Expires {invite.expiresAt.toLocaleDateString()}
+                            Invited as {invite.role} • Expires {new Date(invite.expires_at).toLocaleDateString()}
                           </p>
                         </div>
                       </div>
@@ -605,14 +595,7 @@ export default function TeamManagementPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Hourly Rate</Label>
-                <Input
-                  type="number"
-                  value={editingMember.hourlyRate}
-                  onChange={(e) => setEditingMember({...editingMember, hourlyRate: parseInt(e.target.value) || 0})}
-                />
-              </div>
+              {/* Hourly rate removed - not supported in current schema */}
               <div className="flex justify-end gap-2">
                 <Button variant="outline" onClick={() => setEditingMember(null)}>
                   Cancel

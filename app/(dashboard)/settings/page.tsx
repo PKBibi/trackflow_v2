@@ -62,6 +62,13 @@ const settingsSections = [
     color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
   },
   {
+    title: 'Report Preferences',
+    description: 'Branding and PDF defaults for reports',
+    icon: Download,
+    href: '/settings/reports',
+    color: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200'
+  },
+  {
     title: 'Delete Account',
     description: 'Permanently delete your account and data',
     icon: Trash2,

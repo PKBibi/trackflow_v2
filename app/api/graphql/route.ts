@@ -2,6 +2,7 @@ import { HttpError, isHttpError } from '@/lib/errors'
 import { NextRequest, NextResponse } from 'next/server'
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLFloat, GraphQLBoolean, GraphQLList, GraphQLNonNull, GraphQLID, graphql } from 'graphql'
 import { createClient } from '@/lib/supabase/server'
+import { getAuthenticatedUser } from '@/lib/auth/api-key'
 
 // Forward declare types to avoid circular reference
 const TimeEntryType: GraphQLObjectType = new GraphQLObjectType({
@@ -717,13 +718,9 @@ const schema = new GraphQLSchema({
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    
-    // Check authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ 
-        errors: [{ message: 'Unauthorized' }] 
-      }, { status: 401 })
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
+      return NextResponse.json({ errors: [{ message: 'Unauthorized' }] }, { status: 401 })
     }
 
     // Parse GraphQL query
@@ -735,10 +732,7 @@ export async function POST(request: NextRequest) {
       source: query,
       variableValues: variables,
       operationName,
-      contextValue: {
-        supabase,
-        user
-      }
+      contextValue: { supabase, user }
     })
 
     return NextResponse.json(result)

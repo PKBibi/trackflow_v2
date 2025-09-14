@@ -165,6 +165,64 @@ export default function APIDocumentationPage() {
                   <pre className="bg-gray-900 text-white p-4 rounded-lg text-sm overflow-x-auto">
 {`Authorization: Bearer YOUR_API_KEY`}
                   </pre>
+                  <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">
+                    You can also use <code>X-API-Key: YOUR_API_KEY</code>. Both REST v1 and GraphQL accept API keys.
+                  </p>
+                  <div className="mt-4 space-y-4">
+                    <div>
+                      <h5 className="font-medium mb-2">Enhanced Export (branding)</h5>
+                      <pre className="bg-gray-900 text-white p-4 rounded-lg text-sm overflow-x-auto">{`curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "format": "csv",
+  "dataType": "time_entries",
+  "dateRange": { "start": "2025-01-01", "end": "2025-01-07" },
+  "branding": {
+    "companyName": "Acme Agency",
+    "logoUrl": "https://example.com/logo.png",
+    "contactEmail": "ops@acme.co"
+  }
+}' \
+  https://track-flow.app/api/export/enhanced`}</pre>
+                    </div>
+                    <div>
+                      <h5 className="font-medium mb-2">Weekly AI PDF (branding + period)</h5>
+                      <pre className="bg-gray-900 text-white p-4 rounded-lg text-sm overflow-x-auto">{`curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "branding": {
+    "companyName": "Acme Agency",
+    "logoUrl": "https://example.com/logo.png",
+    "contactEmail": "ops@acme.co"
+  },
+  "period": "Aug 1–7, 2025",
+  "options": { "includeCover": true, "repeatHeader": true, "locale": "en-US", "currency": "USD" },
+  "report": { /* weekly AI report JSON */ }
+}' \
+  https://track-flow.app/api/ai/reports/weekly/pdf`}</pre>
+                    </div>
+                    <div>
+                      <h5 className="font-medium mb-2">Scheduled Exports (branding)</h5>
+                      <pre className="bg-gray-900 text-white p-4 rounded-lg text-sm overflow-x-auto">{`curl -X POST \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+  "name": "Weekly Time Export",
+  "format": "csv",
+  "dataType": "time_entries",
+  "filters": { "dateRange": { "start": "2025-01-01", "end": "2025-01-07" } },
+  "branding": { "companyName": "Acme Agency", "logoUrl": "https://example.com/logo.png", "contactEmail": "ops@acme.co" },
+  "frequency": "weekly",
+  "dayOfWeek": 1,
+  "timeOfDay": "09:00",
+  "emailTo": "me@acme.co"
+}' \
+  https://track-flow.app/api/scheduled-exports`}</pre>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-2">Branding is merged into the schedule filters and applied to generated files.</p>
+                    </div>
+                  </div>
                 </div>
 
                 <div>

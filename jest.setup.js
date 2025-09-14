@@ -41,6 +41,45 @@ jest.mock('@/lib/supabase/client', () => ({
   }),
 }))
 
+// Mock Supabase server
+jest.mock('@/lib/supabase/server', () => ({
+  createClient: () => ({
+    auth: {
+      getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'test-user-id', email: 'test@example.com' } }, error: null }),
+    },
+    from: jest.fn(() => {
+      const chain = {
+        select: jest.fn(() => chain),
+        eq: jest.fn(() => chain),
+        order: jest.fn(() => chain),
+        gte: jest.fn(() => chain),
+        lte: jest.fn(() => chain),
+        in: jest.fn(() => chain),
+        single: jest.fn().mockResolvedValue({ data: {}, error: null }),
+      }
+      return chain
+    }),
+    rpc: jest.fn().mockResolvedValue({ data: { success: true }, error: null })
+  })
+}))
+
+// Polyfill for crypto subtle in tests if needed
+if (!global.crypto) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { webcrypto } = require('crypto')
+  global.crypto = webcrypto
+}
+
+// Fetch/Request/Response polyfills for Next route handler tests
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const undici = require('undici')
+  if (!global.fetch) global.fetch = undici.fetch
+  if (!global.Request) global.Request = undici.Request
+  if (!global.Response) global.Response = undici.Response
+  if (!global.Headers) global.Headers = undici.Headers
+} catch {}
+
 // Mock fetch globally
 global.fetch = jest.fn()
 

@@ -20,6 +20,21 @@ async function checkAuthentication() {
     const token = await getStoredToken()
     if (!token) {
       showLoginRequired()
+      // Bind save API key button if present
+      const btn = document.getElementById('saveApiKeyBtn')
+      const input = document.getElementById('apiKeyInput')
+      if (btn && input) {
+        btn.addEventListener('click', async ()=>{
+          const val = input.value.trim()
+          if (!val || !/^tf_/.test(val)) {
+            alert('Please paste a valid API key that starts with tf_')
+            return
+          }
+          chrome.storage.local.set({ auth_token: val }, ()=>{
+            window.location.reload()
+          })
+        })
+      }
       return false
     }
     return true
@@ -54,7 +69,7 @@ async function loadProjects() {
     const token = await getStoredToken()
     if (!token) return
 
-    const response = await fetch(`${API_URL}/api/projects`, {
+    const response = await fetch(`${API_URL}/api/v1/projects`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -62,7 +77,8 @@ async function loadProjects() {
 
     if (!response.ok) throw new Error('Failed to load projects')
 
-    const projects = await response.json()
+    const payload = await response.json()
+    const projects = Array.isArray(payload) ? payload : (payload.data || [])
     const select = document.getElementById('projectSelect')
     
     // Clear existing options
@@ -73,6 +89,8 @@ async function loadProjects() {
       const option = document.createElement('option')
       option.value = project.id
       option.textContent = project.name
+      // Store client_id on option dataset for quick lookup later
+      if (project.client_id) option.dataset.clientId = project.client_id
       select.appendChild(option)
     })
 
@@ -185,7 +203,12 @@ async function stopTimer() {
   // Save time entry
   try {
     const token = await getStoredToken()
-    const response = await fetch(`${API_URL}/api/time-entries`, {
+    // Load any detected platform context for auto-category/channel
+    const detected = await new Promise((resolve) => {
+      try { chrome.storage.local.get(['detected_context'], r => resolve(r.detected_context || null)) } catch (_) { resolve(null) }
+    })
+
+    const response = await fetch(`${API_URL}/api/v1/time-entries`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -193,11 +216,17 @@ async function stopTimer() {
       },
       body: JSON.stringify({
         project_id: currentTimer.projectId,
-        description: currentTimer.description,
-        notes: currentTimer.notes,
+        client_id: (function(){
+          const select = document.getElementById('projectSelect')
+          const opt = select?.selectedOptions?.[0]
+          return opt?.dataset?.clientId || null
+        })(),
+        task_title: currentTimer.description,
+        task_description: currentTimer.notes,
+        marketing_category: detected?.category || 'Content',
+        marketing_channel: detected?.channel || 'Content Marketing',
         start_time: currentTimer.startTime,
-        end_time: endTime,
-        duration
+        end_time: endTime
       })
     })
 

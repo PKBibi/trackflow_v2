@@ -84,6 +84,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    const mergedFilters = { ...(filters || {}), ...(body?.branding ? { branding: body.branding } : {}) }
+
     const { data: scheduledExport, error } = await supabase
       .from('scheduled_exports')
       .insert({
@@ -92,7 +94,7 @@ export async function POST(request: NextRequest) {
         description,
         format,
         data_type: dataType,
-        filters,
+        filters: mergedFilters,
         frequency,
         day_of_week: dayOfWeek,
         day_of_month: dayOfMonth,

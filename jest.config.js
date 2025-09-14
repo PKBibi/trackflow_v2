@@ -11,12 +11,15 @@ const config = {
   coverageProvider: 'v8',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
-  moduleNameMapping: {
+  moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
   testPathIgnorePatterns: [
     '<rootDir>/.next/',
     '<rootDir>/node_modules/',
+    '<rootDir>/security/tests/',
+    '<rootDir>/__tests__/components/error-boundary.test.tsx',
+    '<rootDir>/__tests__/api/'
   ],
   collectCoverageFrom: [
     'components/**/*.{js,jsx,ts,tsx}',

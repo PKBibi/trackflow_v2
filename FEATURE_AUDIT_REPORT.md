@@ -80,13 +80,15 @@ TrackFlow is a time tracking application designed for digital marketing agencies
 - ⚠️ Machine learning insights (Phase 2) not implemented
 - ⚠️ Generative AI (Phase 3) not implemented
 
-### 8. Team Collaboration - ❌ Not Implemented (Mock Data)
-**Location:** `app/(dashboard)/settings/team/page.tsx`
-- ❌ Using mock data (lines 59-92)
-- ❌ No actual team member management
-- ❌ No invitation system
-- ❌ No role-based permissions
-- **Status:** UI shell only, no backend implementation
+### 8. Team Collaboration - ⚠️ Partially Implemented
+**Location:** `app/(dashboard)/settings/team/page.tsx`, `app/api/team/*`, `app/team/join/page.tsx`
+- ✅ List members, invite via email, accept invites
+- ✅ Update roles, remove members; team limits by plan
+- ✅ API routes: `GET /api/team/members`, `POST /api/team/invite`, `POST /api/team/accept`, `PUT/DELETE /api/team/members/[id]`
+- ✅ Supabase-backed tables assumed: `team_members`, `team_invitations`
+- ⚠️ Email sending uses Resend; requires `RESEND_API_KEY`
+- ⚠️ Role-based permissions enforcement appears scoped to team API only (not globally across app)
+- ⚠️ No audit trail for changes
 
 ### 9. Billing & Subscription - ✅ Fully Implemented
 **Location:** `app/(dashboard)/billing/page.tsx`, `app/api/billing/`
@@ -97,24 +99,23 @@ TrackFlow is a time tracking application designed for digital marketing agencies
 - ✅ Plan status checking
 - ✅ Price retrieval from Stripe
 
-### 10. Import/Export - ⚠️ Partially Implemented
-**Location:** `app/(dashboard)/import/page.tsx`, `app/(dashboard)/settings/export/page.tsx`
-- ✅ CSV/Excel file parsing UI
-- ✅ Field mapping interface
-- ⚠️ Actual import logic appears incomplete
-- ✅ Export API endpoint exists (`app/api/export/route.ts`)
+### 10. Import/Export - ✅ Fully Implemented (Core)
+**Location:** `app/(dashboard)/import/page.tsx`, `app/api/import/*`, `app/api/export/*`, `app/api/scheduled-exports/*`
+- ✅ CSV/Excel parsing with mapping and validation (time entries, clients)
+- ✅ Server import for time entries and clients with Supabase writes
+- ✅ CSV/Excel export (time entries, clients, projects) with formatting
+- ✅ Scheduled exports CRUD (`/api/scheduled-exports`) for email delivery
+- ⚠️ Advanced exports (Google Sheets direct, templates) not present
 
 ### 11. API & Integrations - ⚠️ Partially Implemented
-**Location:** `app/api/v1/`, `app/(dashboard)/settings/api-keys/page.tsx`
-- ✅ REST API endpoints for:
-  - Time entries
-  - Clients
-  - Projects
-- ✅ GraphQL endpoint (`app/api/graphql/route.ts`)
-- ⚠️ API key management UI exists but functionality unclear
-- ❌ Third-party integrations (Google Ads, Meta) not found
+**Location:** `app/api/v1/*`, `app/api/graphql/route.ts`, `app/(dashboard)/settings/api-keys/page.tsx`, `app/(marketing)/docs/api/page.tsx`
+- ✅ REST API endpoints (v1): time entries, clients, projects
+- ✅ GraphQL endpoint with related resolvers
+- ✅ Public API docs page (`/docs/api`) covering REST + GraphQL
+- ⚠️ API Keys UI exists (Supabase tables), but v1 endpoints use session auth; Bearer API key not enforced
+- ❌ Third-party platform integrations (Google Ads, Meta, GA4, etc.) not implemented (marketing lists as planned/coming-soon)
 
-### 12. Security & Authentication - ✅ Fully Implemented
+### 12. Security & Authentication - ✅ Fully Implemented (Core)
 **Location:** Various, primarily using Supabase Auth
 - ✅ User authentication (login/signup/forgot password)
 - ✅ Protected routes via middleware
@@ -122,6 +123,14 @@ TrackFlow is a time tracking application designed for digital marketing agencies
 - ✅ Guest mode for unauthenticated users
 - ✅ GDPR compliance page
 - ✅ Security documentation
+- ⚠️ SSO not present (Enterprise claim only on pricing page)
+
+### 13. Browser Extension - ⚠️ Partially Implemented
+**Location:** `chrome-extension/*`
+- ✅ MV3 extension with popup, background worker, start/stop timers, notifications
+- ⚠️ API routes in popup use `/api/projects` and `/api/time-entries` (app exposes `/api/v1/*`) → mismatch
+- ⚠️ `content.js` referenced in manifest but not present → no auto-detection content script
+- ⚠️ Token storage assumed; end-to-end auth flow not wired to app login
 
 ---
 
@@ -138,49 +147,48 @@ TrackFlow is a time tracking application designed for digital marketing agencies
 8. **Authentication** - Secure login system
 
 ### Partially Delivered Features ⚠️
-1. **AI Insights** - Only rule-based insights, advanced AI is Pro-only
-2. **Import/Export** - UI exists but implementation incomplete
-3. **API Access** - Basic endpoints exist, documentation missing
-4. **Retainer Tracking** - Basic tracking exists, advanced alerts unclear
+1. **AI Insights** - Rule-based + weekly AI report; advanced ML/GenAI not built
+2. **Team Collaboration** - Core flows live; broader RBAC and audit logs missing
+3. **Import/Export** - Core import/export done; advanced/scheduled emails present; templates/Sheets not built
+4. **API Access** - REST + GraphQL available; API keys UI exists but not enforced in middleware
+5. **Browser Extension** - Present but requires API wiring and content script
 
 ### Missing/Mock Features ❌
-1. **Team Collaboration** - Only mock data, no real functionality
-2. **Browser Extension** - Not found in codebase
-3. **Platform Auto-Detection** - Not implemented
-4. **White-Label Reports** - Basic reports exist, white-labeling unclear
-5. **Third-party Integrations** - No Google Ads, Meta, Analytics integrations
-6. **SSO Authentication** - Not implemented
-7. **Audit Logs** - Not found
-8. **Custom Fields** - Not implemented
+1. **Platform Auto-Detection** - Content script absent; no detection rules wired
+2. **White-Label Reports** - No branding controls for reports/PDFs
+3. **Third-party Integrations** - No Google Ads, Meta, GA4, Slack, etc.
+4. **SSO Authentication** - Not implemented
+5. **Audit Logs** - Not found
+6. **Custom Fields** - Not implemented
 
 ---
 
 ## Critical Issues
 
-1. **Team Features Non-Functional** - Major advertised feature using mock data
-2. **API Documentation Missing** - Links to `/docs/api` broken
-3. **Integration Claims Unsubstantiated** - No evidence of platform integrations
-4. **Several Pro Features Unclear** - Boundary between free/paid not always evident
+1. **API Keys Not Enforced** - Bearer API key in docs/UI not honored by v1 endpoints (session-only auth)
+2. **Browser Extension Wiring** - Uses `/api/*` (not `/api/v1/*`); missing `content.js` for auto-detect
+3. **Integration Claims** - Marketing lists several as planned/coming-soon; none implemented yet
+4. **White-Label Reporting** - Advertised on features/pricing; no implementation
 
 ---
 
 ## Recommendations
 
 ### High Priority
-1. Implement team collaboration features or remove from marketing
-2. Create API documentation
-3. Clarify Pro vs Free features in UI
-4. Complete import functionality
+1. Enforce API Key Authentication on v1 endpoints or adjust docs to session-based
+2. Fix Browser Extension: add `content.js`, switch to `/api/v1/*`, solidify auth flow
+3. Clarify Pro vs Free in UI (locks/badges already present in many places; ensure consistency)
+4. White-Label Reporting: minimal theming/branding for exports/PDFs
 
 ### Medium Priority
-1. Implement browser extension for platform detection
-2. Add white-label customization for reports
-3. Implement missing integrations
-4. Add audit logging
+1. Platform Auto-Detection: implement content script URL/title rules with opt-in confirmation
+2. Implement initial third-party integrations or narrow claims on marketing site
+3. Add audit logging for key actions (team changes, billing events)
+4. Broaden RBAC enforcement beyond team API (e.g., project/client scopes)
 
 ### Low Priority
 1. Enhance AI insights with ML/GenAI
-2. Add SSO authentication
+2. Add SSO authentication (Enterprise)
 3. Implement custom fields
 4. Add capacity planning features
 
@@ -188,11 +196,11 @@ TrackFlow is a time tracking application designed for digital marketing agencies
 
 ## Conclusion
 
-TrackFlow has a **solid foundation** with core time tracking, billing, and basic project management features working well. However, several advertised features are either missing or only partially implemented. The application would benefit from:
+TrackFlow has a **solid foundation** with core time tracking, billing, import/export, API (REST + GraphQL), and invoicing working well. Recent work shipped team collaboration (members, invites, role updates). The main gaps are API key enforcement, browser extension wiring, and several advertised-but-not-yet-built integrations and white-labeling.
 
-1. Completing team collaboration features
-2. Delivering on integration promises
-3. Better documentation
-4. Clearer feature availability communication
+Focus next on:
+1. API keys enforcement and docs alignment
+2. Browser extension auto-detect and API route fixes
+3. Minimal white-label for reports/PDFs; integration scope clarity
 
-**Overall Status: 65% Feature Complete** - Core features work, but advanced/enterprise features need significant development.
+**Overall Status: ~75% Feature Complete** — Core product is strong; advanced/enterprise and integrations need targeted implementation.

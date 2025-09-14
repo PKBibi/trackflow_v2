@@ -156,7 +156,7 @@ export default function IntegrationsPage() {
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
             TrackFlow integrates with the tools you already use. 
-            Automatically track time across all your marketing platforms.
+            Start with Stripe integration today, with more marketing platform integrations coming soon.
           </p>
         </div>
       </section>
@@ -202,7 +202,7 @@ export default function IntegrationsPage() {
             </Link>
           </div>
           <p className="text-sm text-gray-500 mt-4">
-            Most requested integrations are built within 30 days
+            Current integrations: Stripe (available), CSV Export (available). Additional integrations prioritized by demand.
           </p>
         </div>
       </section>

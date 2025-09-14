@@ -161,7 +161,10 @@ export const clientCreateSchema = z.object({
   retainer_hours: z.number().min(0).max(999).optional(),
   retainer_amount: z.number().min(0).max(999999).optional(),
   status: z.enum(['active', 'inactive', 'archived']).optional(),
-}).merge(paginationSchema).merge(searchSchema)
+})
+
+// GET request schemas (pagination + search only)
+export const clientListSchema = paginationSchema.merge(searchSchema)
 
 export const projectCreateSchema = z.object({
   name: z.string().min(1).max(255),
@@ -178,7 +181,12 @@ export const projectCreateSchema = z.object({
   status: z.enum(['planning', 'active', 'paused', 'completed', 'cancelled']).optional(),
   billable: z.boolean().optional(),
   hourly_rate: z.number().min(0).max(999999).optional(),
-}).merge(paginationSchema).merge(searchSchema)
+})
+
+export const projectListSchema = paginationSchema.merge(searchSchema).extend({
+  client_id: z.string().uuid().optional(),
+  priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
+})
 
 export const timeEntryCreateSchema = z.object({
   client_id: z.string().uuid(),
@@ -193,4 +201,12 @@ export const timeEntryCreateSchema = z.object({
   billable: z.boolean().optional(),
   hourly_rate: z.number().min(0).max(999999),
   notes: z.string().max(2000).optional(),
-}).merge(paginationSchema).merge(searchSchema)
+})
+
+export const timeEntryListSchema = paginationSchema.merge(searchSchema).extend({
+  client_id: z.string().uuid().optional(),
+  project_id: z.string().uuid().optional(),
+  billable: z.string().transform(val => val === 'true').optional(),
+  marketing_category: z.string().optional(),
+  marketing_channel: z.string().optional(),
+})

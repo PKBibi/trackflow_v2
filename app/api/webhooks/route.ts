@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
     // Process webhook based on event type
     const { event, data } = body as WebhookPayload;
     
-    console.log(`Received webhook event: ${event}`, data);
+    // Process webhook event
     
     // Handle different event types
     switch (event) {
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         await handleInvoicePaid(data);
         break;
       default:
-        console.log(`Unhandled webhook event: ${event}`);
+        // Unhandled webhook event type
     }
     
     // Return success response
@@ -181,30 +181,30 @@ export async function DELETE(request: NextRequest) {
 // Event handlers
 async function handleTimeEntryCreated(data: any) {
   // Process time entry creation
-  console.log('Processing time entry created:', data);
+  // Process time entry creation
   // Add your business logic here
 }
 
 async function handleTimeEntryUpdated(data: any) {
   // Process time entry update
-  console.log('Processing time entry updated:', data);
+  // Process time entry update
   // Add your business logic here
 }
 
 async function handleClientCreated(data: any) {
   // Process client creation
-  console.log('Processing client created:', data);
+  // Process client creation
   // Add your business logic here
 }
 
 async function handleInvoiceCreated(data: any) {
   // Process invoice creation
-  console.log('Processing invoice created:', data);
+  // Process invoice creation
   // Add your business logic here
 }
 
 async function handleInvoicePaid(data: any) {
   // Process invoice payment
-  console.log('Processing invoice paid:', data);
+  // Process invoice payment
   // Update client balance, send notifications, etc.
 }

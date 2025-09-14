@@ -363,10 +363,15 @@
         </svg>
       </div>
       <h2 style="margin-bottom: 12px;">Login Required</h2>
-      <p style="color: #718096; margin-bottom: 20px;">Please login to TrackFlow to start tracking time.</p>
-      <button class="btn btn-primary" id="loginBtn" style="width: 100%;">
+      <p style="color: #718096; margin-bottom: 12px;">Please login to TrackFlow to start tracking time.</p>
+      <button class="btn btn-primary" id="loginBtn" style="width: 100%; margin-bottom: 12px;">
         Open TrackFlow
       </button>
+      <div style="font-size:12px; color:#718096; margin:8px 0; text-align:center;">or paste an API key</div>
+      <div class="form-group" style="margin-top: 8px;">
+        <input type="text" id="apiKeyInput" placeholder="tf_XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" />
+        <button class="btn btn-secondary" id="saveApiKeyBtn" style="margin-top:8px; width:100%;">Save API Key</button>
+      </div>
     </div>
 
     <!-- Loading -->

@@ -284,7 +284,7 @@ export default function OnboardingPage() {
     ];
     
     // Save example entries (mock)
-    console.log('Seeded example time entries:', exampleEntries);
+    // Seeded example time entries
   };
 
   // Tour tooltips configuration

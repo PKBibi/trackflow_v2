@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { 
   BarChart3,
   TrendingUp,
@@ -24,6 +25,8 @@ import {
   AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
+import ProfitabilityChart from '@/components/charts/ProfitabilityChart'
+import TimeDistributionChart from '@/components/charts/TimeDistributionChart'
 import { reportsAPI, DashboardStats, ChannelSummary, ClientSummary, TimeDistribution, ReportFilters } from '@/lib/api/reports'
 import { clientsAPI } from '@/lib/api/clients'
 import { getAllChannels } from '@/lib/constants/marketing-channels'
@@ -42,6 +45,57 @@ export default function ReportsPage() {
   const [aiReport, setAiReport] = useState<any | null>(null)
   const [plan, setPlan] = useState<'free'|'pro'|'enterprise'>('free')
   const [printing, setPrinting] = useState(false)
+  // Optional white-label branding for PDF
+  const [brandCompany, setBrandCompany] = useState('')
+  const [brandLogoUrl, setBrandLogoUrl] = useState('')
+  const [brandEmail, setBrandEmail] = useState('')
+  const [periodLabel, setPeriodLabel] = useState('')
+  const [prefLocale, setPrefLocale] = useState('')
+  const [prefCurrency, setPrefCurrency] = useState('')
+  const [prefIncludeCover, setPrefIncludeCover] = useState(true)
+  const [prefRepeatHeader, setPrefRepeatHeader] = useState(true)
+  const [prefRowStriping, setPrefRowStriping] = useState(true)
+  const [previewOpen, setPreviewOpen] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+
+  useEffect(()=>{
+    (async ()=>{
+      try {
+        const res = await fetch('/api/me/branding')
+        if (res.ok) {
+          const d = await res.json()
+          if (d.branding) {
+            setBrandCompany(d.branding.companyName || '')
+            setBrandLogoUrl(d.branding.logoUrl || '')
+            setBrandEmail(d.branding.contactEmail || '')
+          }
+          if (d.prefs) {
+            setPrefLocale(d.prefs.locale || '')
+            setPrefCurrency(d.prefs.currency || '')
+            setPrefIncludeCover(d.prefs.includeCover !== false)
+            setPrefRepeatHeader(d.prefs.repeatHeader !== false)
+            if (typeof d.prefs.rowStriping === 'boolean') setPrefRowStriping(d.prefs.rowStriping)
+            if (!periodLabel && d.prefs.defaultPeriod) setPeriodLabel(d.prefs.defaultPeriod)
+          }
+        }
+      } catch {}
+      try {
+        const local = localStorage.getItem('branding_prefs')
+        if (local) {
+          const b = JSON.parse(local)
+          setBrandCompany(b.companyName||'')
+          setBrandLogoUrl(b.logoUrl||'')
+          setBrandEmail(b.contactEmail||'')
+          if (typeof b.includeCover === 'boolean') setPrefIncludeCover(b.includeCover)
+          if (typeof b.repeatHeader === 'boolean') setPrefRepeatHeader(b.repeatHeader)
+          if (typeof b.rowStriping === 'boolean') setPrefRowStriping(b.rowStriping)
+          if (b.locale) setPrefLocale(b.locale)
+          if (b.currency) setPrefCurrency(b.currency)
+          if (!periodLabel && b.defaultPeriod) setPeriodLabel(b.defaultPeriod)
+        }
+      } catch {}
+    })()
+  },[])
 
   // Load initial data
   useEffect(() => {
@@ -132,16 +186,19 @@ export default function ReportsPage() {
             Analytics and insights for your marketing work
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
-            <Filter className="h-4 w-4 mr-2" />
-            Filters
-          </Button>
-          <Button>
-            <Download className="h-4 w-4 mr-2" />
-            Export Report
-          </Button>
-          <Button 
+        <div className="flex gap-2 items-center">
+          <Link href="/settings/reports" className="hidden md:inline-flex">
+            <Button variant="outline" title="Report Preferences">Preferences</Button>
+          </Link>
+            <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+            </Button>
+            <Button>
+              <Download className="h-4 w-4 mr-2" />
+              Export Report
+            </Button>
+            <Button 
             variant="default" 
             title={plan==='free' ? 'Upgrade to Pro to generate AI reports' : undefined}
             onClick={async ()=>{
@@ -190,10 +247,13 @@ export default function ReportsPage() {
           {plan !== 'free' && aiReport && (
             <Button variant="ghost" onClick={async ()=>{
               try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('reports_pdf_download'); } catch {}
-              const res = await fetch('/api/ai/reports/weekly/pdf')
-              if (res.status === 501) {
-                setError('PDF export will be available once the PDF library is enabled.')
-              } else if (res.ok) {
+              // Prefer POST with report content for richer PDF
+              const res = await fetch('/api/ai/reports/weekly/pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ branding: { companyName: brandCompany, logoUrl: brandLogoUrl, contactEmail: brandEmail }, report: aiReport, period: periodLabel, options: { includeCover: prefIncludeCover, repeatHeader: prefRepeatHeader, rowStriping: prefRowStriping, locale: prefLocale || undefined, currency: prefCurrency || undefined } })
+              })
+              if (res.ok) {
                 const blob = await res.blob()
                 const url = URL.createObjectURL(blob)
                 const a = document.createElement('a')
@@ -201,13 +261,150 @@ export default function ReportsPage() {
                 a.download = 'weekly-report.pdf'
                 a.click()
                 URL.revokeObjectURL(url)
+              } else {
+                // Fallback to GET without body
+                const qp = new URLSearchParams()
+                if (brandCompany) qp.set('companyName', brandCompany)
+                if (brandLogoUrl) qp.set('logoUrl', brandLogoUrl)
+                if (brandEmail) qp.set('contactEmail', brandEmail)
+                const res2 = await fetch(`/api/ai/reports/weekly/pdf${qp.toString() ? `?${qp.toString()}` : ''}`)
+                if (res2.ok) {
+                  const blob2 = await res2.blob()
+                  const url2 = URL.createObjectURL(blob2)
+                  const a2 = document.createElement('a')
+                  a2.href = url2
+                  a2.download = 'weekly-report.pdf'
+                  a2.click()
+                  URL.revokeObjectURL(url2)
+                } else {
+                  setError('PDF export failed')
+                }
               }
             }}>
               Download PDF (beta)
             </Button>
           )}
+          {plan !== 'free' && aiReport && (
+            <Button variant="outline" onClick={async ()=>{
+              try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('reports_pdf_preview'); } catch {}
+              try {
+              const res = await fetch('/api/ai/reports/weekly/pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ branding: { companyName: brandCompany, logoUrl: brandLogoUrl, contactEmail: brandEmail }, report: aiReport, period: periodLabel, options: { includeCover: prefIncludeCover, repeatHeader: prefRepeatHeader, rowStriping: prefRowStriping, locale: prefLocale || undefined, currency: prefCurrency || undefined } })
+              })
+                if (!res.ok) throw new Error('PDF preview failed')
+                const blob = await res.blob()
+                const url = URL.createObjectURL(blob)
+                setPreviewUrl(url)
+                setPreviewOpen(true)
+              } catch (e:any) {
+                setError(e.message || 'PDF preview failed')
+              }
+            }}>
+              Preview PDF
+            </Button>
+          )}
         </div>
       </div>
+
+      {/* Branding inputs for PDF (optional) */}
+      {plan !== 'free' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Branding (optional)</CardTitle>
+            <CardDescription>Include your company info in exported PDFs</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm">Company Name</Label>
+                <Input value={brandCompany} onChange={(e)=>setBrandCompany(e.target.value)} placeholder="e.g., Acme Agency"/>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Logo URL</Label>
+                <Input value={brandLogoUrl} onChange={(e)=>setBrandLogoUrl(e.target.value)} placeholder="https://example.com/logo.png"/>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Contact Email</Label>
+                <Input type="email" value={brandEmail} onChange={(e)=>setBrandEmail(e.target.value)} placeholder="ops@agency.com"/>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+              <div className="space-y-2">
+                <Label className="text-sm">Period Label</Label>
+                <Input value={periodLabel} onChange={(e)=>setPeriodLabel(e.target.value)} placeholder="e.g., Aug 1–7, 2025"/>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Locale</Label>
+                <Input value={prefLocale} onChange={(e)=>setPrefLocale(e.target.value)} placeholder="e.g., en-US, fr-FR"/>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Currency</Label>
+                <Input value={prefCurrency} onChange={(e)=>setPrefCurrency(e.target.value)} placeholder="e.g., USD, EUR"/>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+              <div className="space-y-2">
+                <Label className="text-sm">Include Cover Page</Label>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={prefIncludeCover} onChange={(e)=>setPrefIncludeCover(e.target.checked)} />
+                  <span className="text-sm text-muted-foreground">Show cover on PDF</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Repeat Table Header</Label>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={prefRepeatHeader} onChange={(e)=>setPrefRepeatHeader(e.target.checked)} />
+                  <span className="text-sm text-muted-foreground">Repeat table header on new pages</span>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm">Row Striping</Label>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={prefRowStriping} onChange={(e)=>setPrefRowStriping(e.target.checked)} />
+                  <span className="text-sm text-muted-foreground">Alternate row background color</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end mt-3">
+              <Button variant="outline" size="sm" onClick={async ()=>{
+                const branding = { companyName: brandCompany, logoUrl: brandLogoUrl, contactEmail: brandEmail }
+                const prefs = { locale: prefLocale, currency: prefCurrency, includeCover: prefIncludeCover, repeatHeader: prefRepeatHeader }
+                try {
+                  const res = await fetch('/api/me/branding', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ branding, prefs }) })
+                  if (!res.ok) throw new Error('Save failed')
+                  localStorage.setItem('branding_prefs', JSON.stringify({ ...branding, ...prefs, rowStriping: prefRowStriping }))
+                } catch {
+                  localStorage.setItem('branding_prefs', JSON.stringify({ ...branding, ...prefs, rowStriping: prefRowStriping }))
+                }
+              }}>Save Branding</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Inline PDF Preview Dialog */}
+      <Dialog open={previewOpen} onOpenChange={(o)=>{
+        setPreviewOpen(o)
+        if (!o && previewUrl) {
+          try { URL.revokeObjectURL(previewUrl) } catch {}
+          setPreviewUrl(null)
+        }
+      }}>
+        <DialogContent className="max-w-5xl h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Weekly Report Preview</DialogTitle>
+          </DialogHeader>
+          <div className="w-full h-full">
+            {previewUrl ? (
+              <iframe src={previewUrl} title="Report Preview" className="w-full h-full border rounded" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground">Generating preview…</div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Error Alert */}
       {error && (
@@ -333,100 +530,66 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      {/* Charts Section */}
-      <div className="grid gap-4 lg:grid-cols-2">
-        {/* Revenue by Channel */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChart className="h-5 w-5" />
-              Revenue by Channel
-            </CardTitle>
-            <CardDescription>Where your time generates the most value</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {channelData.length === 0 ? (
+      {/* Enhanced Charts Section */}
+      <div className="space-y-6">
+        {/* Profitability Chart */}
+        {channelData.length > 0 && (
+          <ProfitabilityChart
+            data={channelData.map(channel => ({
+              channel: channel.channel_name,
+              revenue: channel.total_amount / 100, // Convert from cents
+              cost: channel.total_hours * 60, // Assume $60/hr cost
+              margin: (channel.total_amount / 100) - (channel.total_hours * 60),
+              marginPercentage: channel.total_hours > 0 
+                ? (((channel.total_amount / 100) - (channel.total_hours * 60)) / (channel.total_amount / 100)) * 100 
+                : 0,
+              hours: channel.total_hours,
+              color: channel.color
+            }))}
+            title="Channel Profitability Analysis"
+            description="Revenue, costs, and profit margins by marketing channel"
+          />
+        )}
+
+        {/* Time Distribution Chart */}
+        {timeDistribution.length > 0 && (
+          <TimeDistributionChart
+            data={timeDistribution.map(item => ({
+              label: item.label,
+              hours: item.hours,
+              percentage: item.percentage,
+              color: item.color,
+              billable: true // Assume most time is billable for simplicity
+            }))}
+            title="Time Distribution Analysis"
+            description="Visual breakdown of time allocation across activities"
+          />
+        )}
+
+        {/* Fallback for empty data */}
+        {channelData.length === 0 && timeDistribution.length === 0 && (
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card>
+              <CardContent className="pt-6">
                 <div className="text-center py-8 text-muted-foreground">
                   <PieChart className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>No channel data available</p>
-                  <p className="text-xs">Start tracking time to see channel breakdown</p>
+                  <p>No profitability data available</p>
+                  <p className="text-xs">Start tracking time to see channel profitability</p>
                 </div>
-              ) : (
-                channelData.slice(0, 8).map((channel, index) => {
-                  const totalRevenue = stats?.total_revenue || 0
-                  const percentage = totalRevenue > 0 ? ((channel.total_amount / totalRevenue) * 100).toFixed(1) : '0'
-                  
-                  return (
-                    <div key={channel.channel} className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div 
-                          className="h-3 w-3 rounded-full" 
-                          style={{ backgroundColor: channel.color }}
-                        />
-                        <span className="text-sm">{channel.channel_name}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {channel.total_hours}h
-                        </Badge>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold">{formatCurrency(channel.total_amount)}</p>
-                        <p className="text-xs text-muted-foreground">{percentage}%</p>
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-              {channelData.length > 8 && (
-                <div className="text-center pt-2">
-                  <Button variant="ghost" size="sm">
-                    View All Channels
-                  </Button>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Time Distribution */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Time by Category
-            </CardTitle>
-            <CardDescription>How your time is distributed across marketing categories</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {timeDistribution.length === 0 ? (
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="pt-6">
                 <div className="text-center py-8 text-muted-foreground">
                   <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
                   <p>No time distribution data</p>
-                  <p className="text-xs">Start tracking time to see category breakdown</p>
+                  <p className="text-xs">Start tracking time to see time breakdown</p>
                 </div>
-              ) : (
-                timeDistribution.map((item) => (
-                  <div key={item.label}>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm">{item.label}</span>
-                      <span className="text-sm font-medium">{item.hours} hrs ({item.percentage}%)</span>
-                    </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden">
-                      <div 
-                        className="h-full" 
-                        style={{ 
-                          width: `${Math.min(item.percentage, 100)}%`,
-                          backgroundColor: item.color
-                        }} 
-                      />
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
 
       {/* Client Performance */}
@@ -490,7 +653,25 @@ export default function ReportsPage() {
       </Card>
 
       {/* Quick Reports */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
+        <Link href="/reports/margins">
+          <Card className="cursor-pointer hover:shadow-lg transition-shadow h-full">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center justify-between">
+                Service Margins
+                <BarChart3 className="h-4 w-4 text-muted-foreground" />
+              </CardTitle>
+              <CardDescription>Profitability by service channel</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button className="w-full" variant="outline">
+                View Analysis
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            </CardContent>
+          </Card>
+        </Link>
+
         <Card className="cursor-pointer hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="text-base flex items-center justify-between">

@@ -7,12 +7,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
     }
 
-    // TODO: integrate with email service / ticketing. For now, log server-side.
-    console.log('[Contact] submission', {
-      name: body.name,
-      email: body.email,
-      message: body.message,
-    })
+    // TODO: integrate with email service / ticketing
+    // Store contact submission for processing
 
     return NextResponse.json({ ok: true })
   } catch (err) {

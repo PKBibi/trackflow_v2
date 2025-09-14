@@ -17,6 +17,8 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { RetainerAlerts } from '@/components/dashboard/retainer-alerts'
+import ResourceOptimizationAlerts from '@/components/alerts/ResourceOptimizationAlerts'
+import ClientRiskAlerts from '@/components/alerts/ClientRiskAlerts'
 import { useDashboardStats } from '@/hooks/use-dashboard-stats'
 import { toastUtils } from '@/lib/toast-utils'
 
@@ -286,6 +288,12 @@ export default function DashboardPage() {
 
       {/* Retainer Alerts */}
       <RetainerAlerts />
+
+      {/* Resource Optimization Alerts */}
+      <ResourceOptimizationAlerts compact={true} showHeader={true} maxAlerts={5} />
+
+      {/* Client Risk Alerts */}
+      <ClientRiskAlerts compact={true} showHeader={true} maxAlerts={3} />
 
       {/* Quick Actions */}
       <Card>

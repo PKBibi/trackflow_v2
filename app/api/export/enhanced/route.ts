@@ -18,7 +18,8 @@ export async function POST(request: NextRequest) {
       dateRange,
       clientIds,
       projectIds,
-      includeBillableOnly = false
+      includeBillableOnly = false,
+      branding
     } = body
 
     let data: any[] = []
@@ -151,6 +152,16 @@ export async function POST(request: NextRequest) {
     const filename = `trackflow_${dataType}_${timestamp}`
 
     if (exportFormat === 'csv') {
+      // Optional white‑label header block for CSV
+      let headerBlock = ''
+      if (branding && (branding.companyName || branding.logoUrl || branding.contactEmail)) {
+        const ts = new Date().toISOString()
+        if (branding.companyName) headerBlock += `# Report for: ${branding.companyName}\\n`
+        if (branding.logoUrl) headerBlock += `# Logo: ${branding.logoUrl}\\n`
+        if (branding.contactEmail) headerBlock += `# Contact: ${branding.contactEmail}\\n`
+        headerBlock += `# Generated: ${ts}\\n\\n`
+      }
+
       // Generate CSV
       const headers = Object.keys(data[0]).join(',')
       const rows = data.map(row => 
@@ -160,7 +171,7 @@ export async function POST(request: NextRequest) {
             : value
         ).join(',')
       )
-      const csv = [headers, ...rows].join('\\n')
+      const csv = headerBlock + [headers, ...rows].join('\\n')
 
       return new NextResponse(csv, {
         status: 200,
@@ -171,24 +182,34 @@ export async function POST(request: NextRequest) {
       })
 
     } else if (exportFormat === 'excel') {
-      // Generate Excel with formatting
+      // Generate Excel with optional white‑label header using AOA
       const workbook = XLSX.utils.book_new()
-      const worksheet = XLSX.utils.json_to_sheet(data)
+      const aoa: any[][] = []
+      if (branding && (branding.companyName || branding.logoUrl || branding.contactEmail)) {
+        if (branding.companyName) aoa.push([branding.companyName])
+        if (branding.logoUrl) aoa.push([`Logo: ${branding.logoUrl}`])
+        if (branding.contactEmail) aoa.push([`Contact: ${branding.contactEmail}`])
+        aoa.push([`Generated: ${new Date().toLocaleString()}`])
+        aoa.push([]) // spacer
+      }
+      const headers = Object.keys(data[0] || {})
+      if (headers.length > 0) aoa.push(headers)
+      for (const row of data) {
+        aoa.push(headers.map(h => row[h]))
+      }
 
-      // Auto-size columns
-      const columnWidths = Object.keys(data[0]).map(key => ({
-        wch: Math.max(
-          key.length,
-          ...data.map(row => String(row[key]).length)
-        )
-      }))
-      worksheet['!cols'] = columnWidths
+      const worksheet = XLSX.utils.aoa_to_sheet(aoa)
 
-      // Add some basic styling for headers
-      const headerRow = XLSX.utils.encode_range({
-        s: { c: 0, r: 0 },
-        e: { c: Object.keys(data[0]).length - 1, r: 0 }
-      })
+      // Auto-size columns based on AOA
+      if (headers.length > 0) {
+        const columnWidths = headers.map((key, idx) => ({
+          wch: Math.max(
+            key.length,
+            ...aoa.map(r => (r[idx] != null ? String(r[idx]).length : 0))
+          )
+        }))
+        ;(worksheet as any)['!cols'] = columnWidths
+      }
 
       XLSX.utils.book_append_sheet(workbook, worksheet, dataType)
       
@@ -207,7 +228,7 @@ export async function POST(request: NextRequest) {
       })
 
     } else if (exportFormat === 'pdf') {
-      // For PDF, we'll return the data and let the client generate it
+      // For PDF, we'll return the data and branding and let the client generate it
       // This avoids adding heavy PDF generation libraries to the server
       return NextResponse.json({
         success: true,
@@ -222,7 +243,8 @@ export async function POST(request: NextRequest) {
             clientIds,
             projectIds,
             includeBillableOnly
-          }
+          },
+          branding: branding || null
         }
       })
 

@@ -11,9 +11,21 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
     const body = await req.json().catch(() => ({}))
-    const plan = (body.plan || 'pro') as 'pro' | 'enterprise'
+    const plan = (body.plan || 'pro') as 'freelancer' | 'pro' | 'enterprise'
 
-    const priceId = plan === 'enterprise' ? process.env.STRIPE_PRICE_ID_ENTERPRISE : process.env.STRIPE_PRICE_ID_PROFESSIONAL
+    let priceId: string | undefined
+    switch (plan) {
+      case 'freelancer':
+        priceId = process.env.STRIPE_PRICE_ID_FREELANCER
+        break
+      case 'enterprise':
+        priceId = process.env.STRIPE_PRICE_ID_ENTERPRISE
+        break
+      default: // 'pro' (Agency Starter)
+        priceId = process.env.STRIPE_PRICE_ID_PROFESSIONAL
+        break
+    }
+
     if (!priceId) return NextResponse.json({ error: 'Price not configured' }, { status: 400 })
 
     const successUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/billing?success=1`

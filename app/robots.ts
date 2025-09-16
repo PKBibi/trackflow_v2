@@ -7,9 +7,19 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: '*',
         allow: '/',
         disallow: [
+          '/dashboard/',
+          '/timer/',
+          '/clients/',
+          '/projects/',
+          '/reports/',
+          '/settings/',
+          '/insights/',
+          '/onboarding/',
+          '/import/',
           '/api/',
-          '/admin/',
+          '/dev/',
           '/_next/',
+          '/admin/',
           '/private/',
         ],
       },
@@ -18,7 +28,7 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/'],
       },
     ],
-    sitemap: `${process.env.NEXT_PUBLIC_APP_URL}/sitemap.xml`,
+    sitemap: `https://track-flow.app/sitemap.xml`,
   };
 }
 

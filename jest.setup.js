@@ -70,17 +70,29 @@ if (!global.crypto) {
   global.crypto = webcrypto
 }
 
-// Fetch/Request/Response polyfills for Next route handler tests
+// Set up Web APIs for Next.js API route testing
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const undici = require('undici')
-  if (!global.fetch) global.fetch = undici.fetch
-  if (!global.Request) global.Request = undici.Request
-  if (!global.Response) global.Response = undici.Response
-  if (!global.Headers) global.Headers = undici.Headers
-} catch {}
+  const { Request, Response, Headers, fetch } = require('undici')
 
-// Mock fetch globally
+  // Set up Web APIs globally before any imports
+  Object.assign(globalThis, {
+    Request,
+    Response,
+    Headers,
+    fetch
+  })
+
+  // Also set on global for compatibility
+  global.Request = Request
+  global.Response = Response
+  global.Headers = Headers
+  global.fetch = fetch
+
+} catch (error) {
+  console.warn('Could not set up undici polyfills:', error.message)
+}
+
+// Mock fetch for tests that need mocking
 global.fetch = jest.fn()
 
 // Setup window.matchMedia

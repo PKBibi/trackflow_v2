@@ -4,8 +4,8 @@ import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
-// Google Analytics Measurement ID from environment variable
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+// Google Analytics Measurement ID (fallback to env variable)
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-WC4MZKFK0D';
 const PH_API_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const PH_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com';
 
@@ -127,15 +127,109 @@ export const trackEvent = {
     label: step 
   }),
   
+  // Subscription/billing events
+  subscriptionStart: (plan: string, value: number) => {
+    event({ action: 'begin_checkout', category: 'ecommerce', label: plan, value });
+    capturePosthog('subscription_checkout_started', { plan, value });
+
+    // Enhanced ecommerce - begin checkout
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'begin_checkout', {
+        currency: 'USD',
+        value: value,
+        items: [{
+          item_id: plan,
+          item_name: `${plan} Plan`,
+          item_category: 'subscription',
+          item_category2: 'monthly',
+          price: value,
+          quantity: 1,
+        }],
+      });
+    }
+  },
+
+  subscriptionComplete: (transactionId: string, plan: string, value: number, userId?: string) => {
+    // Enhanced ecommerce purchase event
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'purchase', {
+        transaction_id: transactionId,
+        value: value,
+        currency: 'USD',
+        affiliation: 'TrackFlow',
+        coupon: '',
+        items: [{
+          item_id: plan,
+          item_name: `${plan} Subscription`,
+          item_category: 'subscription',
+          item_category2: 'monthly',
+          item_variant: plan,
+          price: value,
+          quantity: 1,
+        }],
+      });
+    }
+    capturePosthog('subscription_completed', {
+      transaction_id: transactionId,
+      plan,
+      value,
+      user_id: userId
+    });
+  },
+
+  // Enhanced subscription lifecycle tracking
+  viewPricingPage: () => {
+    event({ action: 'view_item_list', category: 'ecommerce' });
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'view_item_list', {
+        item_list_id: 'pricing_plans',
+        item_list_name: 'Pricing Plans',
+        items: [
+          { item_id: 'freelancer', item_name: 'Freelancer Plan', item_category: 'subscription', price: 15 },
+          { item_id: 'pro', item_name: 'Agency Starter Plan', item_category: 'subscription', price: 29 },
+          { item_id: 'enterprise', item_name: 'Agency Growth Plan', item_category: 'subscription', price: 49 }
+        ]
+      });
+    }
+  },
+
+  selectPlan: (plan: string, value: number) => {
+    event({ action: 'select_item', category: 'ecommerce', label: plan, value });
+    if (typeof window !== 'undefined' && window.gtag) {
+      window.gtag('event', 'select_item', {
+        item_list_id: 'pricing_plans',
+        item_list_name: 'Pricing Plans',
+        items: [{
+          item_id: plan,
+          item_name: `${plan} Plan`,
+          item_category: 'subscription',
+          price: value,
+          quantity: 1,
+        }]
+      });
+    }
+  },
+
+  subscriptionCancel: (plan: string, reason?: string) => {
+    event({ action: 'subscription_cancel', category: 'subscription', label: plan });
+    capturePosthog('subscription_cancelled', { plan, reason });
+  },
+
+  trialStart: (plan: string) => {
+    event({ action: 'trial_start', category: 'subscription', label: plan });
+    capturePosthog('trial_started', { plan });
+  },
+
   // Feature usage
-  featureUse: (feature: string) => { 
-    event({ 
-      action: 'feature_use', 
+  featureUse: (feature: string) => {
+    event({
+      action: 'feature_use',
       category: 'feature',
-      label: feature 
+      label: feature
     });
     capturePosthog('feature_use', { feature });
   },
+
   experiment: (name: string, variant: string, action: 'view' | 'cta') => {
     event({ action: `exp_${name}_${action}`, category: 'experiment', label: variant });
     capturePosthog('experiment', { name, variant, action });
@@ -182,7 +276,15 @@ export function Analytics() {
             gtag('config', '${GA_MEASUREMENT_ID}', {
               page_path: window.location.pathname,
               anonymize_ip: true,
-              cookie_flags: 'SameSite=None;Secure'
+              cookie_flags: 'SameSite=None;Secure',
+              send_page_view: true
+            });
+
+            // Track initial page view
+            gtag('event', 'page_view', {
+              page_title: document.title,
+              page_location: window.location.href,
+              page_path: window.location.pathname
             });
           `,
         }}

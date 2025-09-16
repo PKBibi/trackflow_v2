@@ -119,7 +119,7 @@ function generatePDFMultiPage(
     wrapped.forEach((line, idx) => {
       if (y - lh < 60) {
         parts.push('BT\n/F1 9 Tf\n0.4 0.4 0.4 rg\n', `1 0 0 1 50 30 Tm (Page ${pageStreams.length + 1} of {TOTAL} — ${pdfEscape(new Date().toLocaleString())}) Tj\n`, 'ET\n')
-        pageStreams.push(parts.join(''))
+        pageStreams.push({ stream: parts.join('') })
         parts = beginPage()
       }
       y -= lh
@@ -249,19 +249,9 @@ export async function GET(request: NextRequest) {
     { text: 'Summary', size: 14 },
     { text: 'Report content was not provided in GET; submit via POST for details.', size: 11 }
   ]
-  try {
-    const buf = await generateReactPdf({ branding, period: undefined, report: null, options: { includeCover: true, repeatHeader: true } }, { title, summaryBlocks: blocks, rows: [] })
-    return new NextResponse(buf, {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment; filename="weekly-report.pdf"'
-      }
-    })
-  } catch (_) {}
 
   const pdf = generatePDFMultiPage(title, blocks, undefined, { repeatHeader: true, rowStriping: true })
-  return new NextResponse(pdf, {
+  return new NextResponse(pdf as BodyInit, {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
@@ -338,7 +328,7 @@ export async function POST(request: NextRequest) {
     includeCover ? { company: branding.companyName, period } : undefined,
     { repeatHeader, rowStriping: options?.rowStriping !== false }
   )
-  return new NextResponse(pdf, {
+  return new NextResponse(pdf as BodyInit, {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',

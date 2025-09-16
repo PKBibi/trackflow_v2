@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { log } from '@/lib/logger'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2024-06-20' as any })
 
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
         break
     }
   } catch (e) {
-    console.error('Stripe webhook handler error', e)
+    log.apiError('webhooks/stripe', e, { eventType: event?.type });
   }
 
   return NextResponse.json({ received: true })

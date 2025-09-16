@@ -134,6 +134,11 @@ export default function PricingPage() {
   useEffect(() => {
     fetch('/api/me/plan').then(r=>r.json()).then(d=>{ setPlan(d.plan||'free'); setAuth(!!d.authenticated) }).catch(()=>{})
     fetch('/api/billing/status').then(r=>r.json()).then(d=>{ if (Array.isArray(d.prices)) setPrices(d.prices) }).catch(()=>{})
+
+    // Track pricing page view
+    import('@/components/analytics').then(({ trackEvent }) => {
+      trackEvent.viewPricingPage();
+    }).catch(() => {});
   }, [])
 
   const startCheckout = async (target: 'pro'|'enterprise') => {
@@ -271,13 +276,36 @@ export default function PricingPage() {
                   className="w-full" 
                   variant={plan.highlighted ? 'default' : 'outline'}
                   size="lg"
-                  onClick={() => {
-                    if (plan.name === 'Agency Starter') {
-                      if (auth) startCheckout('pro'); else window.location.href = '/signup'
-                    } else if (plan.name === 'Agency Growth') {
-                      if (auth) startCheckout('enterprise'); else window.location.href = '/signup'
-                    } else {
-                      window.location.href = auth ? '/dashboard/billing' : '/signup'
+                  onClick={async () => {
+                    // Track subscription intent
+                    try {
+                      const { trackEvent } = await import('@/components/analytics');
+                      const planPrice = plan.price[billingPeriod];
+                      const planId = plan.name === 'Agency Starter' ? 'pro' : plan.name === 'Agency Growth' ? 'enterprise' : 'freelancer';
+
+                      // Track plan selection
+                      trackEvent.selectPlan(planId, planPrice);
+
+                      // Track subscription start
+                      trackEvent.subscriptionStart(planId, planPrice);
+
+                      if (plan.name === 'Agency Starter') {
+                        if (auth) startCheckout('pro'); else window.location.href = '/signup'
+                      } else if (plan.name === 'Agency Growth') {
+                        if (auth) startCheckout('enterprise'); else window.location.href = '/signup'
+                      } else {
+                        window.location.href = auth ? '/dashboard/billing' : '/signup'
+                      }
+                    } catch (error) {
+                      // Don't block the user flow if analytics fails
+                      console.warn('Analytics tracking failed:', error);
+                      if (plan.name === 'Agency Starter') {
+                        if (auth) startCheckout('pro'); else window.location.href = '/signup'
+                      } else if (plan.name === 'Agency Growth') {
+                        if (auth) startCheckout('enterprise'); else window.location.href = '/signup'
+                      } else {
+                        window.location.href = auth ? '/dashboard/billing' : '/signup'
+                      }
                     }
                   }}
                 >

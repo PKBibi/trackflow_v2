@@ -85,10 +85,19 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       this.props.onError(error, errorInfo)
     }
 
-    // Log to external service in production
-    if (process.env.NODE_ENV === 'production') {
-      // TODO: Send to error reporting service (e.g., Sentry)
-      // logErrorToService(error, errorInfo)
+    // Log to Sentry
+    if (typeof window !== 'undefined') {
+      const Sentry = require('@sentry/nextjs');
+      Sentry.captureException(error, {
+        contexts: {
+          react: {
+            componentStack: errorInfo.componentStack,
+          },
+        },
+        tags: {
+          component: 'ErrorBoundary',
+        },
+      });
     }
   }
 

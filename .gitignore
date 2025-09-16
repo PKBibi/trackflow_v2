@@ -55,3 +55,5 @@ Thumbs.db
 # Knowledge base - internal docs only
 knowledge-base/
 knowledge-base.txt
+
+.env.local

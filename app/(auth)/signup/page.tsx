@@ -72,6 +72,27 @@ export default function SignupPage() {
         return
       }
 
+      // Track successful signup
+      if (typeof window !== 'undefined') {
+        const { trackEvent } = await import('@/components/analytics');
+        trackEvent.signup();
+        trackEvent.trialStart('freelancer'); // Default plan
+      }
+
+      // Send welcome email if user was successfully created
+      if (data.user) {
+        try {
+          await fetch('/api/email/welcome', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: data.user.id }),
+          })
+        } catch (emailError) {
+          // Don't block signup if email fails
+          console.warn('Failed to send welcome email:', emailError)
+        }
+      }
+
       // Redirect to onboarding or dashboard
       router.push('/onboarding')
     } catch (err) {

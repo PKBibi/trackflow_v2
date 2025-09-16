@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { 
+import {
   verifyWebhookSignature,
   webhookSubscriptions,
   testWebhook,
-  type WebhookPayload 
+  type WebhookPayload
 } from '@/lib/webhooks';
+import { log } from '@/lib/logger';
 
 // POST /api/webhooks - Receive webhook (for testing incoming webhooks)
 export async function POST(request: NextRequest) {
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
       message: `Webhook ${event} processed successfully`
     });
   } catch (error) {
-    console.error('Error processing webhook:', error);
+    log.apiError('webhooks/process', error, { webhook: body });
     return NextResponse.json(
       { error: 'Failed to process webhook' },
       { status: 500 }
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
       total: subscriptions.length
     });
   } catch (error) {
-    console.error('Error fetching webhook subscriptions:', error);
+    log.apiError('webhooks/subscriptions/fetch', error);
     return NextResponse.json(
       { error: 'Failed to fetch webhook subscriptions' },
       { status: 500 }
@@ -140,7 +141,7 @@ export async function PUT(request: NextRequest) {
       testResult
     }, { status: 201 });
   } catch (error) {
-    console.error('Error creating webhook subscription:', error);
+    log.apiError('webhooks/subscriptions/create', error, { url: body.url, events: body.events });
     return NextResponse.json(
       { error: 'Failed to create webhook subscription' },
       { status: 500 }
@@ -170,7 +171,7 @@ export async function DELETE(request: NextRequest) {
       message: 'Webhook subscription removed successfully'
     });
   } catch (error) {
-    console.error('Error removing webhook subscription:', error);
+    log.apiError('webhooks/subscriptions/remove', error, { subscriptionId: params.id });
     return NextResponse.json(
       { error: 'Failed to remove webhook subscription' },
       { status: 500 }

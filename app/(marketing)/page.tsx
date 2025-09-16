@@ -1,433 +1,415 @@
 import Link from 'next/link'
-import { ArrowRight, Play, TrendingUp, Users, Zap, DollarSign, FileText, Brain, BarChart3, Clock, AlertCircle, CheckCircle } from 'lucide-react'
+import { ArrowRight, Play, TrendingUp, Users, Zap, DollarSign, FileText, Brain, BarChart3, Clock, AlertCircle, CheckCircle, Shield, Award, Globe, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from 'next/image'
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Time Tracking Software for Digital Marketing Agencies | TrackFlow',
+  description: 'The only time tracking software built for marketing agencies. Track campaign profitability, manage retainers, and increase margins by 40%. Trusted by 2,000+ agencies worldwide.',
+  keywords: 'time tracking software, marketing agency time tracking, campaign profitability, retainer management, digital marketing analytics, agency productivity tools',
+  openGraph: {
+    title: 'TrackFlow - Time Tracking for Digital Marketing Agencies',
+    description: 'Track campaign profitability, manage retainers, and increase margins by 40%. Trusted by 2,000+ marketing agencies worldwide.',
+    images: ['/images/og-homepage.png'],
+  },
+}
 
 export default function MarketingLandingPage() {
   return (
     <div className="bg-gradient-to-b from-white to-gray-50 dark:from-[#0B1220] dark:to-gray-950">
 
       {/* Hero Section */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto text-center">
-          {/* Trust badge with urgency */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 rounded-full mb-6 animate-pulse">
-            <span className="text-green-600 text-sm font-medium">
-              🔥 147 agencies signed up this week • Average ROI: 312% in first 90 days
+      <section className="relative py-32 px-4 overflow-hidden">
+        {/* Background gradient orb */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-400/20 to-teal-400/20 blur-3xl rounded-full" />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-purple-400/20 to-blue-400/20 blur-3xl rounded-full" />
+
+        <div className="relative max-w-7xl mx-auto">
+          {/* Trust badge */}
+          <div className="flex justify-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-teal-100 dark:from-blue-900/50 dark:to-teal-900/50 rounded-full border border-blue-200 dark:border-blue-800">
+              <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Trusted by 2,000+ marketing agencies worldwide
+              </span>
+            </div>
+          </div>
+
+          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-center mb-12 bg-gradient-to-r from-gray-900 via-blue-800 to-gray-900 dark:from-white dark:via-blue-400 dark:to-white bg-clip-text text-transparent leading-tight">
+            Time Tracking that<br />Actually Makes Money
+          </h1>
+
+          <p className="text-xl md:text-2xl text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto font-light">
+            The professional time tracking platform built exclusively for digital marketing agencies.
+            Track profitability by channel, automate client reporting, and increase margins by 40%.
+          </p>
+          
+          {/* Key metrics bar */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-12">
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">2,000+</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Agencies Trust Us</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">40%</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Avg Margin Increase</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">$2.4M</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Revenue Recovered/mo</div>
+            </div>
+            <div className="text-center">
+              <div className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">4.9/5</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Customer Rating</div>
+            </div>
+          </div>
+          
+          {/* CTA Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <Link href="/signup">
+              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
+                Start Free 14-Day Trial
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+            <Link href="/demo">
+              <Button size="lg" variant="outline" className="border-2 border-gray-300 dark:border-gray-700 px-8 py-6 text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                <Play className="mr-2 w-5 h-5" />
+                See Live Demo
+              </Button>
+            </Link>
+          </div>
+
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600 dark:text-gray-400">
+            <span className="flex items-center gap-1">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              No credit card required
+            </span>
+            <span className="flex items-center gap-1">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              Setup in 3 minutes
+            </span>
+            <span className="flex items-center gap-1">
+              <CheckCircle className="w-4 h-4 text-green-500" />
+              Cancel anytime
             </span>
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-4">
-            Smart Time Tracking for<br />
-            Digital Marketing Agencies
-          </h1>
-          
-          <p className="text-2xl font-semibold text-blue-600 mb-6">
-            Stop losing $4,200/month in unbilled hours with the only time tracker 
-            that speaks PPC, SEO, and social media
+        </div>
+      </section>
+
+      {/* Trust Signals Bar */}
+      <section className="py-16 border-y border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+        <div className="container mx-auto px-4">
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mb-8 uppercase tracking-wider font-medium">
+            Trusted by 2,000+ marketing agencies worldwide
           </p>
-          
-          <div className="bg-white border-2 border-blue-200 rounded-lg p-6 max-w-4xl mx-auto mb-8 shadow-lg">
-            <div className="grid md:grid-cols-4 gap-6 text-center">
-              <div>
-                <div className="text-3xl font-bold text-green-600">WHAT</div>
-                <p className="text-sm">Profitability-focused time tracking with margin analysis</p>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-blue-600">WHO</div>
-                <p className="text-sm">Digital marketing agencies & consultants (1-50 people)</p>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-purple-600">WHY</div>
-                <p className="text-sm">Recover 23% lost hours + 40% margin boost in 30 days</p>
-              </div>
-              <div>
-                <div className="text-3xl font-bold text-amber-600">HOW</div>
-                <p className="text-sm">Unlike generic trackers - built for marketing workflows</p>
-              </div>
+
+          {/* Trust Metrics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto mb-12">
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">99.9%</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Uptime SLA</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">SOC 2</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Type II Certified</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">GDPR</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Compliant</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">24/7</div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">Support</div>
             </div>
           </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-            <Link href="/signup" className="btn-cta text-xl px-10 py-5 font-bold shadow-lg">
-              Start Free Trial - See Results in 7 Days →
-            </Link>
-            <Link href="/demo" className="btn-cta-outline text-lg px-8 py-4">
-              Watch 2-Min Demo
-            </Link>
+
+          {/* Agency Names */}
+          <div className="flex flex-wrap justify-center items-center gap-8 md:gap-12 opacity-75">
+            <div className="text-xl font-bold text-gray-600 dark:text-gray-300">Growth Digital Partners</div>
+            <div className="text-xl font-bold text-gray-600 dark:text-gray-300">Pinnacle SEO</div>
+            <div className="text-xl font-bold text-gray-600 dark:text-gray-300">AdScale Partners</div>
+            <div className="text-xl font-bold text-gray-600 dark:text-gray-300">Social First Agency</div>
+            <div className="text-xl font-bold text-gray-600 dark:text-gray-300">Digital Revenue Co</div>
+            <div className="text-xl font-bold text-gray-600 dark:text-gray-300">Marketing Lab Pro</div>
           </div>
-          
-          <div className="text-center mb-4">
-            <p className="text-lg font-medium text-gray-700">
-              ⚡ Takes 3 minutes to setup • 💰 Guarantee 40% margin boost • 🚫 No credit card
+
+          {/* Security Badges */}
+          <div className="flex justify-center items-center gap-8 mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              <Shield className="w-4 h-4" />
+              <span>Enterprise Security</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              <CheckCircle className="w-4 h-4" />
+              <span>ISO 27001 Certified</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+              <Globe className="w-4 h-4" />
+              <span>Global Infrastructure</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-32 bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-gray-900">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
+              Start tracking smarter in minutes
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Get up and running in under 3 minutes. No complex setup, no training required.
             </p>
           </div>
-          
-          {/* Instant Value Proof */}
-          <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6 max-w-2xl mx-auto mb-8 border-2 border-green-200">
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Step 1 */}
             <div className="text-center">
-              <p className="text-lg font-bold text-green-700 mb-2">Your Agency's Hidden Revenue Calculator:</p>
-              <div className="grid grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-gray-600">Team Size:</span>
-                  <div className="font-bold text-2xl text-blue-600">5 people</div>
-                </div>
-                <div>
-                  <span className="text-gray-600">Lost Hours:</span>
-                  <div className="font-bold text-2xl text-red-600">23%</div>
-                </div>
-                <div>
-                  <span className="text-gray-600">Recovery:</span>
-                  <div className="font-bold text-2xl text-green-600">$27,600/mo</div>
-                </div>
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg text-white font-bold text-2xl">
+                1
               </div>
+              <h3 className="text-xl font-semibold mb-3">Sign up in seconds</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Create your account with just an email. No credit card needed for your 14-day trial.
+              </p>
             </div>
-          </div>
-          
-          <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-500">
-            <span>✓ Set up in 3 minutes</span>
-            <span>✓ See ROI in first week</span>
-            <span>✓ Money-back guarantee</span>
-          </div>
-        </div>
-      </section>
 
-      {/* Differentiation Bar */}
-      <section className="py-12 bg-blue-600 text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h3 className="text-2xl font-bold mb-6">Why TrackFlow vs Generic Time Trackers?</h3>
-          <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div>
-              <div className="text-3xl mb-2">⏱️ vs 🏢</div>
-              <h4 className="font-bold mb-2">Built for Marketing</h4>
-              <p className="text-sm text-blue-100">Pre-configured for PPC, SEO, Social vs generic "projects"</p>
+            {/* Step 2 */}
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg text-white font-bold text-2xl">
+                2
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Add your clients & channels</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Set up your marketing channels (PPC, SEO, Social) and add your clients in minutes.
+              </p>
             </div>
-            <div>
-              <div className="text-3xl mb-2">📊 vs 📋</div>
-              <h4 className="font-bold mb-2">Profit-Focused</h4>
-              <p className="text-sm text-blue-100">Shows margin analysis per channel vs basic reports</p>
-            </div>
-            <div>
-              <div className="text-3xl mb-2">🎯 vs ❓</div>
-              <h4 className="font-bold mb-2">Agency Workflows</h4>
-              <p className="text-sm text-blue-100">Retainer tracking & client billing vs one-size-fits-all</p>
+
+            {/* Step 3 */}
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg text-white font-bold text-2xl">
+                3
+              </div>
+              <h3 className="text-xl font-semibold mb-3">Start tracking & see insights</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                Begin tracking time and instantly see profitability insights by channel and client.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Social Proof Bar */}
-      <section className="py-8 bg-gray-100 dark:bg-gray-800">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-wrap justify-center items-center gap-8 text-sm">
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="font-medium">$2.4M recovered revenue last month</span>
+      {/* Features Grid - Modern Enterprise Style */}
+      <section className="py-32 bg-white dark:bg-gray-950">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-100 to-teal-100 dark:from-blue-900/30 dark:to-teal-900/30 rounded-full mb-6">
+              <Zap className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Powerful Features</span>
             </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="font-medium">94% client retention rate</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-green-600" />
-              <span className="font-medium">40% average margin increase</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Problem/Solution Section */}
-      <section className="py-16 bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4 max-w-5xl">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <Badge className="mb-4 bg-red-100 text-red-700 border-red-200">
-                The Hidden Problem
-              </Badge>
-              <h3 className="text-2xl font-bold mb-4">You're Bleeding Money Every Day</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
-                  <span>23% of billable work goes untracked (industry average)</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
-                  <span>60% of agencies don't know which services are profitable</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
-                  <span>$4,200/month lost per employee from poor time tracking</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <AlertCircle className="w-5 h-5 text-red-500 mt-0.5" />
-                  <span>33% of client churn from unexpected overages</span>
-                </li>
-              </ul>
-            </div>
-            
-            <div>
-              <Badge className="mb-4 bg-green-100 text-green-700 border-green-200">
-                The TrackFlow Solution
-              </Badge>
-              <h3 className="text-2xl font-bold mb-4">Turn Every Hour Into Profit</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                  <span><strong>Week 1:</strong> Recover 23% of lost billable hours</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                  <span><strong>Week 2:</strong> Identify your 3 most profitable services</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                  <span><strong>Week 3:</strong> Cut admin time by 70% with automation</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500 mt-0.5" />
-                  <span><strong>Month 1:</strong> 40% margin improvement guaranteed</span>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Grid - Outcome Focused */}
-      <section className="py-24 bg-gray-50 dark:bg-gray-900/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <Badge className="mb-4 bg-green-600 text-white border-green-600">
-              Time Tracking That Pays For Itself
-            </Badge>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              6 Ways Our Smart Timer Boosts Your Profits
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
+              Everything you need to maximize agency profitability
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Unlike generic time trackers, every minute tracked delivers measurable ROI
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Purpose-built features that understand how modern marketing agencies operate and grow.
             </p>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Feature 1 */}
-            <Card className="border-2 hover:border-green-300 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                    <DollarSign className="w-6 h-6 text-green-600" />
-                  </div>
-                  <Badge variant="outline" className="bg-green-50">+$4,200/mo</Badge>
+            {/* Feature 1 - Channel Tracking */}
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+                  <BarChart3 className="w-7 h-7 text-white" />
                 </div>
-                <CardTitle>Smart Time Capture by Channel</CardTitle>
-                <CardDescription>
-                  <strong>How:</strong> Track time across PPC, SEO, Social, Email with 1-click.<br/>
-                  <strong>Result:</strong> Recover 23% lost billable hours = $4,200/month per employee.
+                <CardTitle className="text-xl mb-3">Channel-Based Time Tracking</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  Track time by marketing channel (PPC, SEO, Social, Email) instead of generic projects. Instantly see which channels drive the most profit.
                 </CardDescription>
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">+23% billable hour recovery</p>
+                </div>
               </CardHeader>
             </Card>
             
-            {/* Feature 2 */}
-            <Card className="border-2 hover:border-blue-300 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <TrendingUp className="w-6 h-6 text-blue-600" />
-                  </div>
-                  <Badge variant="outline" className="bg-blue-50">+40% margins</Badge>
+            {/* Feature 2 - Profitability */}
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+              <div className="absolute inset-0 bg-gradient-to-br from-green-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative">
+                <div className="w-14 h-14 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+                  <TrendingUp className="w-7 h-7 text-white" />
                 </div>
-                <CardTitle>Automatic Profitability Analysis</CardTitle>
-                <CardDescription>
-                  <strong>How:</strong> Our timer calculates real-time margins per marketing channel.<br/>
-                  <strong>Result:</strong> Discover your most profitable services + 40% margin boost.
+                <CardTitle className="text-xl mb-3">Real-Time Profitability Analysis</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  Automatically calculate margins per channel and client. Know exactly which services and clients are most profitable.
                 </CardDescription>
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-green-600 dark:text-green-400">+40% average margin increase</p>
+                </div>
               </CardHeader>
             </Card>
             
-            {/* Feature 3 */}
-            <Card className="border-2 hover:border-amber-300 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-                    <Users className="w-6 h-6 text-amber-600" />
-                  </div>
-                  <Badge variant="outline" className="bg-amber-50">94% retention</Badge>
+            {/* Feature 3 - Retainer Management */}
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative">
+                <div className="w-14 h-14 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+                  <Users className="w-7 h-7 text-white" />
                 </div>
-                <CardTitle>Smart Retainer Tracking</CardTitle>
-                <CardDescription>
-                  <strong>How:</strong> Automatic alerts at 75%, 90%, 100% retainer usage.<br/>
-                  <strong>Result:</strong> Zero surprise overages + 94% client retention rate.
+                <CardTitle className="text-xl mb-3">Smart Retainer Management</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  Automatic alerts before retainers are exhausted. Keep clients happy with proactive communication about budget usage.
                 </CardDescription>
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-purple-600 dark:text-purple-400">94% client retention rate</p>
+                </div>
               </CardHeader>
             </Card>
             
-            {/* Feature 4 */}
-            <Card className="border-2 hover:border-purple-300 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <Badge variant="outline" className="bg-purple-50">-70% time</Badge>
+            {/* Feature 4 - Automated Reporting */}
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative">
+                <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+                  <FileText className="w-7 h-7 text-white" />
                 </div>
-                <CardTitle>Cut Invoicing by 70%</CardTitle>
-                <CardDescription>
-                  <strong>Result:</strong> Auto-generate branded client reports in 2 clicks. 
-                  Save 6 hours/month on admin = $900/month back in billable time.
+                <CardTitle className="text-xl mb-3">One-Click Client Reports</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  Generate beautiful, branded client reports instantly. Include time breakdowns, progress updates, and budget tracking.
                 </CardDescription>
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">Save 6+ hours monthly</p>
+                </div>
               </CardHeader>
             </Card>
             
-            {/* Feature 5 */}
-            <Card className="border-2 hover:border-red-300 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
-                    <AlertCircle className="w-6 h-6 text-red-600" />
-                  </div>
-                  <Badge variant="outline" className="bg-red-50">Risk alerts</Badge>
+            {/* Feature 5 - AI Insights */}
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+              <div className="absolute inset-0 bg-gradient-to-br from-teal-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative">
+                <div className="w-14 h-14 bg-gradient-to-br from-teal-500 to-teal-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+                  <Brain className="w-7 h-7 text-white" />
                 </div>
-                <CardTitle>Prevent Revenue Loss</CardTitle>
-                <CardDescription>
-                  <strong>Result:</strong> Client health scoring spots at-risk accounts 30 days early. 
-                  Save 2-3 clients per year worth $180,000 in lifetime value.
+                <CardTitle className="text-xl mb-3">AI-Powered Insights</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  Get intelligent recommendations on pricing, capacity, and client health. Spot opportunities and risks before they impact your bottom line.
                 </CardDescription>
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-teal-600 dark:text-teal-400">Prevent 33% of client churn</p>
+                </div>
               </CardHeader>
             </Card>
             
-            {/* Feature 6 */}
-            <Card className="border-2 hover:border-indigo-300 transition-all hover:shadow-lg">
-              <CardHeader>
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-6 h-6 text-indigo-600" />
-                  </div>
-                  <Badge variant="outline" className="bg-indigo-50">$150/hr</Badge>
+            {/* Feature 6 - Team Collaboration */}
+            <Card className="group relative overflow-hidden border-0 shadow-lg hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <CardHeader className="relative">
+                <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mb-6 shadow-lg">
+                  <Zap className="w-7 h-7 text-white" />
                 </div>
-                <CardTitle>Optimize to $150+ Rates</CardTitle>
-                <CardDescription>
-                  <strong>Result:</strong> Capacity planning shows exactly when to hire and what to outsource. 
-                  Reach $150/hr effective rate within 60 days.
+                <CardTitle className="text-xl mb-3">Team Collaboration Tools</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-400">
+                  Manage team capacity, delegate tasks efficiently, and see who's working on what. Perfect for growing agencies.
                 </CardDescription>
+                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <p className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">Scale to 50+ team members</p>
+                </div>
               </CardHeader>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* ROI Calculator */}
-      <section className="py-16 bg-white dark:bg-gray-900">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <Card className="bg-gradient-to-r from-blue-50 to-green-50 border-2 border-green-300">
-            <CardHeader className="text-center">
-              <h2 className="text-3xl font-bold mb-2">Your Potential ROI</h2>
-              <p className="text-lg text-gray-600">Based on averages from 2,000+ agencies</p>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-6 text-center">
-                <div>
-                  <p className="text-4xl font-bold text-green-600">$4,200</p>
-                  <p className="text-sm text-gray-600">Monthly recovered revenue</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold text-blue-600">312%</p>
-                  <p className="text-sm text-gray-600">Average ROI in 90 days</p>
-                </div>
-                <div>
-                  <p className="text-4xl font-bold text-purple-600">6 hours</p>
-                  <p className="text-sm text-gray-600">Saved per week</p>
-                </div>
-              </div>
-              <div className="mt-8 text-center">
-                <Link href="/signup">
-                  <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg">
-                    Calculate Your Exact ROI →
-                  </Button>
-                </Link>
-                <p className="text-xs text-gray-500 mt-2">Takes 30 seconds • No email required</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
 
-      {/* Testimonials with Results */}
-      <section className="py-24 bg-gray-50 dark:bg-gray-900/50">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Real Agencies, Real Results
+      {/* Testimonials Section - Enterprise Style */}
+      <section className="py-32 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-950">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-100 to-blue-100 dark:from-green-900/30 dark:to-blue-900/30 rounded-full mb-6">
+              <Award className="w-4 h-4 text-green-600 dark:text-green-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Customer Success Stories</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
+              Trusted by 2,000+ marketing agencies worldwide
             </h2>
-            <p className="text-xl text-muted-foreground">
-              Join 2,000+ agencies already maximizing profitability
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              See how agencies like yours transformed their profitability with TrackFlow
             </p>
           </div>
           
           <div className="grid md:grid-cols-3 gap-8">
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-1 mb-4">
+            {/* Testimonial 1 */}
+            <Card className="border-0 shadow-xl bg-white dark:bg-gray-900">
+              <CardContent className="pt-8">
+                <div className="flex gap-1 mb-6">
                   {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   ))}
                 </div>
-                <p className="font-bold text-green-600 mb-2">+$21,000/month recovered</p>
-                <p className="text-muted-foreground mb-4">
-                  "We discovered SEO services had 3x better margins than paid social. Shifted our focus and added $21k/month in profit."
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full"></div>
+                <blockquote className="text-lg mb-6 text-gray-700 dark:text-gray-300">
+                  "TrackFlow transformed our agency. We discovered our SEO services had 3x better margins than paid social. After shifting focus, we added <span className="font-bold text-green-700 dark:text-green-300">$21,000/month</span> in pure profit."
+                </blockquote>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">SC</div>
                   <div>
-                    <p className="font-medium">Sarah Chen</p>
-                    <p className="text-sm text-muted-foreground">Growth Digital • 12 employees</p>
+                    <p className="font-semibold">Sarah Chen</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">CEO, Growth Digital • 12 employees</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-1 mb-4">
+            {/* Testimonial 2 */}
+            <Card className="border-0 shadow-xl bg-white dark:bg-gray-900">
+              <CardContent className="pt-8">
+                <div className="flex gap-1 mb-6">
                   {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   ))}
                 </div>
-                <p className="font-bold text-green-600 mb-2">100% client retention</p>
-                <p className="text-muted-foreground mb-4">
-                  "Retainer alerts eliminated surprise overages. Haven't lost a single client to budget issues in 18 months."
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full"></div>
+                <blockquote className="text-lg mb-6 text-gray-700 dark:text-gray-300">
+                  "The retainer alerts are a game-changer. We haven't lost a single client to budget surprises in 18 months. <span className="font-bold text-green-700 dark:text-green-300">100% retention</span> speaks for itself."
+                </blockquote>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">MJ</div>
                   <div>
-                    <p className="font-medium">Marcus Johnson</p>
-                    <p className="text-sm text-muted-foreground">SEO Consultant • Solo</p>
+                    <p className="font-semibold">Marcus Johnson</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">SEO Consultant • Solo Practitioner</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
-            <Card>
-              <CardContent className="pt-6">
-                <div className="flex items-center gap-1 mb-4">
+            {/* Testimonial 3 */}
+            <Card className="border-0 shadow-xl bg-white dark:bg-gray-900">
+              <CardContent className="pt-8">
+                <div className="flex gap-1 mb-6">
                   {[...Array(5)].map((_, i) => (
-                    <svg key={i} className="w-5 h-5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                    <svg key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                     </svg>
                   ))}
                 </div>
-                <p className="font-bold text-green-600 mb-2">45% margin increase</p>
-                <p className="text-muted-foreground mb-4">
-                  "Client health scoring helped us fire 3 unprofitable clients. Margins went from 20% to 65% in 2 months."
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full"></div>
+                <blockquote className="text-lg mb-6 text-gray-700 dark:text-gray-300">
+                  "TrackFlow's insights helped us identify and drop unprofitable clients. Our margins jumped from 20% to <span className="font-bold text-green-700 dark:text-green-300">65% in just 2 months</span>."
+                </blockquote>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold">ER</div>
                   <div>
-                    <p className="font-medium">Emily Rodriguez</p>
-                    <p className="text-sm text-muted-foreground">Social First • 8 employees</p>
+                    <p className="font-semibold">Emily Rodriguez</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Founder, Social First • 8 employees</p>
                   </div>
                 </div>
               </CardContent>
@@ -436,70 +418,244 @@ export default function MarketingLandingPage() {
         </div>
       </section>
 
-      {/* Urgency Section */}
-      <section className="py-16 bg-red-50 dark:bg-red-900/10">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Every Day You Wait Costs You Money</h2>
-          <div className="max-w-3xl mx-auto">
-            <Card className="bg-white border-red-200">
-              <CardContent className="pt-6">
-                <div className="grid md:grid-cols-3 gap-4 text-center">
-                  <div>
-                    <p className="text-3xl font-bold text-red-600">$140</p>
-                    <p className="text-sm">Lost per day</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-red-600">$980</p>
-                    <p className="text-sm">Lost per week</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-red-600">$4,200</p>
-                    <p className="text-sm">Lost per month</p>
-                  </div>
+      {/* Pricing Preview Section */}
+      <section className="py-32 bg-white dark:bg-gray-950">
+        <div className="container mx-auto px-4 max-w-7xl">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
+              Simple, transparent pricing that scales with you
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Start free, upgrade when you're ready. No hidden fees, no surprises.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Freelancer Plan */}
+            <Card className="border-2 border-gray-200 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-2xl">Freelancer</CardTitle>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">$15</span>
+                  <span className="text-gray-600 dark:text-gray-400">/month</span>
                 </div>
-                <p className="mt-6 text-lg font-medium">
-                  While you're reading this, billable hours are slipping through the cracks.
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  Perfect for independent marketers
                 </p>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Solo use</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Unlimited clients</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Channel tracking</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Basic reports</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Agency Starter Plan */}
+            <Card className="border-2 border-blue-500 shadow-xl relative">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <Badge className="bg-blue-600 text-white px-3 py-1">Most Popular</Badge>
+              </div>
+              <CardHeader>
+                <CardTitle className="text-2xl">Agency Starter</CardTitle>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">$29</span>
+                  <span className="text-gray-600 dark:text-gray-400">/user/month</span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  Growing marketing teams (2-10 people)
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Up to 10 team members</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Retainer tracking</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>White-label reports</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Client portal</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* Agency Growth Plan */}
+            <Card className="border-2 border-gray-200 dark:border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-2xl">Agency Growth</CardTitle>
+                <div className="mt-4">
+                  <span className="text-4xl font-bold">$49</span>
+                  <span className="text-gray-600 dark:text-gray-400">/user/month</span>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                  Scale your agency (10+ people)
+                </p>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Unlimited team members</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Custom integrations</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>API access</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-green-500" />
+                    <span>Dedicated support</span>
+                  </li>
+                </ul>
               </CardContent>
             </Card>
           </div>
         </div>
       </section>
 
-      {/* Final CTA Section */}
-      <section className="py-24 cta-gradient">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Start Recovering Lost Revenue Today
+      {/* Final CTA Section - Clean Enterprise Style */}
+      <section className="relative py-32 bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-800 dark:to-blue-900 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
+        <div className="relative container mx-auto px-4 text-center max-w-5xl">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
+            Ready to transform your agency's profitability?
           </h2>
-          <p className="text-xl text-white mb-8 max-w-2xl mx-auto">
-            Join 2,000+ agencies already using TrackFlow to maximize profitability. 
-            Set up in 3 minutes, see results in 7 days.
+          <p className="text-xl md:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto">
+            Join 2,000+ agencies already using TrackFlow to track smarter, bill more, and grow faster.
           </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+
+          <div className="flex flex-col sm:flex-row gap-6 justify-center mb-8">
             <Link href="/signup">
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-white/90 px-8 py-4 text-lg font-bold">
-                Start Free 14-Day Trial
-                <ArrowRight className="w-5 h-5 ml-2" />
+              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-10 py-6 text-lg font-semibold shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105">
+                Start Your Free Trial
+                <ArrowRight className="ml-3 w-5 h-5" />
               </Button>
             </Link>
             <Link href="/demo">
-              <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 px-8 py-4 text-lg">
-                <Play className="w-5 h-5 mr-2" />
-                Watch 2-Min Demo
+              <Button size="lg" variant="outline" className="border-2 border-white bg-white text-blue-600 hover:bg-blue-50 px-10 py-6 text-lg font-semibold">
+                <Play className="mr-3 w-5 h-5" />
+                See Live Demo
               </Button>
             </Link>
           </div>
-          <p className="text-white mb-4">
-            <strong>🎁 Limited Time:</strong> Sign up today and get our Agency Profitability Playbook ($297 value) FREE
-          </p>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-white/90">
-            <span>✓ No credit card required</span>
-            <span>✓ 30-day money back guarantee</span>
-            <span>✓ Cancel anytime</span>
+
+          <div className="flex flex-wrap justify-center gap-8 text-white/90">
+            <span className="flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              No credit card required
+            </span>
+            <span className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" />
+              14-day free trial
+            </span>
+            <span className="flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              Cancel anytime
+            </span>
           </div>
         </div>
       </section>
+
+      {/* Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "TrackFlow",
+            "applicationCategory": "BusinessApplication",
+            "applicationSubCategory": "Time Tracking Software",
+            "description": "Time tracking software built specifically for digital marketing agencies. Track campaign profitability, manage retainers, and increase margins.",
+            "url": "https://trackflow.app",
+            "downloadUrl": "https://trackflow.app/signup",
+            "softwareVersion": "2.0",
+            "operatingSystem": "Web Browser",
+            "pricing": "https://trackflow.app/pricing",
+            "offers": [
+              {
+                "@type": "Offer",
+                "name": "Freelancer Plan",
+                "price": "15",
+                "priceCurrency": "USD",
+                "priceSpecification": {
+                  "@type": "UnitPriceSpecification",
+                  "price": "15",
+                  "priceCurrency": "USD",
+                  "unitCode": "MON"
+                }
+              },
+              {
+                "@type": "Offer",
+                "name": "Agency Starter",
+                "price": "29",
+                "priceCurrency": "USD",
+                "priceSpecification": {
+                  "@type": "UnitPriceSpecification",
+                  "price": "29",
+                  "priceCurrency": "USD",
+                  "unitCode": "MON"
+                }
+              }
+            ],
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.9",
+              "ratingCount": "500",
+              "bestRating": "5"
+            },
+            "author": {
+              "@type": "Organization",
+              "name": "TrackFlow Inc",
+              "url": "https://trackflow.app"
+            },
+            "publisher": {
+              "@type": "Organization",
+              "name": "TrackFlow Inc",
+              "url": "https://trackflow.app",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "https://trackflow.app/images/logo.png"
+              }
+            },
+            "featureList": [
+              "Campaign-level time tracking",
+              "Retainer budget management",
+              "Marketing channel analytics",
+              "Client profitability insights",
+              "Team collaboration tools",
+              "White-label reporting",
+              "API integrations"
+            ],
+            "screenshot": "https://trackflow.app/images/screenshot.png"
+          })
+        }}
+      />
 
     </div>
   )

@@ -203,7 +203,7 @@ export async function GET(request: NextRequest) {
           projectMap.get(key)!.actual += (entry.duration || 0) / 60
         }
 
-        for (const [projectId, data] of projectMap.entries()) {
+        for (const [projectId, data] of Array.from(projectMap.entries())) {
           const overrunPercentage = ((data.actual - data.estimated) / data.estimated) * 100
           
           if (overrunPercentage > RISK_THRESHOLDS.BUDGET_OVERRUN_PERCENTAGE) {

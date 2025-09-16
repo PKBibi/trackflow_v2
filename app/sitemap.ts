@@ -17,11 +17,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/careers',
     '/gdpr',
     '/security',
+    '/docs',
+    '/docs/api',
+    '/blog',
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,
     changeFrequency: 'monthly' as const,
     priority: route === '' ? 1 : 0.8,
+  }));
+
+  // SEO-optimized content pages
+  const seoPages = [
+    '/use-cases',
+    '/use-cases/marketing-agencies',
+    '/use-cases/ppc-agencies',
+    '/use-cases/seo-agencies',
+    '/alternatives',
+    '/alternatives/harvest',
+    '/alternatives/toggl',
+    '/alternatives/time-doctor',
+  ].map((route) => ({
+    url: `${baseUrl}${route}`,
+    lastModified: currentDate,
+    changeFrequency: 'weekly' as const,
+    priority: 0.9,
   }));
 
   // Legal/compliance pages
@@ -42,50 +62,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ].map((route) => ({
     url: `${baseUrl}${route}`,
     lastModified: currentDate,
-    changeFrequency: 'yearly' as const,
-    priority: 0.5,
-  }));
-
-  // Dashboard pages (public-facing info)
-  const dashboardPages = [
-    '/dashboard',
-    '/timer',
-    '/clients',
-    '/projects',
-    '/reports',
-    '/settings',
-    '/insights',
-    '/onboarding',
-    '/import',
-  ].map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: currentDate,
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }));
-
-  // Blog posts - only include existing pages
-  const blogPosts: Array<{
-    url: string;
-    lastModified: Date;
-    changeFrequency: 'weekly';
-    priority: number;
-  }> = [
-    // Add blog posts here when they exist
-    // '/blog/10-time-tracking-tips-for-freelancers',
-  ].map((route) => ({
-    url: `${baseUrl}${route}`,
-    lastModified: currentDate,
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
+    changeFrequency: 'monthly' as const,
+    priority: route === '/signup' ? 0.7 : 0.5,
   }));
 
   return [
     ...marketingPages,
+    ...seoPages,
     ...legalPages,
     ...authPages,
-    ...dashboardPages,
-    ...blogPosts,
   ];
 }
 

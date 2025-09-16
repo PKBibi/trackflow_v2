@@ -11,6 +11,9 @@ const config = {
   coverageProvider: 'v8',
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  testEnvironmentOptions: {
+    customExportConditions: [''],
+  },
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
@@ -18,8 +21,7 @@ const config = {
     '<rootDir>/.next/',
     '<rootDir>/node_modules/',
     '<rootDir>/security/tests/',
-    '<rootDir>/__tests__/components/error-boundary.test.tsx',
-    '<rootDir>/__tests__/api/'
+    '<rootDir>/__tests__/components/error-boundary.test.tsx'
   ],
   collectCoverageFrom: [
     'components/**/*.{js,jsx,ts,tsx}',

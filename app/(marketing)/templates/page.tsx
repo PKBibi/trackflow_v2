@@ -283,9 +283,9 @@ export default function TemplatesPage() {
               </Button>
             </Link>
             <Link href="/demo">
-              <Button size="lg" variant="outline">
-                <Play className="w-4 h-4 mr-2" />
-                Watch Demo
+              <Button size="lg" variant="outline" className="border-2 border-gray-300 dark:border-gray-700 px-8 py-6 text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+                <Play className="mr-2 w-5 h-5" />
+                See Live Demo
               </Button>
             </Link>
           </div>

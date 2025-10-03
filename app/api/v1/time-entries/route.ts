@@ -323,23 +323,31 @@ export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createClient()
     const user = await getAuthenticatedUser(request)
-    
+
     if (!user) {
       throw new HttpError(401, 'Unauthorized')
     }
-    
+
+    // Get team context
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) {
+      return teamContext.response
+    }
+    const teamId = teamContext.teamId
+
     const body = await request.json();
     const { ids } = body;
-    
+
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       throw new HttpError(400, 'Missing or invalid ids array')
     }
-    
-    // Verify user owns these time entries
+
+    // Verify user owns these time entries within their team
     const { data: entryCheck } = await supabase
       .from('time_entries')
       .select('id, status')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (!entryCheck || entryCheck.length !== ids.length) {
@@ -358,6 +366,7 @@ export async function DELETE(request: NextRequest) {
       .from('time_entries')
       .delete()
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (error) {

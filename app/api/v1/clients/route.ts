@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { validateInput, clientCreateSchema, clientListSchema, rateLimitPerUser, validateRequestSize } from '@/lib/validation/middleware'
 import { getAuthenticatedUser } from '@/lib/auth/api-key'
 import { auditLogger } from '@/lib/audit/logger'
+import { getActiveTeam } from '@/lib/auth/team'
 
 // GET /api/v1/clients
 export async function GET(request: NextRequest) {
@@ -17,21 +18,29 @@ export async function GET(request: NextRequest) {
         throw new HttpError(401, 'Unauthorized')
       }
       
+      // Get team context
+      const teamContext = await getActiveTeam(request)
+      if (!teamContext.ok) {
+        return teamContext.response
+      }
+      const teamId = teamContext.teamId
+
       // Apply rate limiting per user
       const rateLimit = await rateLimitPerUser(100, 60000)
       await rateLimit(user.id)
-      
+
       // Extract validated parameters
       const { search, status, page = 1, limit = 50 } = validatedData
       const sortBy = 'name' // Default sort
       const sortOrder = 'asc' // Default order
       const offset = (page - 1) * limit
-    
-    // Build query
+
+    // Build query with team scoping
     let query = supabase
       .from('clients')
       .select('*', { count: 'exact' })
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
     
     // Apply filters with validated/sanitized inputs
     if (search) {
@@ -60,12 +69,14 @@ export async function GET(request: NextRequest) {
       .from('clients')
       .select('status, hourly_rate')
       .eq('user_id', user.id)
-    
+      .eq('team_id', teamId)
+
     // Also get invoice statistics for revenue calculations
     const { data: invoiceStats } = await supabase
       .from('invoices')
       .select('client_id, total_amount, status')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
     
     // Calculate stats
     const activeClients = statsData?.filter(c => c.status === 'active').length || 0
@@ -111,13 +122,20 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const user = await getAuthenticatedUser(request)
-    
+
     if (!user) {
       throw new HttpError(401, 'Unauthorized')
     }
-    
+
+    // Get team context
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) {
+      return teamContext.response
+    }
+    const teamId = teamContext.teamId
+
     const body = await request.json();
-    
+
     // Validate required fields
     const requiredFields = ['name'];
     for (const field of requiredFields) {
@@ -125,24 +143,26 @@ export async function POST(request: NextRequest) {
         throw new HttpError(400, `Missing required field: ${field}`)
       }
     }
-    
+
     // Check for duplicate email if provided
     if (body.email) {
       const { data: existing } = await supabase
         .from('clients')
         .select('id')
         .eq('user_id', user.id)
+        .eq('team_id', teamId)
         .eq('email', body.email)
         .single()
-      
+
       if (existing) {
         throw new HttpError(409, 'A client with this email already exists')
       }
     }
-    
+
     // Prepare client data
     const clientData = {
       user_id: user.id,
+      team_id: teamId,
       name: body.name,
       email: body.email || null,
       phone: body.phone || null,
@@ -232,23 +252,31 @@ export async function PUT(request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       throw new HttpError(401, 'Unauthorized')
     }
-    
+
+    // Get team context
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) {
+      return teamContext.response
+    }
+    const teamId = teamContext.teamId
+
     const body = await request.json();
     const { ids, updates } = body;
-    
+
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       throw new HttpError(400, 'Missing or invalid ids array')
     }
-    
-    // Verify user owns these clients
+
+    // Verify user owns these clients within their team
     const { data: clientCheck } = await supabase
       .from('clients')
       .select('id')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (!clientCheck || clientCheck.length !== ids.length) {
@@ -274,6 +302,7 @@ export async function PUT(request: NextRequest) {
       .from('clients')
       .update(validUpdates)
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (error) {
@@ -298,23 +327,31 @@ export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       throw new HttpError(401, 'Unauthorized')
     }
-    
+
+    // Get team context
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) {
+      return teamContext.response
+    }
+    const teamId = teamContext.teamId
+
     const body = await request.json();
     const { ids } = body;
-    
+
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       throw new HttpError(400, 'Missing or invalid ids array')
     }
-    
-    // Verify user owns these clients
+
+    // Verify user owns these clients within their team
     const { data: clientCheck } = await supabase
       .from('clients')
       .select('id, name')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (!clientCheck || clientCheck.length !== ids.length) {
@@ -326,6 +363,7 @@ export async function DELETE(request: NextRequest) {
       .from('invoices')
       .select('client_id, total_amount')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('client_id', ids)
       .neq('status', 'paid')
       .neq('status', 'cancelled')
@@ -354,6 +392,7 @@ export async function DELETE(request: NextRequest) {
       .from('clients')
       .delete()
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (error) {

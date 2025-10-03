@@ -3,6 +3,7 @@ import { HttpError, isHttpError } from '@/lib/errors'
 import { createClient } from '@/lib/supabase/server'
 import { validateInput, projectCreateSchema, projectListSchema, rateLimitPerUser } from '@/lib/validation/middleware'
 import { getAuthenticatedUser } from '@/lib/auth/api-key'
+import { getActiveTeam } from '@/lib/auth/team'
 
 // GET /api/v1/projects
 export async function GET(request: NextRequest) {
@@ -16,10 +17,17 @@ export async function GET(request: NextRequest) {
         throw new HttpError(401, 'Unauthorized')
       }
       
+      // Get team context
+      const teamContext = await getActiveTeam(request)
+      if (!teamContext.ok) {
+        return teamContext.response
+      }
+      const teamId = teamContext.teamId
+
       // Apply rate limiting per user
       const rateLimit = await rateLimitPerUser(100, 60000)
       await rateLimit(user.id)
-      
+
       // Extract validated parameters
       const { search, status, page = 1, limit = 50 } = validatedData
       const clientId = validatedData.client_id // From validation schema
@@ -27,8 +35,8 @@ export async function GET(request: NextRequest) {
       const sortBy = 'name' // Default sort
       const sortOrder = 'asc' // Default order
       const offset = (page - 1) * limit
-    
-    // Build query - include related client name and project statistics
+
+    // Build query with team scoping - include related client name and project statistics
     let query = supabase
       .from('projects')
       .select(`
@@ -36,6 +44,7 @@ export async function GET(request: NextRequest) {
         clients:client_id (name, company)
       `, { count: 'exact' })
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
     
     // Apply filters
     if (search) {
@@ -73,6 +82,7 @@ export async function GET(request: NextRequest) {
         .from('time_entries')
         .select('project_id, duration, amount, billable')
         .eq('user_id', user.id)
+        .eq('team_id', teamId)
         .in('project_id', projectIds)
       
       // Calculate stats per project
@@ -133,13 +143,20 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const user = await getAuthenticatedUser(request)
-    
+
     if (!user) {
       throw new HttpError(401, 'Unauthorized')
     }
-    
+
+    // Get team context
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) {
+      return teamContext.response
+    }
+    const teamId = teamContext.teamId
+
     const body = await request.json();
-    
+
     // Validate required fields
     const requiredFields = ['name', 'client_id'];
     for (const field of requiredFields) {
@@ -147,12 +164,13 @@ export async function POST(request: NextRequest) {
         throw new HttpError(400, `Missing required field: ${field}`)
       }
     }
-    
-    // Verify user owns the client
+
+    // Verify user owns the client within their team
     const { data: clientCheck } = await supabase
       .from('clients')
       .select('id, hourly_rate')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .eq('id', body.client_id)
       .single()
     
@@ -163,6 +181,7 @@ export async function POST(request: NextRequest) {
     // Prepare project data
     const projectData = {
       user_id: user.id,
+      team_id: teamId,
       client_id: body.client_id,
       name: body.name,
       description: body.description || null,
@@ -214,23 +233,31 @@ export async function PUT(request: NextRequest) {
   try {
     const supabase = await createClient()
     const user = await getAuthenticatedUser(request)
-    
+
     if (!user) {
       throw new HttpError(401, 'Unauthorized')
     }
-    
+
+    // Get team context
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) {
+      return teamContext.response
+    }
+    const teamId = teamContext.teamId
+
     const body = await request.json();
     const { ids, updates } = body;
-    
+
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       throw new HttpError(400, 'Missing or invalid ids array')
     }
-    
-    // Verify user owns these projects
+
+    // Verify user owns these projects within their team
     const { data: projectCheck } = await supabase
       .from('projects')
       .select('id')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (!projectCheck || projectCheck.length !== ids.length) {
@@ -263,6 +290,7 @@ export async function PUT(request: NextRequest) {
       .from('projects')
       .update(validUpdates)
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (error) {
@@ -287,23 +315,31 @@ export async function DELETE(request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       throw new HttpError(401, 'Unauthorized')
     }
-    
+
+    // Get team context
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) {
+      return teamContext.response
+    }
+    const teamId = teamContext.teamId
+
     const body = await request.json();
     const { ids } = body;
-    
+
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       throw new HttpError(400, 'Missing or invalid ids array')
     }
-    
-    // Verify user owns these projects
+
+    // Verify user owns these projects within their team
     const { data: projectCheck } = await supabase
       .from('projects')
       .select('id, name')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (!projectCheck || projectCheck.length !== ids.length) {
@@ -315,6 +351,7 @@ export async function DELETE(request: NextRequest) {
       .from('time_entries')
       .select('project_id')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('project_id', ids)
     
     if (timeEntries && timeEntries.length > 0) {
@@ -345,6 +382,7 @@ export async function DELETE(request: NextRequest) {
       .from('projects')
       .delete()
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (error) {

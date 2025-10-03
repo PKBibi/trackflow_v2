@@ -2,9 +2,16 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Disallow: /(dashboard)/
-Disallow: /(auth)/
+Disallow: /dashboard/
+Disallow: /timer/
+Disallow: /timesheet/
+Disallow: /invoices/
+Disallow: /reports/
+Disallow: /insights/
 Disallow: /settings/
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
 
 # Sitemap
 Sitemap: https://track-flow.app/sitemap.xml

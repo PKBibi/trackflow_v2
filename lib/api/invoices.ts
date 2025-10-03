@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
+import { getActiveTeamId } from '@/lib/api/team-client'
 
 export interface Invoice {
   id?: string
@@ -95,6 +96,7 @@ class InvoicesAPI {
       .from('invoices')
       .select('*')
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
 
     if (error) {
       throw new Error(`Failed to get invoice stats: ${error.message}`)
@@ -175,6 +177,7 @@ class InvoicesAPI {
         )
       `)
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -210,6 +213,7 @@ class InvoicesAPI {
         )
       `)
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .eq('billable', true)
       .eq('status', 'stopped')
       .is('invoice_id', null) // Not yet invoiced
@@ -282,6 +286,7 @@ class InvoicesAPI {
       .from('invoices')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .gte('created_at', `${year}-01-01`)
       .lt('created_at', `${year + 1}-01-01`)
 
@@ -309,6 +314,7 @@ class InvoicesAPI {
       .select('*')
       .eq('id', clientId)
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .single()
 
     if (clientError || !client) {
@@ -320,6 +326,7 @@ class InvoicesAPI {
       .from('time_entries')
       .select('*')
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .eq('client_id', clientId)
       .in('id', timeEntryIds)
       .is('invoice_id', null)
@@ -338,8 +345,9 @@ class InvoicesAPI {
     const issueDate = new Date().toISOString().split('T')[0]
     const dueDate = new Date(Date.now() + (options.dueInDays || 30) * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-    const invoiceData: Omit<Invoice, 'id'> = {
+    const invoiceData: any = {
       user_id: user.id,
+      team_id: getActiveTeamId() || undefined,
       client_id: clientId,
       invoice_number: invoiceNumber,
       issue_date: issueDate,
@@ -419,6 +427,7 @@ class InvoicesAPI {
       .update(updates)
       .eq('id', invoiceId)
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .select()
       .single()
 
@@ -442,6 +451,7 @@ class InvoicesAPI {
       .select('status')
       .eq('id', invoiceId)
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .single()
 
     if (!invoice || invoice.status !== 'draft') {
@@ -459,6 +469,7 @@ class InvoicesAPI {
       .from('time_entries')
       .update({ invoice_id: null, status: 'stopped' })
       .eq('invoice_id', invoiceId)
+      .eq('team_id', getActiveTeamId() || null)
 
     // Delete invoice
     const { error } = await this.supabase
@@ -466,6 +477,7 @@ class InvoicesAPI {
       .delete()
       .eq('id', invoiceId)
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
 
     if (error) {
       throw new Error(`Failed to delete invoice: ${error.message}`)
@@ -493,6 +505,7 @@ class InvoicesAPI {
       `)
       .eq('id', invoiceId)
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .single()
 
     if (error && error.code !== 'PGRST116') {

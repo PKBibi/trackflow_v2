@@ -1,10 +1,14 @@
+import { rateLimitPerUser } from '@/lib/validation/middleware'
+import { requireTeamRole } from '@/lib/auth/team'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { Resend } from 'resend'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendEmail } from '@/lib/email/resend'
 
 export async function POST(request: NextRequest) {
+  await rateLimitPerUser()
+  const roleCtx = await requireTeamRole(request as any, 'admin')
+  if (!('ok' in roleCtx) || !roleCtx.ok) return (roleCtx as any).response
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -14,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { email, role = 'member', sendEmail = true } = body
+    const { email, role = 'member', sendEmail: shouldSendEmail = true } = body
 
     if (!email) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 })
@@ -100,11 +104,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Send invitation email if requested
-    if (sendEmail && process.env.RESEND_API_KEY) {
+    if (shouldSendEmail && process.env.RESEND_API_KEY) {
       const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/team/join?token=${invitation.token}`
-      
+
       try {
-        await resend.emails.send({
+        await sendEmail({
           from: 'TrackFlow <team@track-flow.app>',
           to: email,
           subject: 'You\'ve been invited to join a team on TrackFlow',
@@ -155,7 +159,11 @@ export async function POST(request: NextRequest) {
 }
 
 // Get pending invitations
-export async function GET() {
+export async function GET(request: NextRequest) {
+  await rateLimitPerUser()
+  const roleCtx = await requireTeamRole(request as any, 'admin')
+  if (!('ok' in roleCtx) || !roleCtx.ok) return (roleCtx as any).response
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

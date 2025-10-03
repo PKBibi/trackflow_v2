@@ -1,6 +1,9 @@
+import { createClient } from '@/lib/supabase/server'
+import { rateLimitPerUser } from '@/lib/validation/middleware'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
+  await rateLimitPerUser()
   try {
     const body = await request.json().catch(() => null)
     if (!body || !body.name || !body.email || !body.message) {
@@ -15,3 +18,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Failed to submit contact' }, { status: 500 })
   }
 }
+
+

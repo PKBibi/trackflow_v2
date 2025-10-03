@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveTeam } from '@/lib/auth/team'
 
 interface ClientRiskAlert {
   id: string
@@ -48,9 +49,15 @@ export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+    }
+
+    // Get team context
+    const { teamId } = await getActiveTeam(request)
+    if (!teamId) {
+      return NextResponse.json({ error: 'No active team' }, { status: 403 })
     }
 
     const now = new Date()
@@ -62,6 +69,7 @@ export async function GET(request: NextRequest) {
       .from('clients')
       .select('*')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .eq('status', 'active')
 
     if (clientError) {
@@ -73,6 +81,7 @@ export async function GET(request: NextRequest) {
       .from('time_entries')
       .select('*')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .gte('start_time', sixtyDaysAgo.toISOString())
       .order('start_time', { ascending: false })
 

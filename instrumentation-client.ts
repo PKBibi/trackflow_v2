@@ -1,8 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
 
-// Export router transition hook for navigation instrumentation
-export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
-
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
@@ -49,15 +46,7 @@ Sentry.init({
   },
 
   integrations: [
-    Sentry.browserTracingIntegration({
-      // Set up automatic route change tracking for Next.js
-      routingInstrumentation: Sentry.nextRouterInstrumentation,
-    }),
-    Sentry.replayIntegration({
-      // Capture 1% of all sessions in production, 10% in development
-      sessionSampleRate: process.env.NODE_ENV === 'production' ? 0.01 : 0.1,
-      // Capture 100% of sessions with an error
-      errorSampleRate: 1.0,
-    }),
+    Sentry.browserTracingIntegration(),
+    Sentry.replayIntegration(),
   ],
 });

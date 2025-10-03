@@ -14,16 +14,17 @@ interface FormFieldProps {
   id?: string
 }
 
-export function FormField({ 
-  children, 
-  label, 
-  description, 
-  error, 
-  required, 
+export function FormField({
+  children,
+  label,
+  description,
+  error,
+  required,
   className,
-  id 
+  id
 }: FormFieldProps) {
-  const fieldId = id || React.useId()
+  const generatedId = React.useId()
+  const fieldId = id || generatedId
   const errorId = error ? `${fieldId}-error` : undefined
   const descriptionId = description ? `${fieldId}-description` : undefined
 
@@ -174,9 +175,9 @@ export function useFormValidation<T extends Record<string, any>>(
     }
   }
 
-  const setTouched = (name: keyof T) => {
+  const markAsTouched = (name: keyof T) => {
     setTouched(prev => ({ ...prev, [name]: true }))
-    
+
     // Validate field when touched
     const error = validateField(name, values[name])
     setErrors(prev => ({ ...prev, [name]: error || undefined }))
@@ -193,7 +194,7 @@ export function useFormValidation<T extends Record<string, any>>(
     errors,
     touched,
     setValue,
-    setTouched,
+    setTouched: markAsTouched,
     validateAll,
     reset,
     isValid: Object.keys(errors).length === 0

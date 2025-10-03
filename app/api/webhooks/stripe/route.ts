@@ -1,81 +1,133 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { headers } from 'next/headers'
+import { createClient } from '@/lib/supabase/server'
+import { logger } from '@/lib/logger'
 import Stripe from 'stripe'
-import { createAdminClient } from '@/lib/supabase/admin'
-import { log } from '@/lib/logger'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', { apiVersion: '2024-06-20' as any })
-
+// Stripe webhook handler with signature verification
+// Validates webhook signatures to ensure requests come from Stripe
 export async function POST(req: NextRequest) {
-  const sig = req.headers.get('stripe-signature')
-  const whSecret = process.env.STRIPE_WEBHOOK_SECRET
-  if (!sig || !whSecret) return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
-  const payload = await req.text()
-
-  let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(payload, sig, whSecret)
-  } catch (err: any) {
-    return NextResponse.json({ error: `Webhook signature verification failed: ${err.message}` }, { status: 400 })
-  }
+    const sig = headers().get('stripe-signature')
+    const secret = process.env.STRIPE_WEBHOOK_SECRET
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY
 
-  const admin = createAdminClient()
-
-  const pricePro = process.env.STRIPE_PRICE_ID_PROFESSIONAL
-  const priceEnt = process.env.STRIPE_PRICE_ID_ENTERPRISE
-
-  const mapPriceToPlan = (priceId?: string) => {
-    if (!priceId) return 'free'
-    if (priceEnt && priceId === priceEnt) return 'enterprise'
-    if (pricePro && priceId === pricePro) return 'pro'
-    return 'free'
-  }
-
-  try {
-    switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session
-        const userId = (session.client_reference_id as string) || (session.metadata?.user_id as string)
-        const customerId = session.customer as string
-        const subscriptionId = session.subscription as string
-        const subscription = subscriptionId ? await stripe.subscriptions.retrieve(subscriptionId) : null
-        const priceId = subscription?.items?.data?.[0]?.price?.id
-        const plan = mapPriceToPlan(priceId || (session.metadata?.plan as string))
-        if (userId) {
-          await admin.auth.admin.updateUserById(userId, { user_metadata: { stripe_customer_id: customerId, stripe_price_id: priceId, plan } })
-        }
-        break
-      }
-      case 'customer.subscription.updated':
-      case 'customer.subscription.created': {
-        const sub = event.data.object as Stripe.Subscription
-        const priceId = sub.items?.data?.[0]?.price?.id
-        const plan = mapPriceToPlan(priceId)
-        // Use metadata.user_id if present
-        const userId = (sub.metadata as any)?.user_id as string | undefined
-        if (userId) {
-          await admin.auth.admin.updateUserById(userId, { user_metadata: { stripe_price_id: priceId, plan } })
-        }
-        break
-      }
-      case 'customer.subscription.deleted': {
-        const sub = event.data.object as Stripe.Subscription
-        const userId = (sub.metadata as any)?.user_id as string | undefined
-        if (userId) {
-          await admin.auth.admin.updateUserById(userId, { user_metadata: { stripe_price_id: null, plan: 'free' } as any })
-        }
-        break
-      }
-      default:
-        break
+    // Validate environment variables
+    if (!secret) {
+      logger?.error?.('stripe_webhook_missing_secret', {
+        message: 'STRIPE_WEBHOOK_SECRET not configured'
+      })
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 500 })
     }
-  } catch (e) {
-    log.apiError('webhooks/stripe', e, { eventType: event?.type });
+
+    if (!sig) {
+      logger?.warn?.('stripe_webhook_missing_signature', {
+        message: 'Missing stripe-signature header'
+      })
+      return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
+    }
+
+    if (!stripeSecretKey) {
+      logger?.error?.('stripe_webhook_missing_api_key', {
+        message: 'STRIPE_SECRET_KEY not configured'
+      })
+      return NextResponse.json({ error: 'Stripe not configured' }, { status: 500 })
+    }
+
+    // Initialize Stripe
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: '2023-10-16',
+    })
+
+    // Verify webhook signature
+    let event: Stripe.Event
+    try {
+      const body = await req.text()
+      event = stripe.webhooks.constructEvent(body, sig, secret)
+
+      logger?.info?.('stripe_webhook_verified', {
+        eventType: event.type,
+        eventId: event.id
+      })
+    } catch (err: any) {
+      logger?.error?.('stripe_webhook_verification_failed', {
+        error: err.message
+      })
+      return NextResponse.json({
+        error: 'Webhook signature verification failed'
+      }, { status: 400 })
+    }
+
+    const eventType = event.type
+    const json = event
+
+    const supabase = await createClient()
+
+    const subscription = json.data.object as Stripe.Subscription
+    const userId = subscription?.metadata?.team_id || subscription?.metadata?.user_id
+
+    if (!userId) {
+      logger?.warn?.('stripe_webhook_missing_user', {
+        eventType,
+        subscriptionId: subscription.id,
+        customerId: subscription.customer
+      })
+      return NextResponse.json({ received: true })
+    }
+
+    let plan: string | null = null
+    let status: string | null = null
+    switch (eventType) {
+      case 'customer.subscription.created':
+      case 'customer.subscription.updated':
+        plan = subscription?.items?.data?.[0]?.price?.nickname || subscription?.items?.data?.[0]?.price?.id || 'pro'
+        status = subscription?.status || 'active'
+        break
+      case 'invoice.payment_succeeded':
+        status = 'active'
+        break
+      case 'invoice.payment_failed':
+      case 'customer.subscription.paused':
+        status = 'past_due'
+        break
+      case 'customer.subscription.deleted':
+        status = 'canceled'
+        plan = 'free'
+        break
+      default:
+        return NextResponse.json({ received: true })
+    }
+
+    const updates: Record<string, any> = {}
+    if (plan) updates.plan = plan
+    if (status) updates.plan_status = status
+
+    const { error } = await supabase
+      .from('team_preferences')
+      .upsert({ team_id: userId, ...updates }, { onConflict: 'team_id' })
+
+    if (error) {
+      logger?.error?.('stripe_webhook_upsert_error', {
+        error: error.message,
+        userId,
+        eventType
+      })
+      return NextResponse.json({ error: 'Database error' }, { status: 500 })
+    }
+
+    logger?.info?.('stripe_webhook_processed', {
+      eventType,
+      userId,
+      updates
+    })
+
+    return NextResponse.json({ received: true })
+  } catch (err: any) {
+    logger?.error?.('stripe_webhook_unhandled_error', {
+      message: err?.message,
+      stack: err?.stack
+    })
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-
-  return NextResponse.json({ received: true })
-}
-
-export async function GET() {
-  return NextResponse.json({ status: 'ok' })
 }
 

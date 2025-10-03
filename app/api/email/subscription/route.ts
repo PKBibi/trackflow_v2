@@ -1,8 +1,10 @@
+import { rateLimitPerUser } from '@/lib/validation/middleware'
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail, emailTemplates } from '@/lib/email/resend';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
+  await rateLimitPerUser()
   try {
     const { userId, planName, amount } = await request.json();
 
@@ -11,7 +13,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user details from Supabase
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('email')
@@ -33,7 +35,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to send email' }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, messageId: result.data?.id });
+    return NextResponse.json({ success: true, messageId: result.success ? (result.data as any)?.id : undefined });
   } catch (error) {
     console.error('Subscription email error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

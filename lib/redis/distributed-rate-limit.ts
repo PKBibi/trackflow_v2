@@ -96,7 +96,7 @@ export class DistributedRateLimiter {
   private async createRedisClient(): Promise<RedisClient | null> {
     try {
       // Try to import ioredis first
-      const { default: Redis } = await import('ioredis')
+      const { default: Redis } = await import('ioredis' as any)
       return new Redis(process.env.REDIS_URL!, {
         maxRetriesPerRequest: 3,
         enableReadyCheck: true,
@@ -105,7 +105,7 @@ export class DistributedRateLimiter {
     } catch {
       try {
         // Fallback to node-redis
-        const { createClient } = await import('redis')
+        const { createClient } = await import('redis' as any)
         const client = createClient({ url: process.env.REDIS_URL })
         await client.connect()
         return client as any

@@ -25,6 +25,7 @@ interface Insight {
   action_items: string[]
   confidence: number
   priority: 'critical' | 'high' | 'medium' | 'low'
+  icon?: string
   data_points?: Record<string, any>
   predicted_value?: number
   predicted_date?: string
@@ -220,7 +221,7 @@ export default function InsightsDashboard() {
         </CardHeader>
         <CardContent>
           <p className="text-red-600 mb-4">{error}</p>
-          <Button onClick={fetchInsights} variant="outline">
+          <Button onClick={() => fetchInsights()} variant="outline">
             <RefreshCw className="w-4 h-4 mr-2" />
             Try Again
           </Button>
@@ -341,7 +342,7 @@ export default function InsightsDashboard() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {insights.map((insight, index) => {
-            const IconComponent = getIconComponent(insight.icon)
+            const IconComponent = getIconComponent(insight.icon || 'lightbulb')
             
             return (
               <Card 

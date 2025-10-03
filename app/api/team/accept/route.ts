@@ -1,7 +1,13 @@
+import { rateLimitPerUser } from '@/lib/validation/middleware'
+import { requireTeamRole } from '@/lib/auth/team'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
+  await rateLimitPerUser()
+  const roleCtx = await requireTeamRole(request as any, 'admin')
+  if (!('ok' in roleCtx) || !roleCtx.ok) return (roleCtx as any).response
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

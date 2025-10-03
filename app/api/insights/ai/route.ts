@@ -1,9 +1,14 @@
+import { requirePlan } from '@/lib/auth/plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { aiInsightsEngine } from '@/lib/ai/insights-engine'
+import { createAIInsightsEngine } from '@/lib/ai/insights-engine'
 import { log } from '@/lib/logger'
+import { getActiveTeam } from '@/lib/auth/team'
 
 export async function GET(request: NextRequest) {
+  const gate = await requirePlan('pro')
+  if (!gate.ok) return gate.response
+
   try {
     // Check for API key in headers for external access
     const apiKey = request.headers.get('x-api-key')
@@ -11,24 +16,29 @@ export async function GET(request: NextRequest) {
     // Get user from session or API key
     const supabase = await createClient()
     let userId: string | null = null
+    let teamId: string | null = null
 
     if (apiKey) {
-      // Validate API key
+      // Validate API key and get team_id
       const { data: keyData } = await supabase
         .from('api_keys')
-        .select('user_id')
+        .select('user_id, team_id')
         .eq('key', apiKey)
         .eq('status', 'active')
         .single()
 
       userId = keyData?.user_id || null
+      teamId = keyData?.team_id || null
     } else {
-      // Get user from session
-      const { data: { user }, error } = await supabase.auth.getUser()
-      userId = user?.id || null
+      // Get user and team from session
+      const teamCtx = await getActiveTeam(request)
+      if (teamCtx.ok) {
+        userId = teamCtx.user.id
+        teamId = teamCtx.teamId
+      }
     }
 
-    if (!userId) {
+    if (!userId || !teamId) {
       return NextResponse.json({
         insights: [],
         error: 'Authentication required',
@@ -48,7 +58,8 @@ export async function GET(request: NextRequest) {
     const isPro = profile?.subscription_tier === 'pro' || profile?.subscription_tier === 'enterprise'
 
     // Generate AI insights
-    const insights = await aiInsightsEngine.generateInsights(userId)
+    const aiInsightsEngine = createAIInsightsEngine()
+    const insights = await aiInsightsEngine.generateInsights(userId, teamId)
 
     // Filter insights based on subscription
     const filteredInsights = isPro
@@ -113,6 +124,9 @@ export async function GET(request: NextRequest) {
 
 // Weekly summary endpoint
 export async function POST(request: NextRequest) {
+  const gate = await requirePlan('pro')
+  if (!gate.ok) return gate.response
+
   try {
     const { action } = await request.json()
 
@@ -120,12 +134,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
     }
 
-    const supabase = await createClient()
-    const { data: { user }, error } = await supabase.auth.getUser()
+    const teamCtx = await getActiveTeam(request)
+    if (!teamCtx.ok) return teamCtx.response
 
-    if (error || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+    const { user, teamId } = teamCtx
+    const supabase = await createClient()
 
     // Check Pro subscription
     const { data: profile } = await supabase
@@ -142,7 +155,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate weekly summary
-    const summary = await aiInsightsEngine.generateWeeklySummary(user.id)
+    const aiInsightsEngine = createAIInsightsEngine()
+    const summary = await aiInsightsEngine.generateWeeklySummary(user.id, teamId)
 
     // Store the summary
     await supabase

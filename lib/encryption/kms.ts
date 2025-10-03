@@ -29,7 +29,7 @@ class AWSKMSProvider implements EncryptionProvider {
 
   private async initializeKMS() {
     try {
-      const { KMSClient, EncryptCommand, DecryptCommand, GenerateDataKeyCommand } = await import('@aws-sdk/client-kms')
+      const { KMSClient, EncryptCommand, DecryptCommand, GenerateDataKeyCommand } = await import('@aws-sdk/client-kms' as any)
       this.kmsClient = new KMSClient({
         region: process.env.AWS_REGION || 'us-east-1',
         credentials: {
@@ -47,7 +47,7 @@ class AWSKMSProvider implements EncryptionProvider {
       throw new Error('KMS client not initialized')
     }
 
-    const { EncryptCommand } = await import('@aws-sdk/client-kms')
+    const { EncryptCommand } = await import('@aws-sdk/client-kms' as any)
     const command = new EncryptCommand({
       KeyId: this.keyId,
       Plaintext: Buffer.from(plaintext),
@@ -65,7 +65,7 @@ class AWSKMSProvider implements EncryptionProvider {
       throw new Error('KMS client not initialized')
     }
 
-    const { DecryptCommand } = await import('@aws-sdk/client-kms')
+    const { DecryptCommand } = await import('@aws-sdk/client-kms' as any)
     const command = new DecryptCommand({
       CiphertextBlob: Buffer.from(ciphertext, 'base64'),
     })
@@ -79,7 +79,7 @@ class AWSKMSProvider implements EncryptionProvider {
       throw new Error('KMS client not initialized')
     }
 
-    const { GenerateDataKeyCommand } = await import('@aws-sdk/client-kms')
+    const { GenerateDataKeyCommand } = await import('@aws-sdk/client-kms' as any)
     const command = new GenerateDataKeyCommand({
       KeyId: this.keyId,
       KeySpec: 'AES_256',

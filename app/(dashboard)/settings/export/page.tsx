@@ -170,12 +170,24 @@ export default function DataExportPage() {
     groupBy: 'none'
   });
 
-  const [scheduleForm, setScheduleForm] = useState({
+  const [scheduleForm, setScheduleForm] = useState<{
+    name: string
+    description: string
+    format: 'csv' | 'excel' | 'pdf'
+    dataType: 'time_entries' | 'clients' | 'projects'
+    frequency: 'daily' | 'weekly' | 'monthly'
+    dayOfWeek: number
+    dayOfMonth: number
+    timeOfDay: string
+    emailTo: string
+    emailSubject: string
+    emailBody: string
+  }>({
     name: '',
     description: '',
-    format: 'csv' as const,
-    dataType: 'time_entries' as const,
-    frequency: 'weekly' as const,
+    format: 'csv',
+    dataType: 'time_entries',
+    frequency: 'weekly',
     dayOfWeek: 1, // Monday
     dayOfMonth: 1,
     timeOfDay: '09:00',

@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata: Metadata = {
-  title: 'Features | TrackFlow – Time Tracking for Marketers',
+  title: 'Features – Time Tracking for Marketers',
   description: 'TrackFlow features built for digital marketers: channel tracking, retainer alerts, data-driven insights, and white-label client reports.',
   openGraph: {
     title: 'TrackFlow Features',

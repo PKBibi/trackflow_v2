@@ -14,7 +14,6 @@ import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { toast } from '@/components/ui/use-toast'
-import { createClient } from '@/lib/supabase/client'
 
 interface APIKey {
   id: string
@@ -22,11 +21,12 @@ interface APIKey {
   key: string
   prefix: string
   created_at: string
+  updated_at?: string
   last_used: string | null
   expires_at: string | null
   status: 'active' | 'inactive' | 'expired'
   permissions: string[]
-  rate_limit: number
+  rate_limit: number | null
   usage_count: number
 }
 
@@ -48,7 +48,6 @@ export default function APIKeysPage() {
   const [newKeyRateLimit, setNewKeyRateLimit] = useState('1000')
   const [createdKey, setCreatedKey] = useState<string | null>(null)
   const [showKey, setShowKey] = useState<{ [key: string]: boolean }>({})
-  const supabase = createClient()
 
   const permissions = [
     { value: 'read', label: 'Read', description: 'Read access to all resources' },
@@ -64,18 +63,25 @@ export default function APIKeysPage() {
 
   const loadAPIKeys = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      setLoading(true)
+      const response = await fetch('/api/settings/api-keys', { cache: 'no-store' })
 
-      const { data, error } = await supabase
-        .from('api_keys')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
+      if (response.status === 401) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to manage API keys.',
+          variant: 'destructive'
+        })
+        setApiKeys([])
+        return
+      }
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
 
-      setApiKeys(data || [])
+      const body = await response.json()
+      setApiKeys(body.data || [])
     } catch (error) {
       console.error('Error loading API keys:', error)
       toast({
@@ -90,23 +96,17 @@ export default function APIKeysPage() {
 
   const loadUsageStats = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      const response = await fetch('/api/settings/api-keys/usage', { cache: 'no-store' })
 
-      // Load last 30 days of usage
-      const startDate = new Date()
-      startDate.setDate(startDate.getDate() - 30)
+      if (!response.ok) {
+        if (response.status !== 401) {
+          throw new Error(`Request failed with status ${response.status}`)
+        }
+        return
+      }
 
-      const { data, error } = await supabase
-        .from('api_usage')
-        .select('*')
-        .eq('user_id', user.id)
-        .gte('date', startDate.toISOString())
-        .order('date', { ascending: true })
-
-      if (error) throw error
-
-      setUsage(data || [])
+      const body = await response.json()
+      setUsage(body.data || [])
     } catch (error) {
       console.error('Error loading usage stats:', error)
     }
@@ -114,8 +114,21 @@ export default function APIKeysPage() {
 
   const createAPIKey = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) {
+      const expiresInDays = newKeyExpiry === 'never' ? null : parseInt(newKeyExpiry, 10)
+      const rateLimitValue = newKeyRateLimit === 'unlimited' ? null : parseInt(newKeyRateLimit, 10)
+
+      const response = await fetch('/api/settings/api-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newKeyName,
+          expiresInDays,
+          permissions: newKeyPermissions,
+          rateLimit: Number.isNaN(rateLimitValue) ? null : rateLimitValue,
+        }),
+      })
+
+      if (response.status === 401) {
         toast({
           title: 'Authentication Required',
           description: 'Please log in to continue',
@@ -124,38 +137,16 @@ export default function APIKeysPage() {
         return
       }
 
-      // Generate a secure API key
-      const key = generateAPIKey()
-      const prefix = key.substring(0, 7)
-      
-      let expiresAt = null
-      if (newKeyExpiry !== 'never') {
-        const expiry = new Date()
-        expiry.setDate(expiry.getDate() + parseInt(newKeyExpiry))
-        expiresAt = expiry.toISOString()
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
       }
 
-      const { data, error } = await supabase
-        .from('api_keys')
-        .insert({
-          user_id: user.id,
-          name: newKeyName,
-          key: await hashAPIKey(key), // Hash the key before storing
-          prefix,
-          expires_at: expiresAt,
-          permissions: newKeyPermissions,
-          rate_limit: parseInt(newKeyRateLimit),
-          status: 'active'
-        })
-        .select()
-        .single()
+      const body = await response.json()
 
-      if (error) throw error
-
-      setApiKeys([{ ...data, key: prefix + '•••••••' }, ...apiKeys])
-      setCreatedKey(key)
+      setApiKeys([body.data, ...apiKeys])
+      setCreatedKey(body.key)
       setNewKeyName('')
-      
+
       toast({
         title: 'API Key Created',
         description: 'Your new API key has been created successfully'
@@ -168,24 +159,6 @@ export default function APIKeysPage() {
         variant: 'destructive'
       })
     }
-  }
-
-  const generateAPIKey = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    let key = 'tf_'
-    for (let i = 0; i < 32; i++) {
-      key += chars.charAt(Math.floor(Math.random() * chars.length))
-    }
-    return key
-  }
-
-  const hashAPIKey = async (key: string) => {
-    // In production, use proper hashing on the server side
-    const encoder = new TextEncoder()
-    const data = encoder.encode(key)
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data)
-    const hashArray = Array.from(new Uint8Array(hashBuffer))
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
   }
 
   const copyToClipboard = (text: string, label: string) => {
@@ -202,25 +175,33 @@ export default function APIKeysPage() {
     }
 
     try {
-      const newKey = generateAPIKey()
-      const prefix = newKey.substring(0, 7)
+      const response = await fetch(`/api/settings/api-keys/${keyId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'regenerate' }),
+      })
 
-      const { error } = await supabase
-        .from('api_keys')
-        .update({
-          key: await hashAPIKey(newKey),
-          prefix,
-          created_at: new Date().toISOString()
+      if (response.status === 401) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to continue',
+          variant: 'destructive'
         })
-        .eq('id', keyId)
+        return
+      }
 
-      if (error) throw error
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
 
-      setApiKeys(apiKeys.map(k => 
-        k.id === keyId ? { ...k, key: prefix + '•••••••', prefix } : k
+      const body = await response.json()
+
+      setApiKeys(apiKeys.map(k =>
+        k.id === keyId ? body.data : k
       ))
 
-      setCreatedKey(newKey)
+      setCreatedKey(body.key)
+      setCreateDialogOpen(true)
       
       toast({
         title: 'Key Regenerated',
@@ -240,15 +221,29 @@ export default function APIKeysPage() {
     const newStatus = currentStatus === 'active' ? 'inactive' : 'active'
     
     try {
-      const { error } = await supabase
-        .from('api_keys')
-        .update({ status: newStatus })
-        .eq('id', keyId)
+      const response = await fetch(`/api/settings/api-keys/${keyId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update-status', status: newStatus }),
+      })
 
-      if (error) throw error
+      if (response.status === 401) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to continue',
+          variant: 'destructive'
+        })
+        return
+      }
 
-      setApiKeys(apiKeys.map(k => 
-        k.id === keyId ? { ...k, status: newStatus } : k
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
+
+      const body = await response.json()
+
+      setApiKeys(apiKeys.map(k =>
+        k.id === keyId ? body.data : k
       ))
 
       toast({
@@ -271,12 +266,23 @@ export default function APIKeysPage() {
     }
 
     try {
-      const { error } = await supabase
-        .from('api_keys')
-        .delete()
-        .eq('id', keyId)
+      const response = await fetch(`/api/settings/api-keys/${keyId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      })
 
-      if (error) throw error
+      if (response.status === 401) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to continue',
+          variant: 'destructive'
+        })
+        return
+      }
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
 
       setApiKeys(apiKeys.filter(k => k.id !== keyId))
       
@@ -356,9 +362,11 @@ export default function APIKeysPage() {
                   </DialogTrigger>
                   <DialogContent className="max-w-2xl">
                     <DialogHeader>
-                      <DialogTitle>Create API Key</DialogTitle>
+                      <DialogTitle>{createdKey ? 'Your API Key' : 'Create API Key'}</DialogTitle>
                       <DialogDescription>
-                        Generate a new API key for programmatic access
+                        {createdKey
+                          ? 'Copy your API key now. It will not be displayed again.'
+                          : 'Generate a new API key for programmatic access'}
                       </DialogDescription>
                     </DialogHeader>
                     
@@ -527,7 +535,10 @@ export default function APIKeysPage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <code className="text-sm">
-                              {showKey[apiKey.id] ? apiKey.key : apiKey.prefix + '•••••••'}
+                              {showKey[apiKey.id]
+                                ? 'API keys are only displayed immediately after creation. Regenerate to receive a new key.'
+                                : apiKey.key
+                              }
                             </code>
                             <Button
                               size="icon"
@@ -545,7 +556,10 @@ export default function APIKeysPage() {
                               size="icon"
                               variant="ghost"
                               className="h-6 w-6"
-                              onClick={() => copyToClipboard(apiKey.key, 'API key')}
+                              onClick={() => toast({
+                                title: 'Full key unavailable',
+                                description: 'Regenerate the key to receive a new value to copy.',
+                              })}
                             >
                               <Copy className="w-3 h-3" />
                             </Button>
@@ -571,8 +585,8 @@ export default function APIKeysPage() {
                           <div className="text-sm">
                             {apiKey.usage_count.toLocaleString()} calls
                             <div className="text-xs text-muted-foreground">
-                              {apiKey.rate_limit === -1 
-                                ? 'Unlimited' 
+                              {apiKey.rate_limit === null || apiKey.rate_limit === 0
+                                ? 'Unlimited'
                                 : `${apiKey.rate_limit}/hour`
                               }
                             </div>

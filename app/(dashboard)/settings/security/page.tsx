@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   Shield, 
   Key, 
@@ -83,10 +83,31 @@ const mockSessions: UserSession[] = [
   }
 ];
 
+interface TwoFactorStatus {
+  enabled: boolean;
+  enabledAt: string | null;
+  lastUsed: string | null;
+  backupCodesRemaining: number;
+}
+
+interface TwoFactorSetupState {
+  qrCode: string;
+  secret: string;
+  backupCodes: string[];
+}
+
 export default function SecuritySettingsPage() {
   const { toast } = useToast();
   const [sessions, setSessions] = useState<UserSession[]>(mockSessions);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+  const [twoFactorStatus, setTwoFactorStatus] = useState<TwoFactorStatus | null>(null);
+  const [isTwoFactorLoading, setIsTwoFactorLoading] = useState(false);
+  const [setupData, setSetupData] = useState<TwoFactorSetupState | null>(null);
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
+  const [isSetupLoading, setIsSetupLoading] = useState(false);
+  const [isVerifyLoading, setIsVerifyLoading] = useState(false);
+  const [isDisableLoading, setIsDisableLoading] = useState(false);
+  const [isBackupLoading, setIsBackupLoading] = useState(false);
   const [showQrCode, setShowQrCode] = useState(false);
   const [showBackupCodes, setShowBackupCodes] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -123,17 +144,39 @@ export default function SecuritySettingsPage() {
 
   const strengthInfo = getPasswordStrengthLabel(passwordStrength);
 
-  // Mock backup codes
-  const mockBackupCodes = [
-    'ABCD-1234-EFGH',
-    'IJKL-5678-MNOP',
-    'QRST-9012-UVWX',
-    'YZAB-3456-CDEF',
-    'GHIJ-7890-KLMN',
-    'OPQR-1234-STUV',
-    'WXYZ-5678-ABCD',
-    'EFGH-9012-IJKL'
-  ];
+  const loadTwoFactorStatus = useCallback(async () => {
+    try {
+      setIsTwoFactorLoading(true);
+      const response = await fetch('/api/settings/security/2fa/status', { cache: 'no-store' })
+
+      if (response.status === 401) {
+        setTwoFactorStatus(null)
+        setTwoFactorEnabled(false)
+        return
+      }
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
+
+      const body = await response.json()
+      setTwoFactorStatus(body.data)
+      setTwoFactorEnabled(body.data?.enabled ?? false)
+    } catch (error) {
+      console.error('Failed to load 2FA status:', error)
+      toast({
+        title: 'Error',
+        description: 'Unable to load two-factor status.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsTwoFactorLoading(false)
+    }
+  }, [toast])
+
+  useEffect(() => {
+    loadTwoFactorStatus()
+  }, [loadTwoFactorStatus])
 
   // Handle password change
   const handlePasswordChange = async () => {
@@ -183,62 +226,148 @@ export default function SecuritySettingsPage() {
 
   // Handle 2FA setup
   const handle2FASetup = async () => {
-    setShowQrCode(true);
-  };
+    setIsSetupLoading(true)
+    try {
+      const response = await fetch('/api/settings/security/2fa/setup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      if (response.status === 401) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to configure two-factor authentication.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      if (!response.ok) {
+        throw new Error(`Request failed with status ${response.status}`)
+      }
+
+      const body = await response.json()
+      setSetupData(body.data)
+      setBackupCodes(body.data?.backupCodes ?? [])
+      setVerificationCode('')
+      setShowQrCode(true)
+    } catch (error) {
+      console.error('Failed to start 2FA setup:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to start two-factor setup. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSetupLoading(false)
+    }
+  }
 
   // Verify 2FA code
   const verify2FACode = async () => {
     if (verificationCode.length !== 6) {
       toast({
-        title: "Error",
-        description: "Please enter a valid 6-digit code",
-        variant: "destructive",
-      });
-      return;
+        title: 'Error',
+        description: 'Please enter a valid 6-digit code',
+        variant: 'destructive',
+      })
+      return
     }
 
+    setIsVerifyLoading(true)
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setTwoFactorEnabled(true);
-      setShowQrCode(false);
-      setShowBackupCodes(true);
-      setVerificationCode('');
-      
+      const response = await fetch('/api/settings/security/2fa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: verificationCode }),
+      })
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          toast({
+            title: 'Authentication Required',
+            description: 'Please log in to configure two-factor authentication.',
+            variant: 'destructive',
+          })
+          return
+        }
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body?.error || `Request failed with status ${response.status}`)
+      }
+
+      const body = await response.json()
+      const codesFromSetup = setupData?.backupCodes ?? []
+      setTwoFactorEnabled(true)
+      setTwoFactorStatus(body.status)
+      setShowQrCode(false)
+      setShowBackupCodes(true)
+      setVerificationCode('')
+      setSetupData(null)
+      if (codesFromSetup.length) {
+        setBackupCodes(codesFromSetup)
+      }
       toast({
-        title: "2FA enabled",
-        description: "Two-factor authentication has been enabled for your account.",
-      });
+        title: 'Two-factor enabled',
+        description: 'Authentication codes are now required when signing in.',
+      })
+      await loadTwoFactorStatus()
     } catch (error) {
+      console.error('Failed to verify 2FA code:', error)
       toast({
-        title: "Error",
-        description: "Invalid verification code. Please try again.",
-        variant: "destructive",
-      });
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Invalid verification code. Please try again.',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsVerifyLoading(false)
     }
-  };
+  }
 
   // Disable 2FA
   const disable2FA = async () => {
+    setIsDisableLoading(true)
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      setTwoFactorEnabled(false);
-      
+      const response = await fetch('/api/settings/security/2fa/disable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      if (response.status === 401) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to configure two-factor authentication.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body?.error || `Request failed with status ${response.status}`)
+      }
+
+      const body = await response.json()
+      setTwoFactorEnabled(false)
+      setTwoFactorStatus(body.status)
+      setSetupData(null)
+      setBackupCodes([])
+      setShowBackupCodes(false)
       toast({
-        title: "2FA disabled",
-        description: "Two-factor authentication has been disabled.",
-      });
+        title: 'Two-factor disabled',
+        description: 'Two-factor authentication has been disabled.',
+      })
     } catch (error) {
+      console.error('Failed to disable 2FA:', error)
       toast({
-        title: "Error",
-        description: "Failed to disable 2FA. Please try again.",
-        variant: "destructive",
-      });
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to disable two-factor authentication.',
+        variant: 'destructive',
+      })
+    } finally {
+      await loadTwoFactorStatus()
+      setIsDisableLoading(false)
     }
-  };
+  }
 
   // End session
   const endSession = async (sessionId: string) => {
@@ -276,30 +405,103 @@ export default function SecuritySettingsPage() {
     }
   };
 
+  const generateBackupCodes = async () => {
+    if (!twoFactorEnabled) {
+      toast({
+        title: 'Two-factor not enabled',
+        description: 'Enable two-factor authentication before generating backup codes.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setIsBackupLoading(true)
+    try {
+      const response = await fetch('/api/settings/security/2fa/backup-codes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      if (response.status === 401) {
+        toast({
+          title: 'Authentication Required',
+          description: 'Please log in to manage backup codes.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}))
+        throw new Error(body?.error || `Request failed with status ${response.status}`)
+      }
+
+      const body = await response.json()
+      setBackupCodes(body.backupCodes || [])
+      setShowBackupCodes(true)
+      if (body.status) {
+        setTwoFactorStatus(body.status)
+        setTwoFactorEnabled(body.status.enabled)
+      }
+      toast({
+        title: 'Backup codes refreshed',
+        description: 'Store these new backup codes in a secure location.',
+      })
+    } catch (error) {
+      console.error('Failed to generate backup codes:', error)
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to generate backup codes.',
+        variant: 'destructive',
+      })
+    } finally {
+      await loadTwoFactorStatus()
+      setIsBackupLoading(false)
+    }
+  }
+
   // Copy backup codes
   const copyBackupCodes = () => {
-    navigator.clipboard.writeText(mockBackupCodes.join('\n'));
+    if (!backupCodes.length) {
+      toast({
+        title: 'No backup codes available',
+        description: 'Generate backup codes before copying.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    navigator.clipboard.writeText(backupCodes.join('\n'))
     toast({
-      title: "Copied",
-      description: "Backup codes copied to clipboard.",
-    });
-  };
+      title: 'Copied',
+      description: 'Backup codes copied to clipboard.',
+    })
+  }
 
   // Download backup codes
   const downloadBackupCodes = () => {
-    const element = document.createElement('a');
-    const file = new Blob([mockBackupCodes.join('\n')], { type: 'text/plain' });
-    element.href = URL.createObjectURL(file);
-    element.download = 'trackflow-backup-codes.txt';
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    
+    if (!backupCodes.length) {
+      toast({
+        title: 'No backup codes available',
+        description: 'Generate backup codes before downloading.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const element = document.createElement('a')
+    const file = new Blob([backupCodes.join('\n')], { type: 'text/plain' })
+    element.href = URL.createObjectURL(file)
+    element.download = 'trackflow-backup-codes.txt'
+    document.body.appendChild(element)
+    element.click()
+    document.body.removeChild(element)
+
     toast({
-      title: "Downloaded",
-      description: "Backup codes saved to file.",
-    });
-  };
+      title: 'Downloaded',
+      description: 'Backup codes saved to file.',
+    })
+  }
 
   const formatLastActive = (date: Date) => {
     const diff = Date.now() - date.getTime();
@@ -460,7 +662,11 @@ export default function SecuritySettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {!twoFactorEnabled ? (
+              {isTwoFactorLoading ? (
+                <div className="py-6 text-center text-muted-foreground">
+                  Checking two-factor status…
+                </div>
+              ) : !twoFactorEnabled ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center gap-4">
@@ -474,8 +680,8 @@ export default function SecuritySettingsPage() {
                         </p>
                       </div>
                     </div>
-                    <Button onClick={handle2FASetup}>
-                      Set Up
+                    <Button onClick={handle2FASetup} disabled={isSetupLoading}>
+                      {isSetupLoading ? 'Preparing…' : 'Set Up'}
                     </Button>
                   </div>
 
@@ -500,12 +706,15 @@ export default function SecuritySettingsPage() {
                         <p className="text-sm text-muted-foreground">
                           Your account is protected with 2FA
                         </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Backup codes remaining: {twoFactorStatus?.backupCodesRemaining ?? 0}
+                        </p>
                       </div>
                     </div>
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="destructive">
-                          Disable 2FA
+                        <Button variant="destructive" disabled={isDisableLoading}>
+                          {isDisableLoading ? 'Disabling…' : 'Disable 2FA'}
                         </Button>
                       </DialogTrigger>
                       <DialogContent>
@@ -534,12 +743,12 @@ export default function SecuritySettingsPage() {
                         Use these codes to access your account if you lose access to your authenticator app
                       </p>
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setShowBackupCodes(true)}>
-                          View Backup Codes
+                        <Button variant="outline" size="sm" onClick={generateBackupCodes} disabled={isBackupLoading}>
+                          {isBackupLoading ? 'Generating…' : 'View Backup Codes'}
                         </Button>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" onClick={generateBackupCodes} disabled={isBackupLoading}>
                           <RefreshCw className="h-4 w-4 mr-2" />
-                          Regenerate Codes
+                          {isBackupLoading ? 'Refreshing…' : 'Regenerate Codes'}
                         </Button>
                       </div>
                     </CardContent>
@@ -636,24 +845,29 @@ export default function SecuritySettingsPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div className="bg-white p-4 rounded-lg flex justify-center">
-              {/* This would be a real QR code in production */}
-              <div className="w-48 h-48 bg-gray-200 flex items-center justify-center text-gray-500">
-                QR Code
-              </div>
+              {setupData?.qrCode ? (
+                <img src={setupData.qrCode} alt="Two-factor authentication QR code" className="w-48 h-48" />
+              ) : (
+                <div className="w-48 h-48 bg-gray-200 flex items-center justify-center text-gray-500">
+                  Preparing…
+                </div>
+              )}
             </div>
             <div className="space-y-2">
               <Label>Can't scan? Enter this code manually:</Label>
               <div className="flex items-center gap-2">
                 <code className="flex-1 p-2 bg-muted rounded text-sm font-mono">
-                  ABCD EFGH IJKL MNOP
+                  {setupData?.secret ? setupData.secret.match(/.{1,4}/g)?.join(' ') : 'Loading secret…'}
                 </code>
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={() => {
-                    navigator.clipboard.writeText('ABCDEFGHIJKLMNOP');
-                    toast({ title: "Copied", description: "Secret key copied to clipboard." });
+                    if (!setupData?.secret) return
+                    navigator.clipboard.writeText(setupData.secret)
+                    toast({ title: 'Copied', description: 'Secret key copied to clipboard.' })
                   }}
+                  disabled={!setupData?.secret}
                 >
                   <Copy className="h-4 w-4" />
                 </Button>
@@ -674,9 +888,9 @@ export default function SecuritySettingsPage() {
             <Button 
               className="w-full"
               onClick={verify2FACode}
-              disabled={verificationCode.length !== 6}
+              disabled={verificationCode.length !== 6 || isVerifyLoading}
             >
-              Verify and Enable 2FA
+              {isVerifyLoading ? 'Verifying…' : 'Verify and Enable 2FA'}
             </Button>
           </div>
         </DialogContent>
@@ -700,13 +914,19 @@ export default function SecuritySettingsPage() {
               </AlertDescription>
             </Alert>
             
-            <div className="grid grid-cols-2 gap-2 p-4 bg-muted rounded-lg font-mono text-sm">
-              {mockBackupCodes.map((code, index) => (
-                <div key={index} className="p-2 bg-background rounded">
-                  {code}
-                </div>
-              ))}
-            </div>
+            {backupCodes.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Generate new backup codes to display them here.
+              </p>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 p-4 bg-muted rounded-lg font-mono text-sm">
+                {backupCodes.map((code, index) => (
+                  <div key={index} className="p-2 bg-background rounded">
+                    {code}
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={copyBackupCodes}>

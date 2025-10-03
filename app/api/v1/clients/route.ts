@@ -7,6 +7,7 @@ import { auditLogger } from '@/lib/audit/logger'
 
 // GET /api/v1/clients
 export async function GET(request: NextRequest) {
+  // @ts-expect-error - Zod transform types are incompatible with validateInput generic
   return validateInput(clientListSchema)(request, async (validatedData, req) => {
     try {
       const supabase = await createClient()

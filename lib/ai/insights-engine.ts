@@ -82,10 +82,10 @@ export class AIInsightsEngine {
   /**
    * Generate comprehensive AI insights for a user
    */
-  async generateInsights(userId: string): Promise<AIInsight[]> {
+  async generateInsights(userId: string, teamId: string): Promise<AIInsight[]> {
     try {
       // Fetch comprehensive data
-      const data = await this.fetchUserData(userId)
+      const data = await this.fetchUserData(userId, teamId)
 
       if (!data.entries.length) {
         return this.getOnboardingInsights()
@@ -426,8 +426,8 @@ export class AIInsightsEngine {
   /**
    * Generate weekly AI summary
    */
-  async generateWeeklySummary(userId: string): Promise<string> {
-    const data = await this.fetchUserData(userId, 7) // Last 7 days
+  async generateWeeklySummary(userId: string, teamId: string): Promise<string> {
+    const data = await this.fetchUserData(userId, teamId, 7) // Last 7 days
 
     const prompt = {
       role: 'system',
@@ -443,8 +443,8 @@ export class AIInsightsEngine {
       - Total hours worked: ${data.metrics.totalHours}
       - Billable hours: ${data.metrics.billableHours}
       - Revenue generated: $${data.metrics.revenue}
-      - Clients served: ${data.metrics.clientsServed}
-      - Projects active: ${data.metrics.activeProjects}
+      - Active clients: ${data.metrics.activeClients}
+      - Projects: ${data.projects.length}
 
       Compared to previous week:
       - Hours change: ${data.weekOverWeek.hoursChange}%
@@ -487,7 +487,7 @@ export class AIInsightsEngine {
   /**
    * Fetch comprehensive user data for AI analysis
    */
-  private async fetchUserData(userId: string, days: number = 90) {
+  private async fetchUserData(userId: string, teamId: string, days: number = 90) {
     const endDate = new Date()
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
@@ -498,19 +498,20 @@ export class AIInsightsEngine {
         .from('time_entries')
         .select('*')
         .eq('user_id', userId)
+        .eq('team_id', teamId)
         .gte('start_time', startDate.toISOString())
         .order('start_time', { ascending: false }),
 
       this.supabase
         .from('clients')
         .select('*')
-        .eq('user_id', userId)
+        .eq('team_id', teamId)
         .eq('status', 'active'),
 
       this.supabase
         .from('projects')
         .select('*')
-        .eq('user_id', userId)
+        .eq('team_id', teamId)
         .in('status', ['active', 'planning'])
     ])
 
@@ -1114,7 +1115,7 @@ ${summary.strategic_insight}
   }
 
   private findUnderutilized(entries: TimeEntry[], clients: Client[]) {
-    const underutilized = []
+    const underutilized: any[] = []
 
     // Find clients with retainers not fully used
     clients.forEach(client => {
@@ -1138,7 +1139,7 @@ ${summary.strategic_insight}
   }
 
   private analyzeMarketOpportunities(channelMetrics: Record<string, any>) {
-    const opportunities = []
+    const opportunities: any[] = []
 
     // Find high-performing channels to expand
     Object.entries(channelMetrics).forEach(([channel, metrics]) => {
@@ -1269,5 +1270,7 @@ ${summary.strategic_insight}
   }
 }
 
-// Export singleton instance
-export const aiInsightsEngine = new AIInsightsEngine()
+// Factory function to create engine instance
+export function createAIInsightsEngine() {
+  return new AIInsightsEngine()
+}

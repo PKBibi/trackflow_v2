@@ -1,211 +1,172 @@
-import { NextRequest, NextResponse } from 'next/server';
-import crypto from 'crypto';
+import { NextRequest, NextResponse } from 'next/server'
+import { z, ZodError } from 'zod'
 import {
-  verifyWebhookSignature,
-  webhookSubscriptions,
-  testWebhook,
-  type WebhookPayload
-} from '@/lib/webhooks';
-import { log } from '@/lib/logger';
+  createWebhookSubscription,
+  deleteWebhookSubscription,
+  listWebhookSubscriptions,
+  verifyIncomingWebhook,
+  type WebhookPayload,
+} from '@/lib/webhooks'
+import { getAuthenticatedUser } from '@/lib/auth/api-key'
+import { HttpError } from '@/lib/errors'
+import { log } from '@/lib/logger'
 
-// POST /api/webhooks - Receive webhook (for testing incoming webhooks)
+async function requireAuth(request: NextRequest) {
+  const user = await getAuthenticatedUser(request)
+  if (!user) {
+    throw new HttpError(401, 'Unauthorized')
+  }
+  return user
+}
+
+// Receive webhook events from third parties
 export async function POST(request: NextRequest) {
+  let payload: any = null
+
   try {
-    const body = await request.json();
-    
-    // Verify webhook signature if provided
-    const signature = request.headers.get('x-webhook-signature');
-    const webhookSecret = request.headers.get('x-webhook-secret');
-    
-    if (signature && webhookSecret) {
-      const isValid = verifyWebhookSignature(body, signature, webhookSecret);
-      if (!isValid) {
-        return NextResponse.json(
-          { error: 'Invalid webhook signature' },
-          { status: 401 }
-        );
-      }
+    payload = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON payload' }, { status: 400 })
+  }
+
+  const subscriptionId =
+    request.headers.get('x-webhook-id') ?? request.nextUrl.searchParams.get('subscriptionId')
+  const signature = request.headers.get('x-webhook-signature')
+
+  if (!subscriptionId || !signature) {
+    return NextResponse.json(
+      { error: 'Missing webhook identification headers' },
+      { status: 400 },
+    )
+  }
+
+  try {
+    const verified = await verifyIncomingWebhook(subscriptionId, payload, signature)
+    if (!verified) {
+      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 })
     }
-    
-    // Process webhook based on event type
-    const { event, data } = body as WebhookPayload;
-    
-    // Process webhook event
-    
-    // Handle different event types
+
+    const { event, data } = payload as WebhookPayload
+
     switch (event) {
       case 'time_entry.created':
-        await handleTimeEntryCreated(data);
-        break;
+        await handleTimeEntryCreated(data)
+        break
       case 'time_entry.updated':
-        await handleTimeEntryUpdated(data);
-        break;
+        await handleTimeEntryUpdated(data)
+        break
       case 'client.created':
-        await handleClientCreated(data);
-        break;
+        await handleClientCreated(data)
+        break
       case 'invoice.created':
-        await handleInvoiceCreated(data);
-        break;
+        await handleInvoiceCreated(data)
+        break
       case 'invoice.paid':
-        await handleInvoicePaid(data);
-        break;
+        await handleInvoicePaid(data)
+        break
       default:
-        // Unhandled webhook event type
+        log.info('Unhandled webhook event', { event, subscriptionId })
     }
-    
-    // Return success response
-    return NextResponse.json({
-      success: true,
-      message: `Webhook ${event} processed successfully`
-    });
+
+    return NextResponse.json({ success: true })
   } catch (error) {
-    log.apiError('webhooks/process', error, { webhook: body });
-    return NextResponse.json(
-      { error: 'Failed to process webhook' },
-      { status: 500 }
-    );
+    log.apiError('webhooks/process', error, { subscriptionId })
+    return NextResponse.json({ error: 'Failed to process webhook' }, { status: 500 })
   }
 }
 
-// GET /api/webhooks - List webhook subscriptions
+// List webhook subscriptions for authenticated user
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const active = searchParams.get('active');
-    
-    let subscriptions = [...webhookSubscriptions];
-    
-    if (active !== null) {
-      subscriptions = subscriptions.filter(sub => 
-        sub.active === (active === 'true')
-      );
-    }
-    
-    return NextResponse.json({
-      data: subscriptions,
-      total: subscriptions.length
-    });
+    const user = await requireAuth(request)
+    const subscriptions = await listWebhookSubscriptions(user.id)
+
+    return NextResponse.json({ data: subscriptions, total: subscriptions.length })
   } catch (error) {
-    log.apiError('webhooks/subscriptions/fetch', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch webhook subscriptions' },
-      { status: 500 }
-    );
+    if (error instanceof HttpError) {
+      return NextResponse.json({ error: error.message }, { status: error.status })
+    }
+
+    log.apiError('webhooks/subscriptions/fetch', error)
+    return NextResponse.json({ error: 'Failed to fetch webhook subscriptions' }, { status: 500 })
   }
 }
 
-// PUT /api/webhooks - Register a new webhook subscription
+// Register a new webhook subscription
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
-    
-    // Validate required fields
-    if (!body.url || !body.events || !Array.isArray(body.events)) {
-      return NextResponse.json(
-        { error: 'Missing required fields: url and events array' },
-        { status: 400 }
-      );
-    }
-    
-    // Validate URL
-    try {
-      new URL(body.url);
-    } catch {
-      return NextResponse.json(
-        { error: 'Invalid webhook URL' },
-        { status: 400 }
-      );
-    }
-    
-    // Generate secret for webhook signature
-    const secret = crypto.randomBytes(32).toString('hex');
-    
-    // Create new subscription
-    const newSubscription = {
-      id: Date.now().toString(),
-      url: body.url,
-      events: body.events,
-      secret,
-      active: true,
-      createdAt: new Date().toISOString()
-    };
-    
-    webhookSubscriptions.push(newSubscription);
-    
-    // Test webhook with a ping event
-    const testResult = await testWebhook(newSubscription.url, secret);
-    
-    return NextResponse.json({
-      data: newSubscription,
-      message: 'Webhook subscription created successfully',
-      testResult
-    }, { status: 201 });
-  } catch (error) {
-    log.apiError('webhooks/subscriptions/create', error, { url: body.url, events: body.events });
+    const user = await requireAuth(request)
+    const schema = z.object({
+      url: z.string().url(),
+      events: z.array(z.string()).min(1).max(20),
+    })
+
+    const { url, events } = schema.parse(await request.json())
+
+    const { subscription, secret } = await createWebhookSubscription(user.id, url, events)
+
     return NextResponse.json(
-      { error: 'Failed to create webhook subscription' },
-      { status: 500 }
-    );
+      {
+        data: subscription,
+        secret,
+        message: 'Webhook subscription created successfully',
+      },
+      { status: 201 },
+    )
+  } catch (error) {
+    if (error instanceof HttpError) {
+      return NextResponse.json({ error: error.message }, { status: error.status })
+    }
+
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: 'Invalid payload', details: error.issues }, { status: 400 })
+    }
+
+    log.apiError('webhooks/subscriptions/create', error)
+    return NextResponse.json({ error: 'Failed to create webhook subscription' }, { status: 500 })
   }
 }
 
-// DELETE /api/webhooks - Remove webhook subscription
+// Remove webhook subscription
 export async function DELETE(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { id } = body;
-    
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Missing subscription ID' },
-        { status: 400 }
-      );
-    }
-    
-    const index = webhookSubscriptions.findIndex(sub => sub.id === id);
-    if (index !== -1) {
-      webhookSubscriptions.splice(index, 1);
-    }
-    
-    return NextResponse.json({
-      message: 'Webhook subscription removed successfully'
-    });
+    const user = await requireAuth(request)
+    const schema = z.object({ id: z.string().uuid('Invalid subscription ID') })
+    const { id } = schema.parse(await request.json())
+
+    await deleteWebhookSubscription(user.id, id)
+
+    return NextResponse.json({ message: 'Webhook subscription removed successfully' })
   } catch (error) {
-    log.apiError('webhooks/subscriptions/remove', error, { subscriptionId: params.id });
-    return NextResponse.json(
-      { error: 'Failed to remove webhook subscription' },
-      { status: 500 }
-    );
+    if (error instanceof HttpError) {
+      return NextResponse.json({ error: error.message }, { status: error.status })
+    }
+
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: 'Invalid payload', details: error.issues }, { status: 400 })
+    }
+
+    log.apiError('webhooks/subscriptions/remove', error)
+    return NextResponse.json({ error: 'Failed to remove webhook subscription' }, { status: 500 })
   }
 }
 
-// Event handlers
 async function handleTimeEntryCreated(data: any) {
-  // Process time entry creation
-  // Process time entry creation
-  // Add your business logic here
+  log.info('Webhook time_entry.created received', { data })
 }
 
 async function handleTimeEntryUpdated(data: any) {
-  // Process time entry update
-  // Process time entry update
-  // Add your business logic here
+  log.info('Webhook time_entry.updated received', { data })
 }
 
 async function handleClientCreated(data: any) {
-  // Process client creation
-  // Process client creation
-  // Add your business logic here
+  log.info('Webhook client.created received', { data })
 }
 
 async function handleInvoiceCreated(data: any) {
-  // Process invoice creation
-  // Process invoice creation
-  // Add your business logic here
+  log.info('Webhook invoice.created received', { data })
 }
 
 async function handleInvoicePaid(data: any) {
-  // Process invoice payment
-  // Process invoice payment
-  // Update client balance, send notifications, etc.
+  log.info('Webhook invoice.paid received', { data })
 }

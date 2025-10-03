@@ -1,7 +1,11 @@
+import { requirePlan } from '@/lib/auth/plan'
 import { NextRequest, NextResponse } from 'next/server';
 import { format } from 'date-fns';
 
 export async function POST(request: NextRequest) {
+  const gate = await requirePlan('pro')
+  if (!gate.ok) return gate.response
+
   try {
     const body = await request.json();
     const { 
@@ -253,7 +257,10 @@ function exportAsPDF(data: any[], dataType: string, viewType: string) {
   );
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
+  const gate = await requirePlan('pro')
+  if (!gate.ok) return gate.response
+
   // Get export history
   const mockHistory = [
     {
@@ -280,4 +287,5 @@ export async function GET(request: NextRequest) {
   
   return NextResponse.json(mockHistory);
 }
+
 

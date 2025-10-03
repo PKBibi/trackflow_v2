@@ -7,7 +7,7 @@ import Image from 'next/image'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Time Tracking Software for Digital Marketing Agencies | TrackFlow',
+  title: 'Time Tracking Software for Digital Marketing Agencies',
   description: 'The only time tracking software built for marketing agencies. Track campaign profitability, manage retainers, and increase margins by 40%. Trusted by 2,000+ agencies worldwide.',
   keywords: 'time tracking software, marketing agency time tracking, campaign profitability, retainer management, digital marketing analytics, agency productivity tools',
   openGraph: {
@@ -21,12 +21,10 @@ export default function MarketingLandingPage() {
   return (
     <div className="bg-gradient-to-b from-white to-gray-50 dark:from-[#0B1220] dark:to-gray-950">
 
-      {/* Hero Section */}
+      {/* Hero Section - Optimized for performance */}
       <section className="relative py-32 px-4 overflow-hidden">
-        {/* Background gradient orb */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-teal-50 dark:from-gray-950 dark:via-gray-900 dark:to-blue-950" />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-blue-400/20 to-teal-400/20 blur-3xl rounded-full" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-purple-400/20 to-blue-400/20 blur-3xl rounded-full" />
+        {/* Simplified background gradient for better performance */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-white dark:from-gray-950 dark:to-gray-900" />
 
         <div className="relative max-w-7xl mx-auto">
           {/* Trust badge */}
@@ -39,8 +37,9 @@ export default function MarketingLandingPage() {
             </div>
           </div>
 
-          <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold text-center mb-12 bg-gradient-to-r from-gray-900 via-blue-800 to-gray-900 dark:from-white dark:via-blue-400 dark:to-white bg-clip-text text-transparent leading-tight">
-            Time Tracking that<br />Actually Makes Money
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-center mb-12 text-gray-900 dark:text-white leading-tight">
+            Time Tracking that<br />
+            <span className="text-blue-600 dark:text-blue-400">Actually Makes Money</span>
           </h1>
 
           <p className="text-xl md:text-2xl text-center text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto font-light">
@@ -70,14 +69,14 @@ export default function MarketingLandingPage() {
           
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
-            <Link href="/signup">
-              <Button size="lg" className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-6 text-lg font-semibold shadow-xl hover:shadow-2xl transition-all transform hover:scale-105">
+            <Link href="/signup" prefetch={true}>
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-shadow">
                 Start Free 14-Day Trial
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>
-            <Link href="/demo">
-              <Button size="lg" variant="outline" className="border-2 border-gray-300 dark:border-gray-700 px-8 py-6 text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-all">
+            <Link href="/demo" prefetch={true}>
+              <Button size="lg" variant="outline" className="border-2 border-gray-300 dark:border-gray-700 px-8 py-6 text-lg font-semibold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
                 <Play className="mr-2 w-5 h-5" />
                 See Live Demo
               </Button>

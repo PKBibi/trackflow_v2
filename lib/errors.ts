@@ -1,10 +1,15 @@
 export class HttpError extends Error {
   status: number
   code?: string
-  constructor(status: number, message: string, code?: string) {
+  details?: any
+  constructor(status: number, message: string, codeOrDetails?: string | Record<string, any>) {
     super(message)
     this.status = status
-    this.code = code
+    if (typeof codeOrDetails === 'string') {
+      this.code = codeOrDetails
+    } else {
+      this.details = codeOrDetails
+    }
   }
 }
 

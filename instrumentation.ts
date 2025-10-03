@@ -36,7 +36,7 @@ export function register() {
       },
 
       integrations: [
-        Sentry.httpIntegration({ tracing: true }),
+        Sentry.httpIntegration(),
         Sentry.consoleIntegration(),
       ],
     });

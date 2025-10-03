@@ -26,8 +26,8 @@ export function validateInput<T>(schema: ZodSchema<T>) {
     handler: (validatedData: T, request: NextRequest) => Promise<NextResponse>
   ): Promise<NextResponse> {
     try {
-      let data: unknown = {}
-      
+      let data: Record<string, any> = {}
+
       // Parse query parameters
       if (request.nextUrl.searchParams.size > 0) {
         const queryData: Record<string, string> = {}
@@ -36,7 +36,7 @@ export function validateInput<T>(schema: ZodSchema<T>) {
         })
         data = { ...data, ...queryData }
       }
-      
+
       // Parse JSON body for POST/PUT/PATCH requests
       if (['POST', 'PUT', 'PATCH'].includes(request.method)) {
         try {
@@ -88,6 +88,18 @@ export function validateInput<T>(schema: ZodSchema<T>) {
 }
 
 // Enhanced rate limiting with Redis fallback
+const inMemoryRateLimits = new Map<string, { count: number; resetTime: number }>()
+
+// Periodically clean up expired keys so the in-memory store does not grow forever.
+setInterval(() => {
+  const now = Date.now()
+  for (const [key, value] of inMemoryRateLimits.entries()) {
+    if (now >= value.resetTime) {
+      inMemoryRateLimits.delete(key)
+    }
+  }
+}, 60_000).unref?.()
+
 export async function rateLimitPerUser(
   maxRequests: number = 100, 
   windowMs: number = 60000,
@@ -109,31 +121,28 @@ export async function rateLimitPerUser(
       }
     }
     
-    // Fallback to memory-based rate limiting
-    const userRequestCounts = new Map<string, { count: number; resetTime: number }>()
     const now = Date.now()
-    const userKey = `${context}:${userId}`
-    
-    const userLimit = userRequestCounts.get(userKey)
-    
-    if (!userLimit || now > userLimit.resetTime) {
-      userRequestCounts.set(userKey, {
+    const key = `${context || 'default'}:${userId}`
+    const existing = inMemoryRateLimits.get(key)
+
+    if (!existing || now >= existing.resetTime) {
+      inMemoryRateLimits.set(key, {
         count: 1,
         resetTime: now + windowMs
       })
       return
     }
-    
-    if (userLimit.count >= maxRequests) {
+
+    if (existing.count >= maxRequests) {
       throw new HttpError(429, 'Rate limit exceeded. Try again later.', {
         limit: maxRequests,
         remaining: 0,
-        resetTime: userLimit.resetTime
+        resetTime: existing.resetTime
       })
     }
-    
-    userLimit.count++
-    userRequestCounts.set(userKey, userLimit)
+
+    existing.count += 1
+    inMemoryRateLimits.set(key, existing)
   }
 }
 

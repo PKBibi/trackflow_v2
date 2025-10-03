@@ -1,7 +1,13 @@
+import { rateLimitPerUser } from '@/lib/validation/middleware'
+import { requireTeamRole } from '@/lib/auth/team'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  await rateLimitPerUser()
+  const roleCtx = await requireTeamRole(request as any, 'admin')
+  if (!('ok' in roleCtx) || !roleCtx.ok) return (roleCtx as any).response
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -53,8 +59,8 @@ export async function GET() {
       id: member.id,
       user_id: member.user_id,
       email: member.email,
-      name: member.profiles?.full_name || member.email.split('@')[0],
-      avatar: member.profiles?.avatar_url || '',
+      name: (member.profiles as any)?.full_name || member.email.split('@')[0],
+      avatar: (member.profiles as any)?.avatar_url || '',
       role: member.role,
       status: member.status,
       permissions: member.permissions || [],

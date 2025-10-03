@@ -1,5 +1,6 @@
 'use client'
 
+import TeamSwitcher from '@/components/team/TeamSwitcher'
 import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, Menu, X } from 'lucide-react'
@@ -42,8 +43,9 @@ export default function Header() {
           </Link>
         </nav>
 
-        {/* Desktop CTA Buttons */}
+        {/* Desktop CTA Buttons + Team Switcher */}
         <div className="hidden md:flex items-center gap-4">
+          <TeamSwitcher />
           <Link href="/login">
             <Button variant="ghost">Sign In</Button>
           </Link>

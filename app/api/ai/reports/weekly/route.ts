@@ -1,21 +1,27 @@
+import { requirePlan } from '@/lib/auth/plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUserWithPlan } from '@/lib/ai/access'
 import { callOpenAIJSON } from '@/lib/ai/openai'
 import { createClient as createServerSupabase } from '@/lib/supabase/server'
+import { getActiveTeam } from '@/lib/auth/team'
 
 export async function POST(req: NextRequest) {
   const gate = await requireUserWithPlan('pro')
   if (gate.status !== 200) return NextResponse.json({ error: gate.error }, { status: gate.status })
 
+  const teamCtx = await getActiveTeam(req)
+  if (!teamCtx.ok) return teamCtx.response
+
+  const { user, teamId } = teamCtx
   const supabase = await createServerSupabase()
-  const { data: { user } } = await supabase.auth.getUser()
 
   // Last 7 days, grouped by client
   const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
   const { data, error } = await supabase
     .from('time_entries')
     .select('duration, amount, task_title, marketing_channel, client_id, start_time, clients:client_id(name)')
-    .eq('user_id', user!.id)
+    .eq('user_id', user.id)
+    .eq('team_id', teamId)
     .gte('start_time', since)
     .order('start_time', { ascending: false })
   if (error) return NextResponse.json({ error: 'Failed to fetch entries' }, { status: 500 })
@@ -57,4 +63,5 @@ export async function POST(req: NextRequest) {
 export async function GET() {
   return NextResponse.json({ error: 'Use POST' }, { status: 405 })
 }
+
 

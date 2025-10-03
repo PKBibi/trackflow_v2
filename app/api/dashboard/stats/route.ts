@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveTeam } from '@/lib/auth/team'
 
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
+
+    // Get team context
+    const teamContext = await getActiveTeam(request as any)
+    if (!('ok' in teamContext) || !teamContext.ok) {
+      return (teamContext as any).response
+    }
+    const teamId = teamContext.teamId
 
     // Get today's date range
     const now = new Date()
@@ -32,6 +40,7 @@ export async function GET(request: NextRequest) {
       .from('time_entries')
       .select('duration, amount, billable')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .gte('start_time', todayStart.toISOString())
       .lt('start_time', todayEnd.toISOString())
 
@@ -40,6 +49,7 @@ export async function GET(request: NextRequest) {
       .from('time_entries')
       .select('duration')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .gte('start_time', yesterdayStart.toISOString())
       .lt('start_time', yesterdayEnd.toISOString())
 
@@ -48,6 +58,7 @@ export async function GET(request: NextRequest) {
       .from('time_entries')
       .select('duration, amount, billable')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .gte('start_time', weekStart.toISOString())
       .lt('start_time', weekEnd.toISOString())
 
@@ -56,6 +67,7 @@ export async function GET(request: NextRequest) {
       .from('clients')
       .select('id, has_retainer', { count: 'exact' })
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .eq('status', 'active')
 
     // Calculate today's statistics
@@ -89,6 +101,7 @@ export async function GET(request: NextRequest) {
       .from('time_entries')
       .select('amount')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .gte('start_time', lastWeekStart.toISOString())
       .lt('start_time', weekStart.toISOString())
 

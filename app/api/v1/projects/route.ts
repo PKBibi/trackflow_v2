@@ -6,6 +6,7 @@ import { getAuthenticatedUser } from '@/lib/auth/api-key'
 
 // GET /api/v1/projects
 export async function GET(request: NextRequest) {
+  // @ts-expect-error - Zod transform types are incompatible with validateInput generic
   return validateInput(projectListSchema)(request, async (validatedData, req) => {
     try {
       const supabase = await createClient()

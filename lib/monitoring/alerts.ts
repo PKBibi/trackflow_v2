@@ -222,7 +222,7 @@ class MonitoringSystem {
     
     // Log the alert
     await auditLogger.log({
-      event_type: 'security:alert_triggered',
+      event_type: 'security:alert_triggered' as any,
       severity: alert.severity === 'critical' ? 'critical' : 'high',
       success: true,
       metadata: {

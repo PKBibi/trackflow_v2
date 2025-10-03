@@ -4,26 +4,46 @@
 class EncryptedStorage {
   private key: CryptoKey | null = null
   private algorithm = 'AES-GCM'
-  
+  private cachedUserId: string | null = null
+
+  private getSecretKeyMaterial(): string | null {
+    if (typeof document === 'undefined') return null
+
+    const meta = document.querySelector('meta[name="trackflow-user-id"]')
+    const userId = meta?.getAttribute('content')
+    if (!userId) return null
+
+    if (this.cachedUserId && this.cachedUserId !== userId) {
+      this.key = null
+    }
+
+    this.cachedUserId = userId
+    const entropy = process.env.NEXT_PUBLIC_STORAGE_SECRET || 'trackflow-fallback-secret'
+    return `${userId}:${entropy}`
+  }
+
   // Initialize encryption key (call this once per session)
   private async initKey(): Promise<CryptoKey> {
     if (this.key) return this.key
-    
-    // Generate a key from user session or create a new one
-    // In production, you might derive this from user's session token
+
+    const keyMaterialSeed = this.getSecretKeyMaterial()
+    if (!keyMaterialSeed) {
+      throw new Error('Unable to derive storage key: user not authenticated')
+    }
+
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
-      new TextEncoder().encode('trackflow-session-key-v1'), // In production, use actual session key
+      new TextEncoder().encode(keyMaterialSeed),
       { name: 'PBKDF2' },
       false,
-      ['deriveKey']
+      ['deriveBits', 'deriveKey']
     )
-    
+
     this.key = await crypto.subtle.deriveKey(
       {
         name: 'PBKDF2',
-        salt: new TextEncoder().encode('trackflow-salt'),
-        iterations: 100000,
+        salt: new TextEncoder().encode('trackflow-secure-storage'),
+        iterations: 150000,
         hash: 'SHA-256'
       },
       keyMaterial,
@@ -31,7 +51,7 @@ class EncryptedStorage {
       false,
       ['encrypt', 'decrypt']
     )
-    
+
     return this.key
   }
   
@@ -87,43 +107,33 @@ class EncryptedStorage {
   
   // Secure localStorage wrapper
   async setItem(key: string, value: any): Promise<void> {
-    try {
-      const serialized = JSON.stringify(value)
-      const encrypted = await this.encrypt(serialized)
-      localStorage.setItem(`encrypted_${key}`, encrypted)
-    } catch (error) {
-      console.error('Failed to set encrypted item:', error)
-      // Fallback to regular localStorage
-      localStorage.setItem(key, JSON.stringify(value))
-    }
+    const storageKey = `encrypted_${key}`
+    const serialized = JSON.stringify(value)
+    const encrypted = await this.encrypt(serialized)
+    localStorage.setItem(storageKey, encrypted)
   }
   
   async getItem<T>(key: string): Promise<T | null> {
-    try {
-      const encrypted = localStorage.getItem(`encrypted_${key}`)
-      if (!encrypted) {
-        // Try fallback to unencrypted version for migration
-        const unencrypted = localStorage.getItem(key)
-        if (unencrypted) {
-          try {
-            const parsed = JSON.parse(unencrypted)
-            // Migrate to encrypted version
-            await this.setItem(key, parsed)
-            localStorage.removeItem(key) // Remove unencrypted version
-            return parsed
-          } catch {
-            return null
-          }
-        }
+    const encrypted = localStorage.getItem(`encrypted_${key}`)
+    if (!encrypted) {
+      const legacy = localStorage.getItem(key)
+      if (!legacy) {
         return null
       }
-      
-      const decrypted = await this.decrypt(encrypted)
-      return JSON.parse(decrypted)
-    } catch (error) {
-      console.error('Failed to get encrypted item:', error)
-      return null
+
+      try {
+        const parsed = JSON.parse(legacy)
+        await this.setItem(key, parsed)
+        localStorage.removeItem(key)
+        return parsed
+      } catch {
+        localStorage.removeItem(key)
+        return null
+      }
     }
+
+    const decrypted = await this.decrypt(encrypted)
+    return JSON.parse(decrypted)
   }
   
   removeItem(key: string): void {
@@ -156,11 +166,19 @@ export const safeLocalStorage = {
     ]
     
     if (sensitiveKeys.includes(key)) {
-      await secureStorage.setItem(key, value)
+      try {
+        await secureStorage.setItem(key, value)
+        return
+      } catch (error) {
+        console.warn('Falling back to plain storage for key:', key, error)
+      }
     } else {
       // Non-sensitive data can remain unencrypted
       localStorage.setItem(key, JSON.stringify(value))
+      return
     }
+
+    localStorage.setItem(key, JSON.stringify(value))
   },
   
   async getItem<T>(key: string): Promise<T | null> {
@@ -175,7 +193,13 @@ export const safeLocalStorage = {
     ]
     
     if (sensitiveKeys.includes(key)) {
-      return await secureStorage.getItem<T>(key)
+      try {
+        return await secureStorage.getItem<T>(key)
+      } catch (error) {
+        console.warn('Falling back to plain storage for key:', key, error)
+        const item = localStorage.getItem(key)
+        return item ? JSON.parse(item) : null
+      }
     } else {
       try {
         const item = localStorage.getItem(key)

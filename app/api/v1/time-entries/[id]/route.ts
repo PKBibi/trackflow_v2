@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { HttpError, isHttpError } from '@/lib/errors'
+import { requireTeamRole } from '@/lib/auth/team'
+import { z } from 'zod'
 
 // Mock database - replace with actual database queries
 // This would be imported from a shared location in production
@@ -32,6 +34,7 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const ctx = await requireTeamRole(request, 'member')
     const entry = timeEntries.find(e => e.id === params.id);
     
     if (!entry) {
@@ -60,7 +63,19 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const body = await request.json();
+    const ctx = await requireTeamRole(request, 'member')
+    const BodySchema = z.object({
+      date: z.string().optional(),
+      startTime: z.string().optional(),
+      endTime: z.string().optional(),
+      duration: z.number().nonnegative().optional(),
+      category: z.string().optional(),
+      activity: z.string().optional(),
+      description: z.string().optional(),
+      billable: z.boolean().optional(),
+      rate: z.number().nonnegative().optional(),
+    })
+    const body = BodySchema.parse(await request.json());
     
     const entryIndex = timeEntries.findIndex(e => e.id === params.id);
     
@@ -116,6 +131,7 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
+    const ctx = await requireTeamRole(request, 'admin')
     const entryIndex = timeEntries.findIndex(e => e.id === params.id);
     
     if (entryIndex === -1) {

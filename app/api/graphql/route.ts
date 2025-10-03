@@ -1,8 +1,11 @@
+// GraphQL feature flag gate and basic protections
+import { rateLimitPerUser } from '@/lib/validation/middleware'
+import { createClient } from '@/lib/supabase/server'
 import { HttpError, isHttpError } from '@/lib/errors'
 import { NextRequest, NextResponse } from 'next/server'
 import { GraphQLSchema, GraphQLObjectType, GraphQLString, GraphQLInt, GraphQLFloat, GraphQLBoolean, GraphQLList, GraphQLNonNull, GraphQLID, graphql } from 'graphql'
-import { createClient } from '@/lib/supabase/server'
 import { getAuthenticatedUser } from '@/lib/auth/api-key'
+import { getActiveTeam } from '@/lib/auth/team'
 
 // Forward declare types to avoid circular reference
 const TimeEntryType: GraphQLObjectType = new GraphQLObjectType({
@@ -31,6 +34,7 @@ const TimeEntryType: GraphQLObjectType = new GraphQLObjectType({
           .select('*')
           .eq('id', parent.projectId)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
           .single()
         return data
       }
@@ -44,6 +48,7 @@ const TimeEntryType: GraphQLObjectType = new GraphQLObjectType({
           .select('*')
           .eq('id', parent.clientId)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
           .single()
         return data
       }
@@ -75,6 +80,7 @@ const ProjectType: GraphQLObjectType = new GraphQLObjectType({
           .select('*')
           .eq('name', parent.client)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
           .single()
         return data
       }
@@ -87,6 +93,7 @@ const ProjectType: GraphQLObjectType = new GraphQLObjectType({
           .select('*')
           .eq('project_id', parent.id)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
         return data || []
       }
     },
@@ -98,7 +105,8 @@ const ProjectType: GraphQLObjectType = new GraphQLObjectType({
           .select('duration')
           .eq('project_id', parent.id)
           .eq('user_id', context.user.id)
-        
+          .eq('team_id', context.teamId)
+
         if (!data) return 0
         return data.reduce((sum: number, entry: any) => sum + (entry.duration || 0), 0) / 60
       }
@@ -111,7 +119,8 @@ const ProjectType: GraphQLObjectType = new GraphQLObjectType({
           .select('amount')
           .eq('project_id', parent.id)
           .eq('user_id', context.user.id)
-        
+          .eq('team_id', context.teamId)
+
         if (!data) return 0
         return data.reduce((sum: number, entry: any) => sum + (entry.amount || 0), 0)
       }
@@ -145,6 +154,7 @@ const ClientType: GraphQLObjectType = new GraphQLObjectType({
           .select('*')
           .eq('client', parent.name)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
         return data || []
       }
     }
@@ -190,6 +200,7 @@ const InvoiceType: GraphQLObjectType = new GraphQLObjectType({
           .select('*')
           .eq('id', parent.clientId)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
           .single()
         return data
       }
@@ -234,11 +245,12 @@ const RootQuery = new GraphQLObjectType({
           .select('*')
           .eq('id', args.id)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
           .single()
         return data
       }
     },
-    
+
     // Get all clients
     clients: {
       type: new GraphQLList(ClientType),
@@ -253,12 +265,13 @@ const RootQuery = new GraphQLObjectType({
           .from('clients')
           .select('*')
           .eq('user_id', context.user.id)
-        
+          .eq('team_id', context.teamId)
+
         if (args.status) query = query.eq('status', args.status)
         if (args.search) query = query.ilike('name', `%${args.search}%`)
         if (args.limit) query = query.limit(args.limit)
         if (args.offset) query = query.range(args.offset, args.offset + (args.limit || 10) - 1)
-        
+
         const { data } = await query.order('name')
         return data || []
       }
@@ -274,11 +287,12 @@ const RootQuery = new GraphQLObjectType({
           .select('*')
           .eq('id', args.id)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
           .single()
         return data
       }
     },
-    
+
     // Get all projects
     projects: {
       type: new GraphQLList(ProjectType),
@@ -293,12 +307,13 @@ const RootQuery = new GraphQLObjectType({
           .from('projects')
           .select('*')
           .eq('user_id', context.user.id)
-        
+          .eq('team_id', context.teamId)
+
         if (args.status) query = query.eq('status', args.status)
         if (args.client) query = query.eq('client', args.client)
         if (args.limit) query = query.limit(args.limit)
         if (args.offset) query = query.range(args.offset, args.offset + (args.limit || 10) - 1)
-        
+
         const { data } = await query
         return data || []
       }
@@ -314,11 +329,12 @@ const RootQuery = new GraphQLObjectType({
           .select('*')
           .eq('id', args.id)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
           .single()
         return data
       }
     },
-    
+
     // Get time entries
     timeEntries: {
       type: new GraphQLList(TimeEntryType),
@@ -335,14 +351,15 @@ const RootQuery = new GraphQLObjectType({
           .from('time_entries')
           .select('*')
           .eq('user_id', context.user.id)
-        
+          .eq('team_id', context.teamId)
+
         if (args.projectId) query = query.eq('project_id', args.projectId)
         if (args.startDate) query = query.gte('start_time', args.startDate)
         if (args.endDate) query = query.lte('start_time', args.endDate)
         if (args.billable !== undefined) query = query.eq('billable', args.billable)
         if (args.limit) query = query.limit(args.limit)
         if (args.offset) query = query.range(args.offset, args.offset + (args.limit || 10) - 1)
-        
+
         const { data } = await query.order('start_time', { ascending: false })
         return data || []
       }
@@ -393,51 +410,54 @@ const RootQuery = new GraphQLObjectType({
           mostProductiveDay: '',
           topProjects: []
         }
-        
+
         // Get time entries for period
         let timeQuery = context.supabase
           .from('time_entries')
           .select('duration, project_id')
           .eq('user_id', context.user.id)
-        
+          .eq('team_id', context.teamId)
+
         if (args.startDate) timeQuery = timeQuery.gte('start_time', args.startDate)
         if (args.endDate) timeQuery = timeQuery.lte('start_time', args.endDate)
-        
+
         const { data: timeEntries } = await timeQuery
-        
+
         if (timeEntries) {
           stats.totalHours = timeEntries.reduce((sum: number, entry: any) => sum + (entry.duration || 0), 0) / 3600
         }
-        
+
         // Get projects count
         const { count: projectCount } = await context.supabase
           .from('projects')
           .select('*', { count: 'exact', head: true })
           .eq('user_id', context.user.id)
-        
+          .eq('team_id', context.teamId)
+
         stats.totalProjects = projectCount || 0
-        
+
         // Get clients count
         const { data: clients } = await context.supabase
           .from('projects')
           .select('client')
           .eq('user_id', context.user.id)
-        
+          .eq('team_id', context.teamId)
+
         if (clients) {
           stats.totalClients = new Set(clients.map((p: any) => p.client)).size
         }
-        
+
         // Calculate revenue from paid invoices
         const { data: invoices } = await context.supabase
           .from('invoices')
           .select('total')
           .eq('user_id', context.user.id)
           .eq('status', 'paid')
-        
+
         if (invoices) {
           stats.totalRevenue = invoices.reduce((sum: number, inv: any) => sum + (inv.total || 0), 0)
         }
-        
+
         return stats
       }
     }
@@ -468,12 +488,13 @@ const RootMutation = new GraphQLObjectType({
           .insert({
             ...args,
             user_id: context.user.id,
+            team_id: context.teamId,
             status: 'active',
             retainer_used: 0
           })
           .select()
           .single()
-        
+
         if (error) throw new HttpError(400, error.message)
         return data
       }
@@ -502,14 +523,15 @@ const RootMutation = new GraphQLObjectType({
           .update(updates)
           .eq('id', id)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
           .select()
           .single()
-        
+
         if (error) throw new HttpError(400, error.message)
         return data
       }
     },
-    
+
     // Delete client
     deleteClient: {
       type: GraphQLBoolean,
@@ -522,7 +544,8 @@ const RootMutation = new GraphQLObjectType({
           .delete()
           .eq('id', args.id)
           .eq('user_id', context.user.id)
-        
+          .eq('team_id', context.teamId)
+
         if (error) throw new HttpError(400, error.message)
         return true
       }
@@ -554,16 +577,17 @@ const RootMutation = new GraphQLObjectType({
             deadline: args.deadline,
             color: args.color,
             user_id: context.user.id,
+            team_id: context.teamId,
             status: 'active'
           })
           .select()
           .single()
-        
+
         if (error) throw new HttpError(400, error.message)
         return data
       }
     },
-    
+
     // Update project
     updateProject: {
       type: ProjectType,
@@ -581,21 +605,22 @@ const RootMutation = new GraphQLObjectType({
       },
       resolve: async (parent, args, context) => {
         const { id, hourlyRate, estimatedHours, ...updates } = args
-        
+
         const updateData = {
           ...updates,
           ...(hourlyRate !== undefined && { hourly_rate: hourlyRate }),
           ...(estimatedHours !== undefined && { estimated_hours: estimatedHours })
         }
-        
+
         const { data, error } = await context.supabase
           .from('projects')
           .update(updateData)
           .eq('id', id)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
           .select()
           .single()
-        
+
         if (error) throw new HttpError(400, error.message)
         return data
       }
@@ -620,21 +645,22 @@ const RootMutation = new GraphQLObjectType({
         // Calculate duration if end_time is provided
         let duration = args.duration;
         let amount = null;
-        
+
         if (args.endTime && !duration) {
           const start = new Date(args.startTime)
           const end = new Date(args.endTime)
           duration = Math.round((end.getTime() - start.getTime()) / 60000) // Convert to minutes
         }
-        
+
         // Get project details for hourly rate calculation
         if (duration && args.projectId) {
           const { data: project } = await context.supabase
             .from('projects')
             .select('hourly_rate')
             .eq('id', args.projectId)
+            .eq('team_id', context.teamId)
             .single()
-          
+
           if (project && project.hourly_rate) {
             amount = (duration / 60) * project.hourly_rate
           }
@@ -654,11 +680,12 @@ const RootMutation = new GraphQLObjectType({
             channel: args.channel,
             notes: args.notes,
             tags: args.tags,
-            user_id: context.user.id
+            user_id: context.user.id,
+            team_id: context.teamId
           })
           .select()
           .single()
-        
+
         if (error) throw new HttpError(400, error.message)
         return data
       }
@@ -680,14 +707,15 @@ const RootMutation = new GraphQLObjectType({
           })
           .eq('id', args.id)
           .eq('user_id', context.user.id)
+          .eq('team_id', context.teamId)
           .select()
           .single()
-        
+
         if (error) throw new HttpError(400, error.message)
         return data
       }
     },
-    
+
     // Delete time entry
     deleteTimeEntry: {
       type: GraphQLBoolean,
@@ -700,7 +728,8 @@ const RootMutation = new GraphQLObjectType({
           .delete()
           .eq('id', args.id)
           .eq('user_id', context.user.id)
-        
+          .eq('team_id', context.teamId)
+
         if (error) throw new HttpError(400, error.message)
         return true
       }
@@ -716,12 +745,19 @@ const schema = new GraphQLSchema({
 
 // API Route handlers
 export async function POST(request: NextRequest) {
+  if (process.env.GRAPHQL_ENABLED !== 'true') {
+    return new Response(JSON.stringify({ error: 'GraphQL disabled' }), { status: 503 })
+  }
+  await rateLimitPerUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+
   try {
-    const supabase = await createClient()
-    const user = await getAuthenticatedUser(request)
-    if (!user) {
-      return NextResponse.json({ errors: [{ message: 'Unauthorized' }] }, { status: 401 })
-    }
+    // Get active team context
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) return teamContext.response
+    const { teamId } = teamContext
 
     // Parse GraphQL query
     const { query, variables, operationName } = await request.json()
@@ -732,7 +768,7 @@ export async function POST(request: NextRequest) {
       source: query,
       variableValues: variables,
       operationName,
-      contextValue: { supabase, user }
+      contextValue: { supabase, user, teamId }
     })
 
     return NextResponse.json(result)
@@ -745,7 +781,15 @@ export async function POST(request: NextRequest) {
 }
 
 // Support GET for GraphQL introspection in development
-export async function GET(request: NextRequest) {
+export async function GET() {
+  if (process.env.GRAPHQL_ENABLED !== 'true') {
+    return new Response(JSON.stringify({ error: 'GraphQL disabled' }), { status: 503 })
+  }
+  await rateLimitPerUser()
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 })
+
   if (process.env.NODE_ENV !== 'development') {
     return NextResponse.json({ 
       error: 'GraphQL introspection disabled in production' 
@@ -778,5 +822,6 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json(result)
 }
+
 
 

@@ -346,8 +346,7 @@ export default function ImportPage() {
         
         toast({
           title: 'Import completed',
-          description,
-          duration: results.errors.length > 0 ? 10000 : 5000
+          description
         });
         
         // Show errors if any

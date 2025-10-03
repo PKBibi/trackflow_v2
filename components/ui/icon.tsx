@@ -5,13 +5,13 @@ import { LoadingSpinner } from './loading'
 // Dynamically import Lucide icons to reduce bundle size
 export const DynamicIcon = ({ name, ...props }: { name: string } & LucideProps) => {
   const Icon = dynamic(
-    () => import('lucide-react').then((mod) => ({ default: mod[name as keyof typeof mod] })),
+    () => import('lucide-react').then((mod) => ({ default: mod[name as keyof typeof mod] as any })),
     {
       loading: () => <LoadingSpinner size="sm" />,
       ssr: false,
     }
   )
-  
+
   return <Icon {...props} />
 }
 

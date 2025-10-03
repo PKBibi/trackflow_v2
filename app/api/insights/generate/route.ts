@@ -1,3 +1,4 @@
+import { requirePlan } from '@/lib/auth/plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUserWithPlan, getRecentEntriesForUser } from '@/lib/ai/access'
 import { callOpenAIJSON } from '@/lib/ai/openai'
@@ -132,5 +133,9 @@ Use marketing context (channels, billable mix, rates, durations). Prefer specifi
 }
 
 export async function GET() {
+  const gate = await requirePlan('pro')
+  if (!gate.ok) return gate.response
+
   return NextResponse.json({ error: 'Use POST' }, { status: 405 })
 }
+

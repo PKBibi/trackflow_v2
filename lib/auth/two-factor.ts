@@ -48,7 +48,7 @@ export class TwoFactorAuth {
       
       // Log the setup attempt
       await auditLogger.log({
-        event_type: 'auth:2fa_setup_initiated',
+        event_type: 'auth:2fa_setup_initiated' as any,
         severity: 'medium',
         user_id: userId,
         user_email: userEmail,
@@ -63,7 +63,7 @@ export class TwoFactorAuth {
       }
     } catch (error) {
       await auditLogger.log({
-        event_type: 'auth:2fa_setup_initiated',
+        event_type: 'auth:2fa_setup_initiated' as any,
         severity: 'high',
         user_id: userId,
         user_email: userEmail,
@@ -99,7 +99,7 @@ export class TwoFactorAuth {
       
       if (!isValid) {
         await auditLogger.log({
-          event_type: 'auth:2fa_enable_failed',
+          event_type: 'auth:2fa_enable_failed' as any,
           severity: 'high',
           user_id: userId,
           user_email: userEmail,
@@ -133,7 +133,7 @@ export class TwoFactorAuth {
       
       // Log successful enablement
       await auditLogger.log({
-        event_type: 'auth:2fa_enabled',
+        event_type: 'auth:2fa_enabled' as any,
         severity: 'low',
         user_id: userId,
         user_email: userEmail,
@@ -144,7 +144,7 @@ export class TwoFactorAuth {
       return true
     } catch (error) {
       await auditLogger.log({
-        event_type: 'auth:2fa_enable_failed',
+        event_type: 'auth:2fa_enable_failed' as any,
         severity: 'high',
         user_id: userId,
         user_email: userEmail,
@@ -178,10 +178,11 @@ export class TwoFactorAuth {
       // Check if it's a regular token
       let isValid = authenticator.verify({ token, secret })
       let usedBackupCode = false
-      
+      let backupCodes: string[] = []
+
       // If not valid, check backup codes
       if (!isValid) {
-        const backupCodes = this.decryptBackupCodes(data.backup_codes)
+        backupCodes = this.decryptBackupCodes(data.backup_codes)
         const codeIndex = backupCodes.indexOf(token)
         
         if (codeIndex !== -1) {
@@ -208,7 +209,7 @@ export class TwoFactorAuth {
       
       // Log the verification attempt
       await auditLogger.log({
-        event_type: 'auth:2fa_verification',
+        event_type: 'auth:2fa_verification' as any,
         severity: isValid ? 'low' : 'high',
         user_id: userId,
         user_email: userEmail,
@@ -222,7 +223,7 @@ export class TwoFactorAuth {
       return isValid
     } catch (error) {
       await auditLogger.log({
-        event_type: 'auth:2fa_verification',
+        event_type: 'auth:2fa_verification' as any,
         severity: 'critical',
         user_id: userId,
         user_email: userEmail,
@@ -254,7 +255,7 @@ export class TwoFactorAuth {
       
       // Log the disable action
       await auditLogger.log({
-        event_type: 'auth:2fa_disabled',
+        event_type: 'auth:2fa_disabled' as any,
         severity: 'medium',
         user_id: userId,
         user_email: userEmail,
@@ -264,7 +265,7 @@ export class TwoFactorAuth {
       return true
     } catch (error) {
       await auditLogger.log({
-        event_type: 'auth:2fa_disable_failed',
+        event_type: 'auth:2fa_disable_failed' as any,
         severity: 'high',
         user_id: userId,
         user_email: userEmail,
@@ -315,7 +316,7 @@ export class TwoFactorAuth {
       }
       
       await auditLogger.log({
-        event_type: 'auth:2fa_backup_codes_regenerated',
+        event_type: 'auth:2fa_backup_codes_regenerated' as any,
         severity: 'medium',
         user_id: userId,
         user_email: userEmail,
@@ -325,7 +326,7 @@ export class TwoFactorAuth {
       return backupCodes
     } catch (error) {
       await auditLogger.log({
-        event_type: 'auth:2fa_backup_codes_regeneration_failed',
+        event_type: 'auth:2fa_backup_codes_regeneration_failed' as any,
         severity: 'high',
         user_id: userId,
         user_email: userEmail,
@@ -333,6 +334,41 @@ export class TwoFactorAuth {
         error_message: error instanceof Error ? error.message : 'Unknown error'
       })
       throw error
+    }
+  }
+
+  /**
+   * Retrieve current 2FA status for a user without exposing secrets
+   */
+  async getStatus(userId: string) {
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from('user_two_factor')
+      .select('enabled, enabled_at, last_used, backup_codes')
+      .eq('user_id', userId)
+      .single()
+
+    if (error && error.code !== 'PGRST116') {
+      throw error
+    }
+
+    if (!data || !data.enabled) {
+      return {
+        enabled: false,
+        enabledAt: null,
+        lastUsed: null,
+        backupCodesRemaining: 0,
+      }
+    }
+
+    const codes = data.backup_codes ? this.decryptBackupCodes(data.backup_codes) : []
+
+    return {
+      enabled: true,
+      enabledAt: data.enabled_at ?? null,
+      lastUsed: data.last_used ?? null,
+      backupCodesRemaining: codes.length,
     }
   }
 

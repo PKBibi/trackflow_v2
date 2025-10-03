@@ -158,7 +158,7 @@ export class GDPRComplianceManager {
           const { error } = await this.supabase
             .from(policy.tableName)
             .update({ deleted_at: new Date().toISOString(), deleted_by_gdpr: true })
-            .in(policy.identifierColumn, recordsToDelete.map(r => r[policy.identifierColumn]))
+            .in(policy.identifierColumn, recordsToDelete.map((r: any) => r[policy.identifierColumn]))
 
           if (error) {
             errors.push(`Error soft deleting from ${policy.tableName}: ${error.message}`)
@@ -170,14 +170,14 @@ export class GDPRComplianceManager {
           if (policy.anonymize) {
             await this.anonymizeRecords(
               policy.tableName,
-              recordsToDelete.map(r => r[policy.identifierColumn])
+              recordsToDelete.map((r: any) => r[policy.identifierColumn])
             )
           }
 
           const { error } = await this.supabase
             .from(policy.tableName)
             .delete()
-            .in(policy.identifierColumn, recordsToDelete.map(r => r[policy.identifierColumn]))
+            .in(policy.identifierColumn, recordsToDelete.map((r: any) => r[policy.identifierColumn]))
 
           if (error) {
             errors.push(`Error deleting from ${policy.tableName}: ${error.message}`)
@@ -188,7 +188,7 @@ export class GDPRComplianceManager {
 
         // Log the retention action
         await auditLogger.log({
-          event_type: 'data:retention_applied',
+          event_type: 'data:retention_applied' as any,
           severity: 'low',
           success: true,
           metadata: {
@@ -245,7 +245,7 @@ export class GDPRComplianceManager {
 
       // Log the anonymization
       await auditLogger.log({
-        event_type: 'data:user_anonymized',
+        event_type: 'data:user_anonymized' as any,
         severity: 'medium',
         user_id: userId,
         success: true,
@@ -256,7 +256,7 @@ export class GDPRComplianceManager {
       })
     } catch (error) {
       await auditLogger.log({
-        event_type: 'data:user_anonymized',
+        event_type: 'data:user_anonymized' as any,
         severity: 'high',
         user_id: userId,
         success: false,
@@ -345,7 +345,7 @@ export class GDPRComplianceManager {
 
       // Log the export
       await auditLogger.log({
-        event_type: 'data:export',
+        event_type: 'data:export' as any,
         severity: 'medium',
         user_id: userId,
         success: true,
@@ -363,7 +363,7 @@ export class GDPRComplianceManager {
       }
     } catch (error) {
       await auditLogger.log({
-        event_type: 'data:export',
+        event_type: 'data:export' as any,
         severity: 'high',
         user_id: userId,
         success: false,
@@ -416,7 +416,7 @@ export class GDPRComplianceManager {
 
       // Log the deletion
       await auditLogger.log({
-        event_type: 'data:user_deleted',
+        event_type: 'data:user_deleted' as any,
         severity: 'critical',
         user_id: userId,
         success: true,
@@ -428,7 +428,7 @@ export class GDPRComplianceManager {
       })
     } catch (error) {
       await auditLogger.log({
-        event_type: 'data:user_deleted',
+        event_type: 'data:user_deleted' as any,
         severity: 'critical',
         user_id: userId,
         success: false,

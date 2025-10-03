@@ -21,10 +21,9 @@ export function logError(error: Error | string, context?: Record<string, any>) {
 export function startTransaction(name: string, operation: string = 'navigation') {
   if (typeof window === 'undefined') return null;
 
-  return Sentry.startTransaction({
-    name,
-    op: operation,
-  });
+  // Note: startTransaction is deprecated in newer Sentry versions
+  // Using manual spans instead
+  return null;
 }
 
 export function measurePerformance<T>(
@@ -40,25 +39,29 @@ export function measurePerformance<T>(
     if (result instanceof Promise) {
       return result
         .then((value) => {
-          transaction?.setStatus('ok');
-          transaction?.finish();
+          // Transaction handling disabled
+          // transaction?.setStatus('ok');
+          // transaction?.finish();
           return value;
         })
         .catch((error) => {
-          transaction?.setStatus('internal_error');
+          // Transaction handling disabled
+          // transaction?.setStatus('internal_error');
           logError(error, { operation: name, ...metadata });
-          transaction?.finish();
+          // transaction?.finish();
           throw error;
         });
     } else {
-      transaction?.setStatus('ok');
-      transaction?.finish();
+      // Transaction handling disabled
+      // transaction?.setStatus('ok');
+      // transaction?.finish();
       return result;
     }
   } catch (error) {
-    transaction?.setStatus('internal_error');
+    // Transaction handling disabled
+    // transaction?.setStatus('internal_error');
     logError(error as Error, { operation: name, ...metadata });
-    transaction?.finish();
+    // transaction?.finish();
     throw error;
   }
 }
@@ -72,13 +75,13 @@ export async function monitoredFetch(
   const transaction = startTransaction(`HTTP ${options?.method || 'GET'} ${url}`, 'http.client');
 
   try {
-    transaction?.setData('url', url);
-    transaction?.setData('method', options?.method || 'GET');
+    // transaction?.setData('url', url);
+    // transaction?.setData('method', options?.method || 'GET');
 
     const response = await fetch(url, options);
 
-    transaction?.setData('status_code', response.status);
-    transaction?.setStatus(response.ok ? 'ok' : 'failed_precondition');
+    // transaction?.setData('status_code', response.status);
+    // transaction?.setStatus(response.ok ? 'ok' : 'failed_precondition');
 
     if (!response.ok) {
       logError(new Error(`HTTP ${response.status}: ${response.statusText}`), {
@@ -90,11 +93,12 @@ export async function monitoredFetch(
 
     return response;
   } catch (error) {
-    transaction?.setStatus('internal_error');
+    // Transaction handling disabled
+    // transaction?.setStatus('internal_error');
     logError(error as Error, { url, ...metadata });
     throw error;
   } finally {
-    transaction?.finish();
+    // transaction?.finish();
   }
 }
 

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client'
 import { getAllChannels } from '@/lib/constants/marketing-channels'
+import { getActiveTeamId } from '@/lib/api/team-client'
 
 export interface ReportFilters {
   startDate?: string
@@ -73,10 +74,11 @@ class ReportsAPI {
     const endDate = filters?.endDate || new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString()
 
     // Get time entries for the period
-    let query = this.supabase
+    const query = this.supabase
       .from('time_entries')
       .select('duration, amount, billable, hourly_rate')
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .gte('start_time', startDate)
       .lte('start_time', endDate)
       .not('duration', 'is', null)
@@ -92,6 +94,7 @@ class ReportsAPI {
       .from('clients')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .eq('status', 'active')
 
     // Get project counts
@@ -99,6 +102,7 @@ class ReportsAPI {
       .from('projects')
       .select('*', { count: 'exact', head: true })
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .eq('status', 'active')
 
     // Get MRR from retainer clients
@@ -106,6 +110,7 @@ class ReportsAPI {
       .from('clients')
       .select('retainer_amount')
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .eq('has_retainer', true)
       .eq('status', 'active')
 
@@ -149,6 +154,7 @@ class ReportsAPI {
       .from('time_entries')
       .select('marketing_channel, marketing_category, duration, amount, billable, hourly_rate')
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .gte('start_time', startDate)
       .lte('start_time', endDate)
       .not('duration', 'is', null)
@@ -262,6 +268,7 @@ class ReportsAPI {
         )
       `)
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .gte('start_time', startDate)
       .lte('start_time', endDate)
       .not('duration', 'is', null)
@@ -323,6 +330,7 @@ class ReportsAPI {
         .from('projects')
         .select('client_id')
         .eq('user_id', user.id)
+        .eq('team_id', getActiveTeamId() || null)
         .in('client_id', clientIds)
 
       const projectCountMap = new Map<string, number>()
@@ -375,6 +383,7 @@ class ReportsAPI {
       .from('time_entries')
       .select('marketing_category, duration, amount, billable')
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .gte('start_time', startDate)
       .lte('start_time', endDate)
       .not('duration', 'is', null)

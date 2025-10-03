@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
+import { getActiveTeamId } from '@/lib/api/team-client'
 
 export interface TimeEntry {
   id?: string
@@ -30,6 +31,7 @@ export interface TimeEntryWithDetails extends TimeEntry {
   project_name?: string
   channel_name?: string
   category_name?: string
+  team_id?: string
 }
 
 class TimeEntriesAPI {
@@ -53,6 +55,7 @@ class TimeEntriesAPI {
     const entryData = {
       ...timeEntry,
       user_id: user.id,
+      team_id: getActiveTeamId() || undefined,
       duration
     }
 
@@ -84,6 +87,7 @@ class TimeEntriesAPI {
         .select('start_time')
         .eq('id', id)
         .eq('user_id', user.id)
+        .eq('team_id', getActiveTeamId() || null)
         .single()
 
       if (currentEntry) {
@@ -98,6 +102,7 @@ class TimeEntriesAPI {
       .update(updates)
       .eq('id', id)
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .select()
       .single()
 
@@ -134,6 +139,7 @@ class TimeEntriesAPI {
         )
       `)
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .order('start_time', { ascending: false })
 
     // Apply filters
@@ -204,6 +210,7 @@ class TimeEntriesAPI {
       .from('time_entries')
       .select('*')
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .eq('status', 'running')
       .is('end_time', null)
       .single()
@@ -232,6 +239,7 @@ class TimeEntriesAPI {
         is_timer_running: false
       })
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .eq('status', 'running')
 
     if (error) {
@@ -251,6 +259,7 @@ class TimeEntriesAPI {
       .delete()
       .eq('id', id)
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
 
     if (error) {
       throw new Error(`Failed to delete time entry: ${error.message}`)
@@ -274,6 +283,7 @@ class TimeEntriesAPI {
       .from('time_entries')
       .select('marketing_channel, marketing_category, duration, amount')
       .eq('user_id', user.id)
+      .eq('team_id', getActiveTeamId() || null)
       .not('duration', 'is', null)
 
     if (startDate) {

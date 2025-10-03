@@ -294,14 +294,15 @@ export function Analytics() {
 }
 
 // Declare gtag on window
-declare global {
-  interface Window {
-    gtag: (
-      command: 'config' | 'event',
-      targetId: string,
-      config?: any
-    ) => void;
-  }
-}
+// Commented out to avoid conflict with built-in types
+// declare global {
+//   interface Window {
+//     gtag: (
+//       command: 'config' | 'event',
+//       targetId: string,
+//       config?: any
+//     ) => void;
+//   }
+// }
 
 

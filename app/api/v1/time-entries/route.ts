@@ -3,18 +3,27 @@ import { HttpError, isHttpError } from '@/lib/errors';
 import { createClient } from '@/lib/supabase/server';
 import { getAuthenticatedUser } from '@/lib/auth/api-key';
 import { validateInput, timeEntryCreateSchema, timeEntryListSchema, rateLimitPerUser } from '@/lib/validation/middleware';
+import { getActiveTeam } from '@/lib/auth/team';
 
 // GET /api/v1/time-entries
 export async function GET(request: NextRequest) {
+  // @ts-expect-error - Zod transform types are incompatible with validateInput generic
   return validateInput(timeEntryListSchema)(request, async (validatedData, req) => {
     try {
       const supabase = await createClient()
       const user = await getAuthenticatedUser(request)
-      
+
       if (!user) {
         throw new HttpError(401, 'Unauthorized')
       }
-      
+
+      // Get team context
+      const teamContext = await getActiveTeam(request)
+      if (!teamContext.ok) {
+        return teamContext.response
+      }
+      const teamId = teamContext.teamId
+
       // Apply rate limiting per user
       const rateLimit = await rateLimitPerUser(100, 60000)
       await rateLimit(user.id)
@@ -46,6 +55,7 @@ export async function GET(request: NextRequest) {
         projects:project_id (name)
       `, { count: 'exact' })
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
     
     // Apply filters
     if (clientId) {
@@ -63,8 +73,8 @@ export async function GET(request: NextRequest) {
       endDateTime.setHours(23, 59, 59, 999)
       query = query.lte('start_time', endDateTime.toISOString())
     }
-    if (billable !== null) {
-      query = query.eq('billable', billable === 'true')
+    if (billable !== undefined) {
+      query = query.eq('billable', billable)
     }
     if (status) {
       query = query.eq('status', status)
@@ -122,11 +132,18 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const user = await getAuthenticatedUser(request)
-    
+
     if (!user) {
       throw new HttpError(401, 'Unauthorized')
     }
-    
+
+    // Get team context
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) {
+      return teamContext.response
+    }
+    const teamId = teamContext.teamId
+
     const body = await request.json();
     
     // Validate required fields
@@ -142,17 +159,19 @@ export async function POST(request: NextRequest) {
       .from('clients')
       .select('id')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .eq('id', body.client_id)
       .single()
-    
+
     if (!clientCheck) {
       throw new HttpError(403, 'Invalid client ID or permission denied')
     }
-    
+
     const { data: projectCheck } = await supabase
       .from('projects')
       .select('id, hourly_rate')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .eq('id', body.project_id)
       .single()
     
@@ -174,6 +193,7 @@ export async function POST(request: NextRequest) {
     // Prepare time entry data
     const entryData = {
       user_id: user.id,
+      team_id: teamId,
       client_id: body.client_id,
       project_id: body.project_id,
       start_time: body.start_time,
@@ -223,11 +243,18 @@ export async function PUT(request: NextRequest) {
   try {
     const supabase = await createClient()
     const user = await getAuthenticatedUser(request)
-    
+
     if (!user) {
       throw new HttpError(401, 'Unauthorized')
     }
-    
+
+    // Get team context
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) {
+      return teamContext.response
+    }
+    const teamId = teamContext.teamId
+
     const body = await request.json();
     const { ids, updates } = body;
     
@@ -240,6 +267,7 @@ export async function PUT(request: NextRequest) {
       .from('time_entries')
       .select('id')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (!entryCheck || entryCheck.length !== ids.length) {
@@ -270,6 +298,7 @@ export async function PUT(request: NextRequest) {
       .from('time_entries')
       .update(validUpdates)
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .in('id', ids)
     
     if (error) {

@@ -1,9 +1,11 @@
+import { rateLimitPerUser } from '@/lib/validation/middleware'
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { sendEmail, emailTemplates } from '@/lib/email/resend';
 import { log } from '@/lib/logger';
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
+  await rateLimitPerUser()
   // Verify this is a cron request (in production, you'd also check a secret)
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -25,6 +27,20 @@ export async function GET(request: NextRequest) {
 
     for (const user of users || []) {
       try {
+        // Get user's team membership (use first team)
+        const { data: teamMembership } = await supabase
+          .from('teams_users')
+          .select('team_id')
+          .eq('user_id', user.id)
+          .limit(1)
+          .single();
+
+        if (!teamMembership) {
+          continue; // Skip users without team membership
+        }
+
+        const teamId = teamMembership.team_id;
+
         // Get user's time entries from the past week
         const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
@@ -32,6 +48,7 @@ export async function GET(request: NextRequest) {
           .from('time_entries')
           .select('duration, channel, hourly_rate')
           .eq('user_id', user.id)
+          .eq('team_id', teamId)
           .gte('created_at', oneWeekAgo);
 
         if (timeError) throw timeError;
@@ -74,7 +91,7 @@ export async function GET(request: NextRequest) {
           userId: user.id,
           email: user.email,
           success: result.success,
-          messageId: result.data?.id,
+          messageId: result.success ? (result.data as any)?.id : undefined,
         });
 
       } catch (userError) {

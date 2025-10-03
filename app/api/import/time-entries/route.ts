@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveTeam } from '@/lib/auth/team'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
+
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) return teamContext.response
+    const { teamId } = teamContext
 
     const body = await request.json()
     const { entries, mappings } = body
@@ -22,11 +27,13 @@ export async function POST(request: NextRequest) {
       .from('clients')
       .select('id, name, email')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
 
     const { data: existingProjects } = await supabase
       .from('projects')
       .select('id, name, client_id')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
 
     const clientMap = new Map(existingClients?.map(c => [c.name.toLowerCase(), c]) || [])
     const projectMap = new Map(existingProjects?.map(p => [p.name.toLowerCase(), p]) || [])
@@ -115,6 +122,7 @@ export async function POST(request: NextRequest) {
               .from('clients')
               .insert({
                 user_id: user.id,
+                team_id: teamId,
                 name: clientName,
                 email: `${clientName.toLowerCase().replace(/\s+/g, '')}@example.com`,
                 status: 'active'
@@ -148,6 +156,7 @@ export async function POST(request: NextRequest) {
               .from('projects')
               .insert({
                 user_id: user.id,
+                team_id: teamId,
                 client_id: clientId,
                 name: projectName,
                 status: 'active'
@@ -178,6 +187,7 @@ export async function POST(request: NextRequest) {
 
         const timeEntry = {
           user_id: user.id,
+          team_id: teamId,
           client_id: clientId,
           project_id: projectId,
           start_time: startTime,

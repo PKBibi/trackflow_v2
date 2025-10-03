@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { Resend } from 'resend'
-
-const resend = new Resend(process.env.RESEND_API_KEY)
+import { sendEmail } from '@/lib/email/resend'
 
 export async function GET() {
   try {
@@ -74,19 +72,19 @@ export async function POST(request: NextRequest) {
           const percentageColor = alert.usage_percentage >= 100 ? '#ef4444' : 
                                 alert.usage_percentage >= 90 ? '#f97316' : '#eab308'
 
-          await resend.emails.send({
+          await sendEmail({
             from: 'TrackFlow <alerts@track-flow.app>',
-            to: [user.email!], // Send to user, not client
+            to: user.email!,
             subject,
             html: `
               <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
                 <div style="background: ${percentageColor}; color: white; padding: 16px; border-radius: 8px 8px 0 0; text-align: center;">
                   <h2 style="margin: 0; font-size: 24px;">⚠️ Retainer Alert</h2>
                 </div>
-                
+
                 <div style="background: #f9fafb; padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
                   <h3 style="color: #111827; margin-top: 0;">Client: ${alert.client_name}</h3>
-                  
+
                   <div style="background: white; padding: 16px; border-radius: 6px; margin: 16px 0;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                       <span>Retainer Usage:</span>
@@ -99,26 +97,26 @@ export async function POST(request: NextRequest) {
                       ${usageText}
                     </div>
                   </div>
-                  
+
                   <p style="color: #374151; margin: 16px 0;">
                     <strong>Period:</strong> ${new Date(alert.period_start).toLocaleDateString()} - ${new Date(alert.period_end).toLocaleDateString()}
                   </p>
-                  
-                  ${alert.usage_percentage >= 100 ? 
+
+                  ${alert.usage_percentage >= 100 ?
                     '<div style="background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; padding: 12px; border-radius: 6px; margin: 16px 0;"><strong>⚠️ Retainer Exceeded!</strong> This client has used all allocated hours for this period.</div>' :
                     alert.usage_percentage >= 90 ?
                     '<div style="background: #fffbeb; border: 1px solid #fed7aa; color: #92400e; padding: 12px; border-radius: 6px; margin: 16px 0;"><strong>⚠️ Nearly Complete!</strong> This client is approaching their retainer limit.</div>' :
                     '<div style="background: #fefce8; border: 1px solid #fde68a; color: #854d0e; padding: 12px; border-radius: 6px; margin: 16px 0;"><strong>ℹ️ Usage Notice</strong> This client has reached 75% of their retainer allocation.</div>'
                   }
-                  
+
                   <div style="text-align: center; margin-top: 24px;">
-                    <a href="${process.env.NEXT_PUBLIC_APP_URL}/clients" 
+                    <a href="${process.env.NEXT_PUBLIC_APP_URL}/clients"
                        style="display: inline-block; background: #3b82f6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 500;">
                       View Client Details
                     </a>
                   </div>
                 </div>
-                
+
                 <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #6b7280;">
                   <p>TrackFlow - Time Tracking for Digital Marketing Teams</p>
                   <p>You can disable these alerts in your <a href="${process.env.NEXT_PUBLIC_APP_URL}/settings/notifications" style="color: #3b82f6;">notification settings</a>.</p>

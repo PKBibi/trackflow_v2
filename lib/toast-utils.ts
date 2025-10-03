@@ -1,4 +1,5 @@
 import { toast } from '@/components/ui/use-toast'
+import React from 'react'
 
 export interface ToastAction {
   label: string
@@ -14,83 +15,77 @@ export interface EnhancedToastOptions {
 
 export const toastUtils = {
   success: (options: EnhancedToastOptions) => {
-    const { title, description, action, duration = 5000 } = options
-    
+    const { title, description, action } = options
+
     toast({
       title: `✓ ${title}`,
       description,
-      duration,
-      action: action ? {
-        label: action.label,
-        onClick: action.onClick
-      } : undefined,
+      action: action ? React.createElement('button', {
+        onClick: action.onClick,
+        className: 'text-sm font-medium'
+      }, action.label) : undefined,
     })
   },
 
   error: (options: EnhancedToastOptions) => {
-    const { title, description, action, duration = 6000 } = options
-    
+    const { title, description, action } = options
+
     toast({
       title: `✗ ${title}`,
       description,
-      duration,
       variant: 'destructive',
-      action: action ? {
-        label: action.label,
-        onClick: action.onClick
-      } : undefined,
+      action: action ? React.createElement('button', {
+        onClick: action.onClick,
+        className: 'text-sm font-medium'
+      }, action.label) : undefined,
     })
   },
 
   warning: (options: EnhancedToastOptions) => {
-    const { title, description, action, duration = 5000 } = options
-    
+    const { title, description, action } = options
+
     toast({
       title: `⚠ ${title}`,
       description,
-      duration,
-      action: action ? {
-        label: action.label,
-        onClick: action.onClick
-      } : undefined,
+      action: action ? React.createElement('button', {
+        onClick: action.onClick,
+        className: 'text-sm font-medium'
+      }, action.label) : undefined,
     })
   },
 
   info: (options: EnhancedToastOptions) => {
-    const { title, description, action, duration = 4000 } = options
-    
+    const { title, description, action } = options
+
     toast({
       title: `ℹ ${title}`,
       description,
-      duration,
-      action: action ? {
-        label: action.label,
-        onClick: action.onClick
-      } : undefined,
+      action: action ? React.createElement('button', {
+        onClick: action.onClick,
+        className: 'text-sm font-medium'
+      }, action.label) : undefined,
     })
   },
 
   loading: (options: { title: string; description?: string }) => {
     const { title, description } = options
-    
+
     return toast({
       title: `⏳ ${title}`,
       description,
-      duration: Infinity, // Keep until dismissed
     })
   },
 
   download: (options: EnhancedToastOptions & { fileUrl?: string }) => {
-    const { title, description, fileUrl, duration = 8000 } = options
-    
+    const { title, description, fileUrl } = options
+
     toast({
       title: `⬇ ${title}`,
       description,
-      duration,
-      action: fileUrl ? {
-        label: 'Download',
-        onClick: () => window.open(fileUrl, '_blank')
-      } : undefined,
+      action: fileUrl ? React.createElement('button', {
+        onClick: () => window.open(fileUrl, '_blank'),
+        className: 'text-sm font-medium'
+      }, 'Download') : undefined,
     })
   },
 
@@ -144,7 +139,6 @@ export const toastUtils = {
     toastUtils.success({
       title: 'Copied to clipboard',
       description: content ? `${content} copied` : undefined,
-      duration: 2000,
     })
   },
 
@@ -153,7 +147,6 @@ export const toastUtils = {
       title: 'Update available',
       description: 'A new version is available. Refresh to get the latest features.',
       action: { label: 'Refresh', onClick: onRefresh },
-      duration: 10000,
     })
   },
 }

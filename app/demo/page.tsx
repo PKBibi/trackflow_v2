@@ -30,74 +30,125 @@ import {
 
 export default function DemoPage() {
   // Demo scenario state
-  const [activeScenario, setActiveScenario] = useState('profitability')
-  const [isPlaying, setIsPlaying] = useState(false)
-  const [currentTime, setCurrentTime] = useState('00:00:00')
-  const [seconds, setSeconds] = useState(0)
+  const [activeScenario, setActiveScenario] = useState<string>('profitability')
+  const [isPlaying, setIsPlaying] = useState<boolean>(false)
+  const [seconds, setSeconds] = useState<number>(0)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Profitability calculator state
-  const [selectedChannel, setSelectedChannel] = useState('ppc')
-  const [hoursWorked, setHoursWorked] = useState(8)
-  const [clientSpend, setClientSpend] = useState(15000)
+  const [selectedChannel, setSelectedChannel] = useState<string>('ppc')
+  const [hoursWorked, setHoursWorked] = useState<number>(8)
+  const [teamMembers, setTeamMembers] = useState<number>(2)
 
   // Retainer burndown state
-  const [retainerUsed, setRetainerUsed] = useState(75)
-  const [daysLeft, setDaysLeft] = useState(12)
+  const [retainerUsed, setRetainerUsed] = useState<number>(75)
+  const [daysLeft, setDaysLeft] = useState<number>(12)
 
   // ROI comparison state
-  const [selectedTimeframe, setSelectedTimeframe] = useState('month')
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('month')
 
-  // Demo data
+  // Timer control functions
+  const toggleTimer = () => {
+    setIsPlaying(prev => !prev)
+  }
+
+  const resetTimer = () => {
+    setIsPlaying(false)
+    setSeconds(0)
+  }
+
+  const startTimer = () => {
+    if (!isPlaying) {
+      setIsPlaying(true)
+    }
+  }
+
+  // Format time display
+  const formatTime = (totalSeconds: number): string => {
+    const hours = Math.floor(totalSeconds / 3600)
+    const minutes = Math.floor((totalSeconds % 3600) / 60)
+    const secs = totalSeconds % 60
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
+
+  // Channel selection handler
+  const handleChannelSelect = (channelKey: string) => {
+    setSelectedChannel(channelKey)
+  }
+
+  // Slider change handlers
+  const handleHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setHoursWorked(Number(e.target.value))
+  }
+
+  const handleTeamMembersChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTeamMembers(Number(e.target.value))
+  }
+
+  const handleRetainerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setRetainerUsed(Number(e.target.value))
+  }
+
+  const handleDaysLeftChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDaysLeft(Number(e.target.value))
+  }
+
+  // Demo data - Agency-focused pricing
   const channelData = {
     ppc: {
-      name: 'Google Ads',
-      hourlyRate: 125,
-      profitMargin: 0.85,
-      avgSpend: 15000,
+      name: 'PPC Management',
+      hourlyRate: 125, // What agency charges client per hour
+      costPerHour: 65,  // What it costs agency (salary + overhead)
+      description: 'Google Ads, Meta Ads, LinkedIn Ads',
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50'
+      bgColor: 'bg-blue-50',
+      profitMargin: 0.48 // (125-65)/125 = 48%
     },
     seo: {
       name: 'SEO Services',
       hourlyRate: 110,
-      profitMargin: 0.92,
-      avgSpend: 0,
+      costPerHour: 55,
+      description: 'Technical SEO, Content, Link Building',
       color: 'text-green-600',
-      bgColor: 'bg-green-50'
+      bgColor: 'bg-green-50',
+      profitMargin: 0.50 // (110-55)/110 = 50%
     },
     social: {
       name: 'Social Media',
       hourlyRate: 85,
-      profitMargin: 0.65,
-      avgSpend: 5000,
+      costPerHour: 45,
+      description: 'Content Creation, Community Management',
       color: 'text-purple-600',
-      bgColor: 'bg-purple-50'
+      bgColor: 'bg-purple-50',
+      profitMargin: 0.47 // (85-45)/85 = 47%
     },
     email: {
       name: 'Email Marketing',
       hourlyRate: 95,
-      profitMargin: 0.78,
-      avgSpend: 2000,
+      costPerHour: 50,
+      description: 'Campaigns, Automation, List Building',
       color: 'text-orange-600',
-      bgColor: 'bg-orange-50'
+      bgColor: 'bg-orange-50',
+      profitMargin: 0.47 // (95-50)/95 = 47%
     }
   }
 
-  // Calculate profitability
+  // Calculate agency profitability
   const calculateProfitability = () => {
-    const channel = channelData[selectedChannel]
-    const revenue = hoursWorked * channel.hourlyRate
-    const managementFee = clientSpend * 0.15 // 15% management fee
-    const totalRevenue = revenue + managementFee
-    const profit = totalRevenue * channel.profitMargin
-    const roi = profit / (totalRevenue - profit)
+    const channel = channelData[selectedChannel as keyof typeof channelData]
+    if (!channel) return { revenue: 0, costs: 0, profit: 0, marginPercent: 0 }
+
+    const totalHours = hoursWorked * teamMembers
+    const revenue = totalHours * channel.hourlyRate // What agency charges client
+    const costs = totalHours * channel.costPerHour   // What it costs agency (salaries + overhead)
+    const profit = revenue - costs
+    const marginPercent = (profit / revenue) * 100
 
     return {
-      revenue: totalRevenue,
+      revenue: revenue,
+      costs: costs,
       profit: profit,
-      roi: roi,
-      hourlyValue: totalRevenue / hoursWorked
+      marginPercent: marginPercent
     }
   }
 
@@ -106,31 +157,24 @@ export default function DemoPage() {
     if (isPlaying) {
       intervalRef.current = setInterval(() => {
         setSeconds(prev => prev + 1)
-      }, 100) // Faster for demo
+      }, 1000)
     } else {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
+        intervalRef.current = null
       }
     }
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
+        intervalRef.current = null
       }
     }
   }, [isPlaying])
 
-  // Format time display
-  useEffect(() => {
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    const secs = seconds % 60
-
-    setCurrentTime(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`)
-  }, [seconds])
-
   const scenarios = [
-    { id: 'profitability', name: 'Campaign Profitability', icon: DollarSign, description: 'See which campaigns actually make money' },
+    { id: 'profitability', name: 'Agency Profitability', icon: DollarSign, description: 'Calculate profit margins for different services' },
     { id: 'retainer', name: 'Retainer Alerts', icon: AlertTriangle, description: 'Prevent budget overruns and scope creep' },
     { id: 'roi', name: 'Channel ROI', icon: TrendingUp, description: 'Compare profitability across marketing channels' },
     { id: 'invoice', name: 'Smart Invoicing', icon: FileText, description: 'Generate detailed, campaign-specific invoices' }
@@ -143,53 +187,124 @@ export default function DemoPage() {
         <div className="text-center mb-12">
           <Badge className="mb-4" variant="secondary">Interactive Demo</Badge>
           <h1 className="text-4xl font-bold mb-4">
-            Experience TrackFlow in Action
+            See How Agencies Boost Profits by 23%
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            See how TrackFlow helps you track time, manage clients, and boost profitability - 
-            all designed specifically for digital marketers.
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-4">
+            Track every billable minute, prevent scope creep, and maximize profit margins.
+            The only time tracker built specifically for digital marketing agencies.
+          </p>
+          <div className="flex flex-wrap justify-center gap-6 mb-4 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span>Average 23% profit increase</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span>2,000+ agencies trust TrackFlow</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <span>$2M+ in recovered billable time</span>
+            </div>
+          </div>
+          <p className="text-lg font-medium text-blue-600">
+            👇 Try the live timer and profitability calculator below
           </p>
         </div>
 
         {/* Demo Dashboard */}
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Timer Demo */}
-          <Card className="border-2 border-blue-200">
+          <Card className={`border-2 transition-all duration-300 ${isPlaying ? 'border-green-400 bg-green-50 shadow-lg' : 'border-blue-200'}`}>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Clock className="w-5 h-5" />
-                Live Timer Demo
+                <Clock className={`w-5 h-5 ${isPlaying ? 'text-green-600' : ''}`} />
+                Live Billable Time Tracker
+                {isPlaying && (
+                  <Badge className="bg-green-600 text-white animate-pulse ml-2">
+                    <div className="w-2 h-2 bg-white rounded-full mr-1"></div>
+                    TRACKING • ${((seconds / 3600) * 125).toFixed(2)} earned
+                  </Badge>
+                )}
               </CardTitle>
               <CardDescription>
-                Track time with marketing-specific categories
+                Stop losing money on untracked time. Every billable minute automatically calculated for maximum agency profitability.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div className="space-y-1">
-                    <p className="font-medium">PPC Campaign Optimization</p>
+                    <p className="font-medium">Google Ads Campaign Audit & Optimization</p>
                     <div className="flex gap-2">
-                      <Badge variant="outline">Google Ads</Badge>
-                      <Badge variant="outline">Client: Acme Corp</Badge>
+                      <Badge variant="outline">PPC • $125/hr</Badge>
+                      <Badge variant="outline">Client: TechStart Inc</Badge>
+                      <Badge variant="outline" className="text-green-600 border-green-600">Billable</Badge>
                     </div>
+                    <p className="text-sm text-gray-600">
+                      Keyword research, ad copy testing, landing page optimization
+                    </p>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-3xl font-mono font-bold">{currentTime}</span>
-                    <Button 
-                      onClick={() => setIsPlaying(!isPlaying)}
-                      size="lg"
-                      className={isPlaying ? 'bg-red-600 hover:bg-red-700' : ''}
-                    >
-                      {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                    </Button>
+                    <span className="text-3xl font-mono font-bold">{formatTime(seconds)}</span>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={toggleTimer}
+                        size="lg"
+                        className={isPlaying ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}
+                      >
+                        {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
+                        <span className="ml-2">{isPlaying ? 'Pause' : 'Start'}</span>
+                      </Button>
+                      <Button
+                        onClick={resetTimer}
+                        size="lg"
+                        variant="outline"
+                        disabled={seconds === 0}
+                      >
+                        <RefreshCw className="w-5 h-5" />
+                        <span className="ml-2">Reset</span>
+                      </Button>
+                    </div>
                   </div>
                 </div>
-                <div className="grid grid-cols-4 gap-2">
-                  <Badge variant="secondary">SEO</Badge>
-                  <Badge variant="secondary">PPC</Badge>
-                  <Badge variant="secondary">Social Media</Badge>
-                  <Badge variant="secondary">Email Marketing</Badge>
+                <div className="space-y-3">
+                  <div className="text-sm font-medium text-gray-700">Quick Start Categories:</div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    <button
+                      className="p-2 text-left border rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                      onClick={startTimer}
+                    >
+                      <div className="font-medium text-sm">PPC Management</div>
+                      <div className="text-xs text-gray-500">$125/hr</div>
+                    </button>
+                    <button
+                      className="p-2 text-left border rounded-lg hover:bg-green-50 hover:border-green-300 transition-colors"
+                      onClick={startTimer}
+                    >
+                      <div className="font-medium text-sm">SEO Services</div>
+                      <div className="text-xs text-gray-500">$110/hr</div>
+                    </button>
+                    <button
+                      className="p-2 text-left border rounded-lg hover:bg-purple-50 hover:border-purple-300 transition-colors"
+                      onClick={startTimer}
+                    >
+                      <div className="font-medium text-sm">Social Media</div>
+                      <div className="text-xs text-gray-500">$85/hr</div>
+                    </button>
+                    <button
+                      className="p-2 text-left border rounded-lg hover:bg-orange-50 hover:border-orange-300 transition-colors"
+                      onClick={startTimer}
+                    >
+                      <div className="font-medium text-sm">Email Marketing</div>
+                      <div className="text-xs text-gray-500">$95/hr</div>
+                    </button>
+                  </div>
+                  {!isPlaying && (
+                    <p className="text-sm text-gray-600 italic">
+                      💡 Click any service above to start tracking time at that billing rate
+                    </p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -197,43 +312,55 @@ export default function DemoPage() {
 
           {/* Stats Overview */}
           <div className="grid md:grid-cols-4 gap-4">
-            <Card>
+            <Card className="border-green-200 bg-green-50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Today's Hours</CardTitle>
+                <CardTitle className="text-sm font-medium flex items-center gap-1">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  Billable Hours Today
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">6.5</div>
-                <p className="text-xs text-muted-foreground">85% billable</p>
+                <div className="text-2xl font-bold text-green-700">6.5</div>
+                <p className="text-xs text-green-600">85% billable • $812.50 earned</p>
               </CardContent>
             </Card>
-            
-            <Card>
+
+            <Card className="border-blue-200 bg-blue-50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Weekly Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium flex items-center gap-1">
+                  <TrendingUp className="w-4 h-4 text-blue-600" />
+                  Weekly Revenue
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">$8,450</div>
-                <p className="text-xs text-green-600">+22% from last week</p>
+                <div className="text-2xl font-bold text-blue-700">$8,450</div>
+                <p className="text-xs text-blue-600">+22% from last week</p>
               </CardContent>
             </Card>
-            
-            <Card>
+
+            <Card className="border-purple-200 bg-purple-50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Active Retainers</CardTitle>
+                <CardTitle className="text-sm font-medium flex items-center gap-1">
+                  <Users className="w-4 h-4 text-purple-600" />
+                  Active Retainers
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">$45K MRR</p>
+                <div className="text-2xl font-bold text-purple-700">12</div>
+                <p className="text-xs text-purple-600">$45K MRR • 95% renewal rate</p>
               </CardContent>
             </Card>
-            
-            <Card>
+
+            <Card className="border-orange-200 bg-orange-50">
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">ROI Score</CardTitle>
+                <CardTitle className="text-sm font-medium flex items-center gap-1">
+                  <Target className="w-4 h-4 text-orange-600" />
+                  Profit Margin
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">3.2x</div>
-                <p className="text-xs text-muted-foreground">PPC best performer</p>
+                <div className="text-2xl font-bold text-orange-700">52%</div>
+                <p className="text-xs text-orange-600">Up 8% this quarter</p>
               </CardContent>
             </Card>
           </div>
@@ -269,10 +396,10 @@ export default function DemoPage() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <DollarSign className="w-5 h-5 text-green-600" />
-                    Campaign Profitability Calculator
+                    Agency Profitability Calculator
                   </CardTitle>
                   <CardDescription>
-                    See which marketing channels actually make money after labor costs
+                    Calculate your agency's profit margins across different marketing services
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -284,7 +411,7 @@ export default function DemoPage() {
                           {Object.entries(channelData).map(([key, channel]) => (
                             <button
                               key={key}
-                              onClick={() => setSelectedChannel(key)}
+                              onClick={() => handleChannelSelect(key)}
                               className={`p-3 rounded-lg border text-left transition-all ${
                                 selectedChannel === key
                                   ? `border-blue-500 ${channel.bgColor} ${channel.color}`
@@ -292,7 +419,7 @@ export default function DemoPage() {
                               }`}
                             >
                               <div className="font-medium text-sm">{channel.name}</div>
-                              <div className="text-xs text-gray-500">${channel.hourlyRate}/hr</div>
+                              <div className="text-xs text-gray-500">${channel.hourlyRate}/hr • Margin: {(((channel.hourlyRate - channel.costPerHour) / channel.hourlyRate) * 100).toFixed(0)}%</div>
                             </button>
                           ))}
                         </div>
@@ -307,24 +434,26 @@ export default function DemoPage() {
                           min="1"
                           max="40"
                           value={hoursWorked}
-                          onChange={(e) => setHoursWorked(Number(e.target.value))}
+                          onChange={handleHoursChange}
                           className="w-full"
                         />
                       </div>
 
                       <div>
                         <label className="block text-sm font-medium mb-2">
-                          Client Ad Spend: ${clientSpend.toLocaleString()}
+                          Team Members: {teamMembers}
                         </label>
                         <input
                           type="range"
-                          min="0"
-                          max="50000"
-                          step="500"
-                          value={clientSpend}
-                          onChange={(e) => setClientSpend(Number(e.target.value))}
+                          min="1"
+                          max="10"
+                          value={teamMembers}
+                          onChange={handleTeamMembersChange}
                           className="w-full"
                         />
+                        <div className="text-xs text-gray-500 mt-1">
+                          Total hours: {hoursWorked * teamMembers} hours
+                        </div>
                       </div>
                     </div>
 
@@ -337,7 +466,14 @@ export default function DemoPage() {
                               <div className="text-2xl font-bold text-blue-900">
                                 ${results.revenue.toLocaleString()}
                               </div>
-                              <div className="text-sm text-blue-700">Total Revenue</div>
+                              <div className="text-sm text-blue-700">Agency Revenue</div>
+                            </div>
+
+                            <div className="p-4 bg-red-50 rounded-lg">
+                              <div className="text-2xl font-bold text-red-900">
+                                ${results.costs.toLocaleString()}
+                              </div>
+                              <div className="text-sm text-red-700">Total Costs</div>
                             </div>
 
                             <div className="p-4 bg-green-50 rounded-lg">
@@ -349,16 +485,9 @@ export default function DemoPage() {
 
                             <div className="p-4 bg-purple-50 rounded-lg">
                               <div className="text-2xl font-bold text-purple-900">
-                                {(results.roi * 100).toFixed(0)}%
+                                {results.marginPercent.toFixed(1)}%
                               </div>
-                              <div className="text-sm text-purple-700">ROI</div>
-                            </div>
-
-                            <div className="p-4 bg-gray-50 rounded-lg">
-                              <div className="text-2xl font-bold text-gray-900">
-                                ${results.hourlyValue.toFixed(0)}
-                              </div>
-                              <div className="text-sm text-gray-700">Effective Hourly Value</div>
+                              <div className="text-sm text-purple-700">Profit Margin</div>
                             </div>
                           </>
                         )
@@ -393,7 +522,7 @@ export default function DemoPage() {
                           min="0"
                           max="100"
                           value={retainerUsed}
-                          onChange={(e) => setRetainerUsed(Number(e.target.value))}
+                          onChange={handleRetainerChange}
                           className="w-full"
                         />
                       </div>
@@ -407,7 +536,7 @@ export default function DemoPage() {
                           min="1"
                           max="31"
                           value={daysLeft}
-                          onChange={(e) => setDaysLeft(Number(e.target.value))}
+                          onChange={handleDaysLeftChange}
                           className="w-full"
                         />
                       </div>
@@ -499,17 +628,27 @@ export default function DemoPage() {
 
                     <div className="grid gap-4">
                       {Object.entries(channelData).map(([key, channel]) => {
-                        const revenue = 40 * channel.hourlyRate
-                        const profit = revenue * channel.profitMargin
-                        const roi = (profit / (revenue - profit)) * 100
+                        const hours = selectedTimeframe === 'week' ? 10 : selectedTimeframe === 'month' ? 40 : 120
+                        const revenue = hours * channel.hourlyRate
+                        const costs = hours * channel.costPerHour
+                        const profit = revenue - costs
+                        const roi = costs > 0 ? (profit / costs) * 100 : 0
+
+                        // Color mapping
+                        const colorMap: Record<string, string> = {
+                          'text-blue-600': 'bg-blue-500',
+                          'text-green-600': 'bg-green-500',
+                          'text-purple-600': 'bg-purple-500',
+                          'text-orange-600': 'bg-orange-500'
+                        }
 
                         return (
-                          <div key={key} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div key={key} className="flex items-center justify-between p-4 border rounded-lg hover:shadow-sm transition-shadow">
                             <div className="flex items-center gap-3">
-                              <div className={`w-3 h-3 rounded-full ${channel.color.replace('text', 'bg')}`} />
+                              <div className={`w-3 h-3 rounded-full ${colorMap[channel.color] || 'bg-gray-500'}`} />
                               <div>
                                 <div className="font-medium">{channel.name}</div>
-                                <div className="text-sm text-gray-500">40hrs @ ${channel.hourlyRate}/hr</div>
+                                <div className="text-sm text-gray-500">{hours}hrs @ ${channel.hourlyRate}/hr</div>
                               </div>
                             </div>
                             <div className="text-right">
@@ -592,26 +731,40 @@ export default function DemoPage() {
           <Card className="bg-gradient-to-r from-blue-600 to-blue-700 text-white border-0">
             <CardContent className="py-12 text-center">
               <h2 className="text-3xl font-bold mb-4">
-                Ready to Transform Your Agency?
+                Stop Losing Money on Untracked Time
               </h2>
-              <p className="text-xl mb-8 opacity-90">
-                Join 2,000+ agencies already using TrackFlow to boost profitability
+              <p className="text-xl mb-6 opacity-90">
+                Join 2,000+ agencies already using TrackFlow to boost profitability by an average of 23%
               </p>
-              <div className="flex gap-4 justify-center">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 max-w-3xl mx-auto">
+                <div className="bg-white/10 rounded-lg p-4">
+                  <div className="text-2xl font-bold">$2M+</div>
+                  <div className="text-sm opacity-90">Recovered billable time</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-4">
+                  <div className="text-2xl font-bold">23%</div>
+                  <div className="text-sm opacity-90">Average profit increase</div>
+                </div>
+                <div className="bg-white/10 rounded-lg p-4">
+                  <div className="text-2xl font-bold">2,000+</div>
+                  <div className="text-sm opacity-90">Agencies trust TrackFlow</div>
+                </div>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link href="/signup">
-                  <Button size="lg" variant="secondary">
+                  <Button size="lg" variant="secondary" className="min-w-48">
                     Start Free 14-Day Trial
                     <ChevronRight className="w-5 h-5 ml-2" />
                   </Button>
                 </Link>
                 <Link href="/pricing">
-                  <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10">
+                  <Button size="lg" variant="outline" className="text-white border-white hover:bg-white/10 min-w-32">
                     View Pricing
                   </Button>
                 </Link>
               </div>
               <p className="mt-4 text-sm opacity-75">
-                No credit card required • Cancel anytime
+                No credit card required • Cancel anytime • Setup in 5 minutes
               </p>
             </CardContent>
           </Card>

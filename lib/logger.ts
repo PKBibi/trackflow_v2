@@ -98,16 +98,16 @@ class Logger {
   }
 
   error(message: string, error?: Error | unknown, context?: Record<string, any>): void {
-    const errorContext = {
+    const errorContext: Record<string, any> = {
       ...context,
-      ...(error instanceof Error && {
+      ...(error instanceof Error ? {
         stack: error.stack,
         name: error.name,
         message: error.message,
-      }),
-      ...(error && typeof error === 'object' && {
+      } : {}),
+      ...(error && typeof error === 'object' ? {
         error: error
-      })
+      } : {})
     };
 
     this.output(this.formatMessage('error', message, errorContext));

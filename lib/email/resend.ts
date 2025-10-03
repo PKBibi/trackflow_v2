@@ -1,10 +1,24 @@
 import { Resend } from 'resend';
 
-if (!process.env.RESEND_API_KEY) {
-  throw new Error('RESEND_API_KEY is required');
+// Lazy initialization - only throw error when actually trying to use the service
+let resendInstance: Resend | null = null;
+
+function getResendClient(): Resend {
+  if (!resendInstance) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY is required');
+    }
+    resendInstance = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resendInstance;
 }
 
-export const resend = new Resend(process.env.RESEND_API_KEY);
+// For backward compatibility
+export const resend = {
+  get emails() {
+    return getResendClient().emails;
+  }
+} as Resend;
 
 // Email sending utility
 export async function sendEmail({
@@ -27,7 +41,7 @@ export async function sendEmail({
       subject,
       html,
       text,
-    });
+    } as any);
 
     return { success: true, data: result };
   } catch (error) {

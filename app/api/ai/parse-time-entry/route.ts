@@ -1,8 +1,11 @@
+import { createClient } from '@/lib/supabase/server'
+import { rateLimitPerUser } from '@/lib/validation/middleware'
 import { NextRequest, NextResponse } from 'next/server'
 import { requireUserWithPlan } from '@/lib/ai/access'
 import { callOpenAIJSON } from '@/lib/ai/openai'
 
 export async function POST(req: NextRequest) {
+  await rateLimitPerUser()
   const gate = await requireUserWithPlan('pro')
   if (gate.status !== 200) return NextResponse.json({ error: gate.error }, { status: gate.status })
 
@@ -36,6 +39,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
+  await rateLimitPerUser()
   return NextResponse.json({ error: 'Use POST' }, { status: 405 })
 }
+
+
 

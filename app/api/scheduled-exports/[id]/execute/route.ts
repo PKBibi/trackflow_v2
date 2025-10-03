@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { sendEmail } from '@/lib/email/resend'
 
 export async function POST(
   request: NextRequest,
@@ -92,10 +93,7 @@ export async function POST(
       let emailSent = false
       try {
         if (process.env.RESEND_API_KEY) {
-          const { Resend } = await import('resend')
-          const resend = new Resend(process.env.RESEND_API_KEY)
-
-          await resend.emails.send({
+          await sendEmail({
             from: 'TrackFlow <noreply@trackflow.app>',
             to: scheduledExport.email_to,
             subject: scheduledExport.email_subject,

@@ -1,14 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveTeam } from '@/lib/auth/team'
 
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
+
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) return teamContext.response
+    const { teamId } = teamContext
 
     const body = await request.json()
     const { entries, mappings } = body
@@ -22,6 +27,7 @@ export async function POST(request: NextRequest) {
       .from('clients')
       .select('email, name')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
 
     const existingEmails = new Set(existingClients?.map(c => c.email.toLowerCase()) || [])
     const existingNames = new Set(existingClients?.map(c => c.name.toLowerCase()) || [])
@@ -98,6 +104,7 @@ export async function POST(request: NextRequest) {
         // Create the client record
         const clientData = {
           user_id: user.id,
+          team_id: teamId,
           name: mappedClient.name.trim(),
           email: mappedClient.email.toLowerCase().trim(),
           phone: mappedClient.phone?.trim() || null,

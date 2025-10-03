@@ -56,28 +56,37 @@ class AuditLogger {
   private supabase: any = null
   private logBuffer: AuditLogEntry[] = []
   private isFlushingLogs = false
+  private initPromise: Promise<void> | null = null
 
   constructor() {
-    // Initialize Supabase client for server-side logging
-    this.initSupabase()
-    
-    // Flush logs periodically
-    setInterval(() => {
-      this.flushLogs()
-    }, 10000) // Flush every 10 seconds
-    
-    // Flush on process exit
-    process.on('beforeExit', () => {
-      this.flushLogs()
-    })
+    // Don't initialize Supabase at construction time
+    // It will be lazily initialized on first log call
+
+    // Flush logs periodically (only in Node.js environment)
+    if (typeof process !== 'undefined' && process.on) {
+      setInterval(() => {
+        this.flushLogs()
+      }, 10000) // Flush every 10 seconds
+
+      // Flush on process exit
+      process.on('beforeExit', () => {
+        this.flushLogs()
+      })
+    }
   }
 
   private async initSupabase() {
-    try {
-      this.supabase = await createClient()
-    } catch (error) {
-      console.error('Failed to initialize Supabase for audit logging:', error)
-    }
+    if (this.initPromise) return this.initPromise
+
+    this.initPromise = (async () => {
+      try {
+        this.supabase = await createClient()
+      } catch (error) {
+        console.error('Failed to initialize Supabase for audit logging:', error)
+      }
+    })()
+
+    return this.initPromise
   }
 
   async log(entry: Omit<AuditLogEntry, 'timestamp' | 'ip_address' | 'user_agent'>) {

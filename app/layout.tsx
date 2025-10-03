@@ -8,11 +8,14 @@ import { PostHogProvider } from '@/components/PostHogProvider'
 import { WebVitals } from '@/components/web-vitals'
 import { Toaster } from '@/components/ui/toaster'
 import ErrorBoundary from '@/components/error-boundary'
+import { createClient } from '@/lib/supabase/server'
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
-  display: 'swap', // Improve font loading performance
-  preload: true
+  display: 'swap',
+  preload: true,
+  variable: '--font-inter',
+  fallback: ['system-ui', 'arial']
 })
 
 export const metadata: Metadata = {
@@ -104,14 +107,28 @@ export const viewport: Viewport = {
   ],
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {user?.id ? <meta name="trackflow-user-id" content={user.id} /> : null}
+        {/* Critical font preload for LCP optimization */}
+        <link
+          rel="preload"
+          href="https://fonts.gstatic.com/s/inter/v18/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hiA.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
         {/* Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

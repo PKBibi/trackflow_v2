@@ -7,7 +7,7 @@ interface AuthenticatedUser {
   email?: string | null
 }
 
-function sha256Hex(input: string): string {
+export function hashApiKey(input: string): string {
   return createHash('sha256').update(input).digest('hex')
 }
 
@@ -31,11 +31,11 @@ export async function getAuthenticatedUser(req: NextRequest): Promise<Authentica
 
   if (token) {
     try {
-      const hash = sha256Hex(token)
+      const hash = hashApiKey(token)
       const { data: apiKey, error } = await supabase
         .from('api_keys')
         .select('user_id, status, expires_at')
-        .eq('key', hash)
+        .eq('key_hash', hash)
         .single()
 
       if (!error && apiKey && apiKey.status === 'active') {
@@ -57,4 +57,3 @@ export async function getAuthenticatedUser(req: NextRequest): Promise<Authentica
   }
   return null
 }
-

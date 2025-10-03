@@ -1,3 +1,5 @@
+import { fetchWithTeam } from '@/lib/api/fetch'
+import TeamSwitcher from '@/components/team/TeamSwitcher'
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -478,3 +480,4 @@ export default function ClientsPage() {
     </div>
   )
 }
+

@@ -1,3 +1,4 @@
+import { fetchWithTeam } from '@/lib/api/fetch'
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -554,3 +555,4 @@ export default function ProjectsPage() {
     </div>
   )
 }
+

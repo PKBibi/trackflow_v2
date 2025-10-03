@@ -1,15 +1,24 @@
+import { requirePlan } from '@/lib/auth/plan'
+import { getActiveTeam } from '@/lib/auth/team'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import * as XLSX from 'xlsx'
 
 export async function POST(request: NextRequest) {
+  const gate = await requirePlan('pro')
+  if (!gate.ok) return gate.response
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
+
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) return teamContext.response
+    const { teamId } = teamContext
 
     const body = await request.json()
     const { 
@@ -44,6 +53,7 @@ export async function POST(request: NextRequest) {
           projects:project_id (name)
         `)
         .eq('user_id', user.id)
+        .eq('team_id', teamId)
         .order('start_time', { ascending: false })
 
       // Apply filters
@@ -82,8 +92,8 @@ export async function POST(request: NextRequest) {
         'Duration (hours)': (entry.duration || 0) / 60,
         'Task Title': entry.task_title,
         'Description': entry.task_description || '',
-        'Client': entry.clients?.name || '',
-        'Project': entry.projects?.name || '',
+        'Client': (entry.clients as any)?.name || '',
+        'Project': (entry.projects as any)?.name || '',
         'Category': entry.marketing_category,
         'Channel': entry.marketing_channel,
         'Billable': entry.billable ? 'Yes' : 'No',
@@ -96,6 +106,7 @@ export async function POST(request: NextRequest) {
         .from('clients')
         .select('*')
         .eq('user_id', user.id)
+        .eq('team_id', teamId)
         .order('name')
 
       if (error) {
@@ -123,6 +134,7 @@ export async function POST(request: NextRequest) {
           clients:client_id (name)
         `)
         .eq('user_id', user.id)
+        .eq('team_id', teamId)
         .order('name')
 
       if (error) {
@@ -262,7 +274,10 @@ export async function POST(request: NextRequest) {
 }
 
 // GET endpoint to return export templates/options
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const gate = await requirePlan('pro')
+  if (!gate.ok) return gate.response
+
   return NextResponse.json({
     formats: [
       { 
@@ -303,3 +318,4 @@ export async function GET() {
     ]
   })
 }
+

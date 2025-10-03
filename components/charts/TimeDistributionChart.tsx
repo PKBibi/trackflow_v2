@@ -121,8 +121,9 @@ export default function TimeDistributionChart({
                     stroke="white"
                     strokeWidth="2"
                     className="transition-all duration-300 hover:opacity-80 cursor-pointer"
-                    title={`${item.label}: ${item.hours}h (${item.percentage.toFixed(1)}%)`}
-                  />
+                  >
+                    <title>{`${item.label}: ${item.hours}h (${item.percentage.toFixed(1)}%)`}</title>
+                  </path>
                 </g>
               ))}
               

@@ -1,5 +1,7 @@
+import { requirePlan } from '@/lib/auth/plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { getActiveTeam } from '@/lib/auth/team'
 
 interface ServiceMargin {
   channel: string
@@ -32,13 +34,20 @@ interface MarginSummary {
 const COST_PER_HOUR = 60 // Base cost per hour for agency operations
 
 export async function GET(request: NextRequest) {
+  const gate = await requirePlan('pro')
+  if (!gate.ok) return gate.response
+
   try {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    
+
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
+
+    const teamContext = await getActiveTeam(request)
+    if (!teamContext.ok) return teamContext.response
+    const { teamId } = teamContext
 
     // Get date ranges for comparison
     const now = new Date()
@@ -50,6 +59,7 @@ export async function GET(request: NextRequest) {
       .from('time_entries')
       .select('*')
       .eq('user_id', user.id)
+      .eq('team_id', teamId)
       .gte('start_time', sixtyDaysAgo.toISOString())
       .order('start_time', { ascending: false })
 

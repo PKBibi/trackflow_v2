@@ -1,3 +1,4 @@
+import { requirePlan } from '@/lib/auth/plan'
 import { NextRequest, NextResponse } from 'next/server'
 
 function pdfEscape(text: string) {
@@ -234,6 +235,9 @@ function generatePDFMultiPage(
 }
 
 export async function GET(request: NextRequest) {
+  const gate = await requirePlan('pro')
+  if (!gate.ok) return gate.response
+
   const { searchParams } = new URL(request.url)
   const branding = {
     companyName: searchParams.get('companyName') || undefined,
@@ -261,6 +265,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const gate = await requirePlan('pro')
+  if (!gate.ok) return gate.response
+
   let payload: any = {}
   try { payload = await request.json() } catch {}
   const branding = payload?.branding || {}
@@ -336,3 +343,4 @@ export async function POST(request: NextRequest) {
     }
   })
 }
+

@@ -110,7 +110,7 @@ export default function RevenueTrendChart({
               chartData.trend === 'down' ? 'text-red-600' : 
               'text-gray-600'
             }`}>
-              {chartData.trendPercentage > 0 ? '+' : ''}{chartData.trendPercentage.toFixed(1)}%
+              {(chartData.trendPercentage || 0) > 0 ? '+' : ''}{(chartData.trendPercentage || 0).toFixed(1)}%
             </span>
           </div>
         </CardTitle>
@@ -193,9 +193,10 @@ export default function RevenueTrendChart({
                     stroke="white"
                     strokeWidth="2"
                     className="cursor-pointer hover:r-4 transition-all"
-                    title={`${point.period}: $${point.revenue.toLocaleString()}`}
-                  />
-                  
+                  >
+                    <title>{`${point.period}: $${point.revenue.toLocaleString()}`}</title>
+                  </circle>
+
                   {/* Hours point */}
                   <circle
                     cx={point.x}
@@ -205,8 +206,9 @@ export default function RevenueTrendChart({
                     stroke="white"
                     strokeWidth="2"
                     className="cursor-pointer hover:r-4 transition-all"
-                    title={`${point.period}: ${point.hours}h`}
-                  />
+                  >
+                    <title>{`${point.period}: ${point.hours}h`}</title>
+                  </circle>
                 </g>
               ))}
 

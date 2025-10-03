@@ -18,8 +18,42 @@ export const metadata: Metadata = {
 }
 
 export default function MarketingLandingPage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'TrackFlow',
+    applicationCategory: 'BusinessApplication',
+    offers: {
+      '@type': 'Offer',
+      price: '29',
+      priceCurrency': 'USD',
+      priceSpecification: {
+        '@type': 'UnitPriceSpecification',
+        price: '29.00',
+        priceCurrency': 'USD',
+        referenceQuantity: {
+          '@type': 'QuantitativeValue',
+          value: '1',
+          unitText: 'MONTH'
+        }
+      }
+    },
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.8',
+      ratingCount: '2000'
+    },
+    description: 'Professional time tracking software built for digital marketing agencies. Track campaign profitability, manage retainers, and increase profit margins.',
+    operatingSystem: 'Web',
+    screenshot: 'https://track-flow.app/images/screenshot.png'
+  }
+
   return (
     <div className="bg-gradient-to-b from-white to-gray-50 dark:from-[#0B1220] dark:to-gray-950">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
 
       {/* Hero Section - Optimized for performance */}
       <section className="relative py-32 px-4 overflow-hidden">

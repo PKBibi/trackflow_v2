@@ -26,11 +26,11 @@ export default function MarketingLandingPage() {
     offers: {
       '@type': 'Offer',
       price: '29',
-      priceCurrency': 'USD',
+      priceCurrency: 'USD',
       priceSpecification: {
         '@type': 'UnitPriceSpecification',
         price: '29.00',
-        priceCurrency': 'USD',
+        priceCurrency: 'USD',
         referenceQuantity: {
           '@type': 'QuantitativeValue',
           value: '1',

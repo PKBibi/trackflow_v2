@@ -4,8 +4,8 @@ import Script from 'next/script';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect } from 'react';
 
-// Google Analytics Measurement ID (fallback to env variable)
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || 'G-WC4MZKFK0D';
+// Google Analytics Measurement ID (must be set in env)
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
 const PH_API_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
 const PH_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://app.posthog.com';
 

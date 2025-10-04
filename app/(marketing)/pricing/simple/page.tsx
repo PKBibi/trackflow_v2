@@ -7,7 +7,9 @@ import { Badge } from '@/components/ui/badge'
 import { Check, ChevronRight, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { trackEvent } from '@/components/analytics'
-export const revalidate = 86400
+
+// Client component - no revalidate needed
+// export const revalidate = 86400
 
 type Price = { id: string; nickname?: string | null; unitAmount?: number | null; interval?: string | null }
 

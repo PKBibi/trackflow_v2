@@ -1,15 +1,65 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 export async function middleware(request: NextRequest) {
-  // Properly validate Supabase session instead of just checking cookie existence
   let user = null
-  
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  })
+
   try {
-    const supabase = await createClient()
+    // Create an Edge-compatible Supabase client
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            request.cookies.set({
+              name,
+              value,
+              ...options,
+            })
+            response = NextResponse.next({
+              request: {
+                headers: request.headers,
+              },
+            })
+            response.cookies.set({
+              name,
+              value,
+              ...options,
+            })
+          },
+          remove(name: string, options: CookieOptions) {
+            request.cookies.set({
+              name,
+              value: '',
+              ...options,
+            })
+            response = NextResponse.next({
+              request: {
+                headers: request.headers,
+              },
+            })
+            response.cookies.set({
+              name,
+              value: '',
+              ...options,
+            })
+          },
+        },
+      }
+    )
+
     const { data: { session }, error } = await supabase.auth.getSession()
-    
+
     // Consider session valid only if we have a valid user and no errors
     const hasValidSession = session?.user && !error
     user = hasValidSession ? session.user : null
@@ -22,8 +72,8 @@ export async function middleware(request: NextRequest) {
   // Define protected routes that require authentication
   const protectedRoutes = [
     '/dashboard',
-    '/timer', // Re-enabled with proper auth validation
-    '/timesheet', 
+    '/timer',
+    '/timesheet',
     '/reports',
     '/invoices',
     '/clients',
@@ -32,7 +82,8 @@ export async function middleware(request: NextRequest) {
     '/settings',
     '/billing',
     '/import',
-    '/onboarding'
+    '/onboarding',
+    '/account-security'
   ]
 
   // Define public routes that should redirect to dashboard if already authenticated
@@ -42,7 +93,7 @@ export async function middleware(request: NextRequest) {
 
   // Check if the current route is protected
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
-  
+
   // Check if the current route is an auth route
   const isAuthRoute = authRoutes.some(route => pathname.startsWith(route))
 
@@ -62,7 +113,8 @@ export async function middleware(request: NextRequest) {
   if (isAuthRoute && user) {
     return NextResponse.redirect(new URL('/dashboard', request.url))
   }
-  return NextResponse.next()
+
+  return response
 }
 
 // Configure which routes the middleware should run on

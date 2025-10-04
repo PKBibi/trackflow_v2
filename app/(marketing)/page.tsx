@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'TrackFlow - Time Tracking for Digital Marketing Agencies',
     description: 'Track campaign profitability, manage retainers, and increase margins by 40%. Trusted by 2,000+ marketing agencies worldwide.',
-    images: ['/images/og-homepage.png'],
+    images: ['/images/og-image.png'],
   },
 }
 

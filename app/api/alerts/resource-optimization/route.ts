@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveTeam } from '@/lib/auth/team'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 interface Alert {
   id: string
   type: 'utilization' | 'capacity' | 'pricing' | 'client_risk' | 'efficiency'

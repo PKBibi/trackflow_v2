@@ -3,6 +3,9 @@ import { getAuthenticatedUser } from '@/lib/auth/api-key'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { HttpError } from '@/lib/errors'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     const user = await getAuthenticatedUser(request)

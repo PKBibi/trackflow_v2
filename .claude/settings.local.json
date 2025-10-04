@@ -18,7 +18,17 @@
       "Bash(npm audit:*)",
       "Bash(npm run lint:*)",
       "Bash(npm test:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(git checkout:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(git reset:*)",
+      "Bash(git restore:*)",
+      "Bash(chmod:*)",
+      "Bash(scoop install:*)",
+      "Bash(supabase login:*)",
+      "Bash(supabase migration:*)",
+      "Bash(psql:*)"
     ],
     "deny": [],
     "ask": []

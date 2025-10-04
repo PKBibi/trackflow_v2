@@ -647,11 +647,6 @@ export default function TimerPage() {
                   AI estimates available on Pro — <a href="/pricing/simple" className="underline" onClick={async (e)=>{ try { const { trackEvent } = await import('@/components/analytics'); trackEvent.featureUse('timer_upgrade_click_estimate'); } catch {} }}>Upgrade</a>
                 </div>
               )}
-              {plan==='free' && !currentTimer.isRunning && newEntry.channel && (newEntry.taskTitle || newEntry.description) && (
-                <div className="text-xs text-muted-foreground mb-2">
-                  AI estimates available on Pro — <a href="/pricing/simple" className="underline">Upgrade</a>
-                </div>
-              )}
               {estimateHint && !currentTimer.isRunning && (
                 <div className="text-sm text-muted-foreground mb-2 flex items-center gap-2 justify-center">
                   <span>Estimated: ~{Math.round(estimateHint.minutes)} min ({Math.round((estimateHint.confidence || 0)*100)}% conf)</span>

@@ -3,6 +3,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getHealthStatus } from '@/lib/monitoring/alerts'
 import { createClient } from '@/lib/supabase/server'
 
+// Force dynamic rendering for this route
+export const dynamic = 'force-dynamic'
+
 export async function GET(request: NextRequest) {
   try {
     // Get health status from monitoring system

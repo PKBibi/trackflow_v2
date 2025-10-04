@@ -34,18 +34,7 @@
     }
   ],
   "categories": ["productivity", "business"],
-  "screenshots": [
-    {
-      "src": "/images/screenshot-1.png",
-      "sizes": "1280x720",
-      "type": "image/png"
-    },
-    {
-      "src": "/images/screenshot-2.png",
-      "sizes": "1280x720",
-      "type": "image/png"
-    }
-  ],
+  "screenshots": [],
   "shortcuts": [
     {
       "name": "Start Timer",

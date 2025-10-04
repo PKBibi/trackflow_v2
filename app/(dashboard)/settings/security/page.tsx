@@ -847,6 +847,7 @@ export default function SecuritySettingsPage() {
           <div className="space-y-4">
             <div className="bg-white p-4 rounded-lg flex justify-center">
               {setupData?.qrCode ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img src={setupData.qrCode} alt="Two-factor authentication QR code" className="w-48 h-48" />
               ) : (
                 <div className="w-48 h-48 bg-gray-200 flex items-center justify-center text-gray-500">

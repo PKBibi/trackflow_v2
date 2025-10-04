@@ -18,7 +18,7 @@ interface RateLimitStore {
 }
 
 // Simple in-memory store (use Redis in production)
-const store: RateLimitStore = {}
+export const store: RateLimitStore = {}
 
 // Clean up expired entries periodically
 setInterval(() => {

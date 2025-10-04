@@ -10,7 +10,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --coverage --watchAll=false",
-    "test:api": "jest --config jest.api.config.js",
+    "test:api": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.api.config.js",
     "test:security": "jest --config security/jest.security.config.js",
     "test:security:watch": "jest --config security/jest.security.config.js --watch",
     "security:scan": "npm audit --audit-level=moderate && npm run test:security",
@@ -105,6 +105,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "undici": "^7.16.0"
   }
 }

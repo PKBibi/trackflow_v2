@@ -1,4 +1,3 @@
-import { log } from '@/lib/logger';
 /**
  * Production-ready logging utility
  *
@@ -6,6 +5,7 @@ import { log } from '@/lib/logger';
  * for both development and production environments.
  */
 
+/* eslint-disable no-console */
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 interface LogEntry {
@@ -45,21 +45,21 @@ class Logger {
       // Development: use console with colors
       switch (logEntry.level) {
         case 'debug':
-          log.debug('🐛', logEntry.message, logEntry.context || '');
+          console.debug('🐛', logEntry.message, logEntry.context || '');
           break;
         case 'info':
-          log.debug('ℹ️', logEntry.message, logEntry.context || '');
+          console.info('ℹ️', logEntry.message, logEntry.context || '');
           break;
         case 'warn':
-          log.warn('⚠️', logEntry.message, logEntry.context || '');
+          console.warn('⚠️', logEntry.message, logEntry.context || '');
           break;
         case 'error':
-          log.error('❌', logEntry.message, logEntry.context || '');
+          console.error('❌', logEntry.message, logEntry.context || '');
           break;
       }
     } else {
       // Production: structured JSON logging
-      log.debug(JSON.stringify(logEntry));
+      console.log(JSON.stringify(logEntry));
 
       // Send errors to external monitoring if configured
       if (logEntry.level === 'error' && typeof window === 'undefined') {

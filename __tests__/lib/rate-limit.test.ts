@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { rateLimit } from '@/lib/rate-limit'
+import { rateLimit, store } from '@/lib/rate-limit'
 
 // Mock NextResponse
 jest.mock('next/server', () => ({
@@ -30,7 +30,7 @@ describe('rateLimit', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     // Clear the rate limit store between tests
-    const rateLimiter = rateLimit({ windowMs: 1000, maxRequests: 2 })
+    Object.keys(store).forEach(key => delete store[key])
   })
 
   it('should allow requests under the limit', async () => {
@@ -96,7 +96,7 @@ describe('rateLimit', () => {
     })
     
     const successResponse = { status: 200, headers: new Map() } as any
-    mockHandler.mockResolvedValueOnce(successResponse)
+    mockHandler.mockResolvedValue(successResponse) // Use mockResolvedValue instead of Once
     
     // First request - should be allowed and not count against limit
     await rateLimiter(mockRequest, mockHandler)

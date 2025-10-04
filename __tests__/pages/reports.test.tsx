@@ -56,8 +56,14 @@ describe('ReportsPage', () => {
 
     // Generate Weekly (AI)
     fireEvent.click(screen.getByText('Generate Weekly (AI)'))
-    // Wait for aiReport to load, then the Preview PDF button should appear
-    await waitFor(() => expect(screen.getByText('Preview PDF')).toBeInTheDocument())
+    
+    // Wait for the loading state to resolve
+    await waitFor(() => {
+      expect(screen.queryByText('Generating…')).not.toBeInTheDocument()
+    })
+
+    // Now the button should be present
+    expect(screen.getByText('Preview PDF')).toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Preview PDF'))
     // Dialog title present

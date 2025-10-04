@@ -97,6 +97,7 @@ export function OptimizedImage({
       )}
       style={containerStyle}
     >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         ref={imgRef}
         src={imageSrc || blurDataUrl || fallbackSrc}

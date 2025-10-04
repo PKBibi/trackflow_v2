@@ -1,5 +1,6 @@
-import { log } from '@/lib/logger';
 'use client'
+
+import { log } from '@/lib/logger';
 
 import React, { ErrorInfo, ReactNode } from 'react'
 import { AlertTriangle, RefreshCw, Home } from 'lucide-react'

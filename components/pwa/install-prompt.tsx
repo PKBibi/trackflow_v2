@@ -1,5 +1,6 @@
-import { log } from '@/lib/logger';
 'use client'
+
+import { log } from '@/lib/logger';
 
 import { useState, useEffect } from 'react'
 import { X, Download, Smartphone } from 'lucide-react'

@@ -1,5 +1,6 @@
-import { log } from '@/lib/logger';
 'use client'
+
+import { log } from '@/lib/logger';
 
 import { useState, useEffect, useCallback } from 'react'
 import { Bell, Mail, MessageSquare, Smartphone, Globe, Clock, Calendar, DollarSign, Users, FileText, AlertCircle, Loader2 } from 'lucide-react'

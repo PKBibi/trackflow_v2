@@ -30,7 +30,15 @@
       "Bash(supabase migration:*)",
       "Bash(psql:*)",
       "Bash(npm ci:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(while read file)",
+      "Bash(do echo \"$file\")",
+      "Bash(head:*)",
+      "Bash(done)",
+      "Bash(for file in \"app/(dashboard)/settings/notifications/page.tsx\" \"app/(dashboard)/settings/team/page.tsx\" \"app/(dashboard)/settings/delete-account/page.tsx\" \"app/(dashboard)/timer/page.tsx\" \"app/(dashboard)/account-security/page.tsx\")",
+      "Bash(do head -3 \"$file\")",
+      "Bash(echo:*)",
+      "Bash(echo \"OK: $file\")"
     ],
     "deny": [],
     "ask": []

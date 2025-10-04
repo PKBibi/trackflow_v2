@@ -1,8 +1,8 @@
+'use client'
+
 import { log } from '@/lib/logger';
 import { fetchWithTeam } from '@/lib/api/fetch'
 import TeamSwitcher from '@/components/team/TeamSwitcher'
-'use client'
-
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'

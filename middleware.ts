@@ -60,8 +60,16 @@ export async function middleware(request: NextRequest) {
 
     const { data: { session }, error } = await supabase.auth.getSession()
 
-    // Consider session valid only if we have a valid user and no errors
-    const hasValidSession = session?.user && !error
+    // Validate session thoroughly
+    const hasValidSession = !!(
+      session?.user &&
+      session?.access_token &&
+      !error &&
+      // Check session is not expired (with 5 minute buffer)
+      session?.expires_at &&
+      new Date(session.expires_at * 1000).getTime() > Date.now() + (5 * 60 * 1000)
+    )
+
     user = hasValidSession ? session.user : null
   } catch (error) {
     // If we can't create supabase client or get session, treat as unauthenticated

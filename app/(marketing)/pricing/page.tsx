@@ -1,6 +1,6 @@
-import { log } from '@/lib/logger';
 'use client'
 
+import { log } from '@/lib/logger';
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Check, X, ChevronRight, Shield, Clock, Users, FileText, BarChart3, Zap, Globe, Lock } from 'lucide-react'
@@ -299,7 +299,9 @@ export default function PricingPage() {
                       }
                     } catch (error) {
                       // Don't block the user flow if analytics fails
-                      log.warn('Analytics tracking failed:', error);
+                      log.warn('Analytics tracking failed:', {
+                        error: error instanceof Error ? error.message : String(error)
+                      });
                       if (plan.name === 'Agency Starter') {
                         if (auth) startCheckout('pro'); else window.location.href = '/signup'
                       } else if (plan.name === 'Agency Growth') {

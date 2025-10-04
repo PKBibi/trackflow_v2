@@ -1,6 +1,6 @@
-import { log } from '@/lib/logger';
 'use client'
 
+import { log } from '@/lib/logger';
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2, AlertTriangle, Shield, Download, CheckCircle, X, Loader2 } from 'lucide-react'

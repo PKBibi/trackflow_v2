@@ -1,6 +1,6 @@
-import { log } from '@/lib/logger';
 'use client';
 
+import { log } from '@/lib/logger';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 const XLSXPromise = import('xlsx');

@@ -1,5 +1,6 @@
-import { log } from '@/lib/logger';
 'use client';
+
+import { log } from '@/lib/logger';
 
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,10 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    log.error(error);
+    log.error(error.message, {
+      digest: error.digest,
+      stack: error.stack
+    });
   }, [error]);
 
   return (

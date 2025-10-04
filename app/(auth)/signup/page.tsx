@@ -1,6 +1,6 @@
-import { log } from '@/lib/logger';
 'use client'
 
+import { log } from '@/lib/logger';
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -90,7 +90,9 @@ export default function SignupPage() {
           })
         } catch (emailError) {
           // Don't block signup if email fails
-          log.warn('Failed to send welcome email:', emailError)
+          log.warn('Failed to send welcome email:', {
+            error: emailError instanceof Error ? emailError.message : String(emailError)
+          })
         }
       }
 

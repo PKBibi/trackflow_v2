@@ -1,7 +1,8 @@
-import { log } from '@/lib/logger';
 'use client';
 
-import { useState, useEffect, useRef, useCallback, ReactNode } from 'react';
+import { log } from '@/lib/logger';
+
+import { useState, useEffect, useRef, useCallback, useMemo, ReactNode } from 'react';
 import { throttle } from '@/lib/performance';
 
 interface VirtualListProps<T> {

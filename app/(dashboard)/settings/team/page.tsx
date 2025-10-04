@@ -1,7 +1,7 @@
-import { log } from '@/lib/logger';
 'use client';
 
-import { useState, useEffect } from 'react';
+import { log } from '@/lib/logger';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   UserPlus, 
   Search, 

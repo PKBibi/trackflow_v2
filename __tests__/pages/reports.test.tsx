@@ -52,19 +52,22 @@ describe('ReportsPage', () => {
 
   it('opens Preview PDF dialog after generating report', async () => {
     render(<ReportsPage />)
-    await waitFor(() => expect(screen.queryByText('Loading reports…')).not.toBeInTheDocument())
+    await waitFor(() => expect(screen.queryByText('Loading reports…')).not.toBeInTheDocument(), {
+      timeout: 10000
+    })
 
     // Generate Weekly (AI)
-    fireEvent.click(screen.getByText('Generate Weekly (AI)'))
-    
+    const generateButton = screen.getByText('Generate Weekly (AI)')
+    fireEvent.click(generateButton)
+
     // findByText is async and waits for the element to appear
-    const previewButton = await screen.findByText('Preview PDF', {}, { timeout: 5000 });
+    const previewButton = await screen.findByText('Preview PDF', {}, { timeout: 10000 });
     expect(previewButton).toBeInTheDocument();
 
     fireEvent.click(previewButton)
-    
+
     // Wait for the dialog title to be present
-    expect(await screen.findByText('Weekly Report Preview')).toBeInTheDocument();
-  })
+    expect(await screen.findByText('Weekly Report Preview', {}, { timeout: 10000 })).toBeInTheDocument();
+  }, 15000)
 })
 

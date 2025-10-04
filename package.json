@@ -15,7 +15,12 @@
     "security:scan": "npm audit --audit-level=moderate && npm run test:security",
     "security:fix": "npm audit fix",
     "security:headers": "node -e \"const next=require('./next.config.js'); console.log(JSON.stringify(next.headers, null, 2))\"",
-    "security:check-deps": "npm audit --audit-level=high --production"
+    "security:check-deps": "npm audit --audit-level=high --production",
+    "db:verify": "node scripts/verify-database-schema.js",
+    "db:cleanup": "node scripts/cleanup-team-invites.js",
+    "prod:setup": "bash scripts/setup-production.sh",
+    "prod:verify": "node scripts/verify-production-env.js",
+    "prod:deploy": "npm run prod:verify && npm run build && vercel --prod"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.1.2",

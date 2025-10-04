@@ -93,32 +93,64 @@ if (!global.crypto) {
 }
 
 // Set up Web APIs for Next.js API route testing
+// First, set up ReadableStream from node:stream/web
+if (!global.ReadableStream) {
+  const { ReadableStream: NodeReadableStream } = require('node:stream/web');
+  global.ReadableStream = NodeReadableStream;
+}
+
 try {
-  const { Request, Response, Headers, fetch, ReadableStream } = require('undici')
+  const { Request, Response, Headers, fetch } = require('undici')
 
-  // Set up Web APIs globally before any imports
-  Object.assign(globalThis, {
-    Request,
-    Response,
-    Headers,
-    fetch,
-    ReadableStream
-  })
-
-  // Also set on global for compatibility
-  global.Request = Request
-  global.Response = Response
-  global.Headers = Headers
-  global.fetch = fetch
-  global.ReadableStream = ReadableStream
-  global.ReadableStream = ReadableStream
+  // Set up Web APIs globally
+  if (!global.Request) global.Request = Request;
+  if (!global.Response) global.Response = Response;
+  if (!global.Headers) global.Headers = Headers;
+  if (!global.fetch) global.fetch = fetch;
 
 } catch (error) {
   console.warn('Could not set up undici polyfills:', error.message)
+
+  // Fallback to basic mock implementations
+  if (!global.Request) {
+    global.Request = class Request {
+      constructor(input, init) {
+        this.url = typeof input === 'string' ? input : input.url;
+        this.method = init?.method || 'GET';
+        this.headers = new Map(Object.entries(init?.headers || {}));
+        this.body = init?.body;
+      }
+      async json() { return JSON.parse(this.body); }
+      async text() { return this.body; }
+    };
+  }
+
+  if (!global.Response) {
+    global.Response = class Response {
+      constructor(body, init) {
+        this.body = body;
+        this.status = init?.status || 200;
+        this.headers = new Map(Object.entries(init?.headers || {}));
+      }
+      async json() { return typeof this.body === 'string' ? JSON.parse(this.body) : this.body; }
+      async text() { return typeof this.body === 'string' ? this.body : JSON.stringify(this.body); }
+    };
+  }
+
+  if (!global.Headers) {
+    global.Headers = class Headers extends Map {
+      get(name) { return super.get(name.toLowerCase()); }
+      set(name, value) { return super.set(name.toLowerCase(), value); }
+    };
+  }
+
+  if (!global.fetch) {
+    global.fetch = jest.fn().mockResolvedValue(new global.Response('{}', { status: 200 }));
+  }
 }
 
-// Mock fetch for tests that need mocking
-global.fetch = jest.fn()
+// Override fetch with jest mock for tests
+global.fetch = jest.fn().mockResolvedValue(new global.Response('{}', { status: 200 }))
 
 // Setup window.matchMedia
 Object.defineProperty(window, 'matchMedia', {

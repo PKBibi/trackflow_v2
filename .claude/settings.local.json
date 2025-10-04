@@ -29,7 +29,8 @@
       "Bash(supabase login:*)",
       "Bash(supabase migration:*)",
       "Bash(psql:*)",
-      "Bash(npm ci:*)"
+      "Bash(npm ci:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": []

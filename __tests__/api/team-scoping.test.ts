@@ -31,6 +31,9 @@ describe('Team Scoping', () => {
       not: jest.fn(() => chain),
       is: jest.fn(() => chain),
       or: jest.fn(() => chain),
+      order: jest.fn(() => chain),
+      in: jest.fn(() => chain),
+      limit: jest.fn(() => chain),
       single: jest.fn().mockResolvedValue({ data: { id: '1' }, error: null }),
       then: (resolve: any) => resolve({ data: [{ id: '1' }], error: null }),
     };

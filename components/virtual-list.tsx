@@ -79,24 +79,25 @@ export function VirtualList<T>({
   }, [items.length, scrollTop, containerHeightValue, getItemHeight, overscan]);
   
   // Handle scroll with throttling
-  const handleScroll = useCallback(
-    throttle(() => {
-      if (!scrollElementRef.current) return;
-      
-      const newScrollTop = scrollElementRef.current.scrollTop;
-      setScrollTop(newScrollTop);
-      
-      // Check if end reached
-      if (onEndReached) {
-        const scrollHeight = scrollElementRef.current.scrollHeight;
-        const scrollPosition = newScrollTop + containerHeightValue;
-        const threshold = scrollHeight * endReachedThreshold;
+  const handleScroll = useMemo(
+    () =>
+      throttle(() => {
+        if (!scrollElementRef.current) return;
         
-        if (scrollPosition >= threshold) {
-          onEndReached();
+        const newScrollTop = scrollElementRef.current.scrollTop;
+        setScrollTop(newScrollTop);
+        
+        // Check if end reached
+        if (onEndReached) {
+          const scrollHeight = scrollElementRef.current.scrollHeight;
+          const scrollPosition = newScrollTop + containerHeightValue;
+          const threshold = scrollHeight * endReachedThreshold;
+          
+          if (scrollPosition >= threshold) {
+            onEndReached();
+          }
         }
-      }
-    }, 16), // ~60fps
+      }, 16), // ~60fps
     [containerHeightValue, endReachedThreshold, onEndReached]
   );
   

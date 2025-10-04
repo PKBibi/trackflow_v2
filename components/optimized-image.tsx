@@ -30,6 +30,25 @@ export function OptimizedImage({
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
   
+  const loadImage = useCallback(() => {
+    const img = new Image();
+    
+    img.onload = () => {
+      setImageSrc(src);
+      setIsLoading(false);
+      setHasError(false);
+      onLoadComplete?.();
+    };
+    
+    img.onerror = () => {
+      setImageSrc(fallbackSrc);
+      setIsLoading(false);
+      setHasError(true);
+    };
+    
+    img.src = src;
+  }, [src, fallbackSrc, onLoadComplete]);
+
   useEffect(() => {
     if (priority) {
       // Load immediately for priority images
@@ -63,26 +82,7 @@ export function OptimizedImage({
     return () => {
       observerRef.current?.disconnect();
     };
-  }, [src, priority]);
-  
-  const loadImage = () => {
-    const img = new Image();
-    
-    img.onload = () => {
-      setImageSrc(src);
-      setIsLoading(false);
-      setHasError(false);
-      onLoadComplete?.();
-    };
-    
-    img.onerror = () => {
-      setImageSrc(fallbackSrc);
-      setIsLoading(false);
-      setHasError(true);
-    };
-    
-    img.src = src;
-  };
+  }, [src, priority, loadImage]);
   
   const containerStyle = aspectRatio
     ? { paddingBottom: `${(1 / aspectRatio) * 100}%` }
@@ -182,6 +182,22 @@ export function BackgroundImage({
   const [isLoaded, setIsLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   
+  const loadBackgroundImage = useCallback(() => {
+    const img = new Image();
+    
+    img.onload = () => {
+      setBgImage(src);
+      setIsLoaded(true);
+    };
+    
+    img.onerror = () => {
+      setBgImage(fallbackSrc);
+      setIsLoaded(true);
+    };
+    
+    img.src = src;
+  }, [src, fallbackSrc]);
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -202,23 +218,7 @@ export function BackgroundImage({
     }
     
     return () => observer.disconnect();
-  }, [src]);
-  
-  const loadBackgroundImage = () => {
-    const img = new Image();
-    
-    img.onload = () => {
-      setBgImage(src);
-      setIsLoaded(true);
-    };
-    
-    img.onerror = () => {
-      setBgImage(fallbackSrc);
-      setIsLoaded(true);
-    };
-    
-    img.src = src;
-  };
+  }, [src, loadBackgroundImage]);
   
   return (
     <div

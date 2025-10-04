@@ -1,7 +1,7 @@
 import { log } from '@/lib/logger';
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { User, Camera, Mail, Phone, MapPin, Globe, Linkedin, Github, Twitter, Save, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -41,11 +41,7 @@ export default function ProfileSettingsPage() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const supabase = createClient()
 
-  useEffect(() => {
-    loadProfile()
-  }, [])
-
-  const loadProfile = async () => {
+  const loadProfile = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
@@ -91,7 +87,11 @@ export default function ProfileSettingsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase, router])
+
+  useEffect(() => {
+    loadProfile()
+  }, [loadProfile])
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     try {

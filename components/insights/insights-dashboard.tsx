@@ -106,7 +106,7 @@ export default function InsightsDashboard() {
   const [insightsData, setInsightsData] = useState<InsightsResponse | null>(null)
   const [weeklyLoading, setWeeklyLoading] = useState(false)
 
-  const fetchInsights = async (useAI: boolean = aiEnabled) => {
+  const fetchInsights = useCallback(async (useAI: boolean = aiEnabled) => {
     try {
       setLoading(true)
       setError(null)
@@ -148,11 +148,11 @@ export default function InsightsDashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [aiEnabled])
 
   useEffect(() => {
     fetchInsights()
-  }, [])
+  }, [fetchInsights])
 
   const handleRefresh = () => {
     fetchInsights()

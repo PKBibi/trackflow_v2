@@ -1,7 +1,7 @@
 import { log } from '@/lib/logger';
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Metadata } from 'next'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -96,32 +96,18 @@ export default function ReportsPage() {
         }
       } catch {}
     })()
-  },[])
+  },[periodLabel])
 
-  // Load initial data
-  useEffect(() => {
-    loadReportData()
-    loadClients()
-    fetch('/api/me/plan').then(r=>r.json()).then(d=>setPlan(d.plan||'free')).catch(()=>{})
-  }, [])
-
-  // Reload data when filters change
-  useEffect(() => {
-    if (!loading) {
-      loadReportData()
-    }
-  }, [filters])
-
-  const loadClients = async () => {
+  const loadClients = useCallback(async () => {
     try {
       const clientsData = await clientsAPI.getAll()
       setClients(clientsData)
     } catch (err) {
       log.error('Failed to load clients:', err)
     }
-  }
+  }, [])
 
-  const loadReportData = async () => {
+  const loadReportData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -143,7 +129,21 @@ export default function ReportsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters])
+
+  // Load initial data
+  useEffect(() => {
+    loadReportData()
+    loadClients()
+    fetch('/api/me/plan').then(r=>r.json()).then(d=>setPlan(d.plan||'free')).catch(()=>{})
+  }, [loadReportData, loadClients])
+
+  // Reload data when filters change
+  useEffect(() => {
+    if (!loading) {
+      loadReportData()
+    }
+  }, [filters, loading, loadReportData])
 
   const updateFilters = (newFilters: Partial<ReportFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }))

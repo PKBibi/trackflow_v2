@@ -28,7 +28,7 @@ export default function SimplePricingPage() {
       const url = new URL(window.location.href)
       const qp = (url.searchParams.get('exp') || '').toUpperCase()
       if (qp === 'A' || qp === 'B' || qp === 'C') {
-        setVariant(qp as 'A'|'B')
+        setVariant(qp as 'A'|'B'|'C')
         localStorage.setItem('pricing_simple_variant', qp)
       } else {
         const stored = localStorage.getItem('pricing_simple_variant') as 'A'|'B'|'C' | null
@@ -42,7 +42,7 @@ export default function SimplePricingPage() {
       }
     } catch {}
     try { trackEvent.experiment('pricing_simple', variant, 'view') } catch {}
-  }, [])
+  }, [variant])
 
   const [proPrice, entPrice] = useMemo(() => {
     if (!prices || prices.length === 0) return [null, null]

@@ -74,13 +74,7 @@ export default function TeamManagementPage() {
   const currentTeamSize = teamMembers.length;
   const hasTeamFeatures = plan !== 'free';
   
-  // Load team data on mount
-  useEffect(() => {
-    loadTeamData();
-    loadPlan();
-  }, []);
-  
-  const loadPlan = async () => {
+  const loadPlan = useCallback(async () => {
     try {
       const response = await fetch('/api/me/plan');
       const data = await response.json();
@@ -88,9 +82,9 @@ export default function TeamManagementPage() {
     } catch (error) {
       log.error('Failed to load plan:', error);
     }
-  };
+  }, []);
   
-  const loadTeamData = async () => {
+  const loadTeamData = useCallback(async () => {
     setIsLoading(true);
     try {
       // Load team members
@@ -120,7 +114,13 @@ export default function TeamManagementPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [toast]);
+
+  // Load team data on mount
+  useEffect(() => {
+    loadTeamData();
+    loadPlan();
+  }, [loadTeamData, loadPlan]);
   
   const getCurrentUserEmail = async () => {
     try {

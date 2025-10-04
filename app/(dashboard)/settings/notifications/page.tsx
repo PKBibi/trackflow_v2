@@ -97,11 +97,7 @@ export default function NotificationSettingsPage() {
   const [testingNotification, setTestingNotification] = useState(false)
   const supabase = createClient()
 
-  useEffect(() => {
-    loadSettings()
-  }, [])
-
-  const loadSettings = async () => {
+  const loadSettings = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
@@ -129,7 +125,11 @@ export default function NotificationSettingsPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase])
+
+  useEffect(() => {
+    loadSettings()
+  }, [loadSettings])
 
   const saveSettings = async () => {
     setSaving(true)

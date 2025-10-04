@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -57,16 +57,7 @@ export function InvoiceForm({
     notes: ''
   })
 
-  // Load unbilled time entries when dialog opens
-  useEffect(() => {
-    if (isOpen) {
-      loadUnbilledEntries()
-      setError(null)
-      setSelectedEntries(new Set())
-    }
-  }, [isOpen, selectedClientId])
-
-  const loadUnbilledEntries = async () => {
+  const loadUnbilledEntries = useCallback(async () => {
     try {
       setLoading(true)
       const data = await invoicesAPI.getUnbilledTimeEntries(selectedClientId)
@@ -87,7 +78,16 @@ export function InvoiceForm({
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedClientId])
+
+  // Load unbilled time entries when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      loadUnbilledEntries()
+      setError(null)
+      setSelectedEntries(new Set())
+    }
+  }, [isOpen, selectedClientId, loadUnbilledEntries])
 
   const handleClientSelect = (clientId: string) => {
     const preview = previews.find(p => p.client_id === clientId)

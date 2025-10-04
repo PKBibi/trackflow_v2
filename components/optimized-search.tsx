@@ -31,12 +31,12 @@ export function OptimizedSearch({
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   
-  // Create debounced search function
-  const debouncedSearch = useCallback(
-    debounce((query: string) => {
-      setIsSearching(false);
-      onSearch(query);
-    }, debounceMs),
+  const debouncedSearch = useMemo(
+    () =>
+      debounce((query: string) => {
+        setIsSearching(false);
+        onSearch(query);
+      }, debounceMs),
     [onSearch, debounceMs]
   );
   
@@ -55,13 +55,13 @@ export function OptimizedSearch({
   };
   
   // Handle clear
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setValue('');
     setIsSearching(false);
     onSearch('');
     onClear?.();
     inputRef.current?.focus();
-  };
+  }, [onSearch, onClear]);
   
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -80,7 +80,7 @@ export function OptimizedSearch({
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [handleClear]);
   
   // Update value when initialValue changes
   useEffect(() => {

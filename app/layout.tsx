@@ -15,7 +15,8 @@ const inter = Inter({
   display: 'swap',
   preload: true,
   variable: '--font-inter',
-  fallback: ['system-ui', 'arial']
+  fallback: ['system-ui', 'arial'],
+  preconnect: true,
 })
 
 export const metadata: Metadata = {
@@ -131,7 +132,6 @@ export default async function RootLayout({
         />
         {/* Preconnect to external domains for faster loading */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://app.posthog.com" />
         {/* DNS prefetch for performance */}

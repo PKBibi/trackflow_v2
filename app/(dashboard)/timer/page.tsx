@@ -71,35 +71,7 @@ export default function TimerPage() {
   const GUEST_RUNNING_KEY = 'guest_running_timer';
   const GUEST_TODAY_ENTRIES_KEY = 'guest_today_entries';
 
-  // Load initial data with auth detection
-  useEffect(() => {
-    const init = async () => {
-      try {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setIsGuest(true);
-          await loadGuestInitialData();
-        } else {
-          await loadInitialData();
-        }
-        // load plan for AI features
-        try {
-          const r = await fetch('/api/me/plan');
-          const d = await r.json();
-          setPlan((d.plan || 'free'))
-        } catch {}
-      } catch (err) {
-        // On any auth check error, fall back to guest mode
-        setIsGuest(true);
-        await loadGuestInitialData();
-      }
-    };
-    init();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -155,10 +127,10 @@ export default function TimerPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Guest: seed demo lists, restore running timer and entries
-  const loadGuestInitialData = async () => {
+  const loadGuestInitialData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -262,7 +234,34 @@ export default function TimerPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [GUEST_RUNNING_KEY, GUEST_TODAY_ENTRIES_KEY]);
+
+  // Load initial data with auth detection
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setIsGuest(true);
+          await loadGuestInitialData();
+        } else {
+          await loadInitialData();
+        }
+        // load plan for AI features
+        try {
+          const r = await fetch('/api/me/plan');
+          const d = await r.json();
+          setPlan((d.plan || 'free'))
+        } catch {}
+      } catch (err) {
+        // On any auth check error, fall back to guest mode
+        setIsGuest(true);
+        await loadGuestInitialData();
+      }
+    };
+    init();
+  }, [loadGuestInitialData, loadInitialData]);
 
   // Reload today's entries
   const reloadTodayEntries = async () => {
@@ -313,7 +312,7 @@ export default function TimerPage() {
     }
     run()
     return () => { cancelled = true }
-  }, [newEntry.channel?.id, newEntry.taskTitle, newEntry.description])
+  }, [newEntry.channel, newEntry.taskTitle, newEntry.description])
 
   // Start timer
   const startTimer = async () => {
@@ -544,7 +543,7 @@ export default function TimerPage() {
         clearInterval(intervalRef.current);
       }
     };
-  }, [currentTimer.isRunning]);
+  }, [currentTimer.isRunning, currentTimer.seconds, isGuest, GUEST_RUNNING_KEY]);
 
   // Calculate totals for today
   const totalTodaySeconds = todayEntries.reduce((sum, entry) => sum + (entry.duration || 0) * 60, 0);

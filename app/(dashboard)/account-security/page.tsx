@@ -1,6 +1,7 @@
+import { log } from '@/lib/logger';
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -51,12 +52,7 @@ export default function SecurityDashboard() {
 
   const supabase = createClient()
 
-  useEffect(() => {
-    loadAuditLogs()
-    loadSecurityStats()
-  }, [filters, page])
-
-  const loadAuditLogs = async () => {
+  const loadAuditLogs = useCallback(async () => {
     setLoading(true)
     try {
       let query = supabase
@@ -87,33 +83,38 @@ export default function SecurityDashboard() {
       const { data, count, error } = await query
 
       if (error) {
-        console.error('Failed to load audit logs:', error)
+        log.error('Failed to load audit logs:', error)
       } else {
         setLogs(data || [])
         setTotalCount(count || 0)
       }
     } catch (error) {
-      console.error('Error loading audit logs:', error)
+      log.error('Error loading audit logs:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [supabase, page, limit, filters])
 
-  const loadSecurityStats = async () => {
+  const loadSecurityStats = useCallback(async () => {
     try {
       const { data, error } = await supabase.rpc('get_audit_summary', {
         p_days: filters.days
       })
 
       if (error) {
-        console.error('Failed to load security stats:', error)
+        log.error('Failed to load security stats:', error)
       } else if (data && data[0]) {
         setStats(data[0])
       }
     } catch (error) {
-      console.error('Error loading security stats:', error)
+      log.error('Error loading security stats:', error)
     }
-  }
+  }, [supabase, filters.days])
+
+  useEffect(() => {
+    loadAuditLogs()
+    loadSecurityStats()
+  }, [loadAuditLogs, loadSecurityStats])
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {

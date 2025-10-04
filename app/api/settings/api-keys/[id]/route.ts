@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { getAuthenticatedUser, hashApiKey } from '@/lib/auth/api-key'
@@ -94,7 +95,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ error: error.message }, { status: error.status })
     }
 
-    console.error('Failed to update API key:', error)
+    log.error('Failed to update API key:', error)
     return NextResponse.json({ error: 'Failed to update API key' }, { status: 500 })
   }
 }
@@ -123,7 +124,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: error.message }, { status: error.status })
     }
 
-    console.error('Failed to delete API key:', error)
+    log.error('Failed to delete API key:', error)
     return NextResponse.json({ error: 'Failed to delete API key' }, { status: 500 })
   }
 }

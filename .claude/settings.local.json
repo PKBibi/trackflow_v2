@@ -28,7 +28,8 @@
       "Bash(scoop install:*)",
       "Bash(supabase login:*)",
       "Bash(supabase migration:*)",
-      "Bash(psql:*)"
+      "Bash(psql:*)",
+      "Bash(npm ci:*)"
     ],
     "deny": [],
     "ask": []

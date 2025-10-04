@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Advanced AI Insights Engine using OpenAI
  * Provides intelligent analysis, predictions, and recommendations
@@ -118,7 +119,7 @@ export class AIInsightsEngine {
       // Sort by priority and confidence
       return this.prioritizeInsights(allInsights)
     } catch (error) {
-      console.error('Error generating AI insights:', error)
+      log.error('Error generating AI insights:', error)
       return this.getFallbackInsights()
     }
   }
@@ -177,7 +178,7 @@ export class AIInsightsEngine {
 
       return this.formatPredictions(response.predictions || [])
     } catch (error) {
-      console.error('Error generating predictions:', error)
+      log.error('Error generating predictions:', error)
       return []
     }
   }
@@ -235,7 +236,7 @@ export class AIInsightsEngine {
 
       return this.formatAnomalies(response.anomalies || [])
     } catch (error) {
-      console.error('Error detecting anomalies:', error)
+      log.error('Error detecting anomalies:', error)
       return []
     }
   }
@@ -297,7 +298,7 @@ export class AIInsightsEngine {
 
       return this.formatRecommendations(response.recommendations || [])
     } catch (error) {
-      console.error('Error generating recommendations:', error)
+      log.error('Error generating recommendations:', error)
       return []
     }
   }
@@ -356,7 +357,7 @@ export class AIInsightsEngine {
 
       return this.formatPatterns(response.patterns || [])
     } catch (error) {
-      console.error('Error analyzing patterns:', error)
+      log.error('Error analyzing patterns:', error)
       return []
     }
   }
@@ -418,7 +419,7 @@ export class AIInsightsEngine {
 
       return this.formatOpportunities(response.opportunities || [])
     } catch (error) {
-      console.error('Error identifying opportunities:', error)
+      log.error('Error identifying opportunities:', error)
       return []
     }
   }
@@ -479,7 +480,7 @@ export class AIInsightsEngine {
 
       return this.formatWeeklySummary(response.summary)
     } catch (error) {
-      console.error('Error generating weekly summary:', error)
+      log.error('Error generating weekly summary:', error)
       return 'Unable to generate weekly summary at this time.'
     }
   }

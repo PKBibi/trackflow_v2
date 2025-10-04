@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 // Comprehensive audit logging system for security and compliance
 import { createClient } from '@/lib/supabase/server'
 import { headers } from 'next/headers'
@@ -82,7 +83,7 @@ class AuditLogger {
       try {
         this.supabase = await createClient()
       } catch (error) {
-        console.error('Failed to initialize Supabase for audit logging:', error)
+        log.error('Failed to initialize Supabase for audit logging:', error)
       }
     })()
 
@@ -111,7 +112,7 @@ class AuditLogger {
 
       // Log to console in development
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔍 Audit Log:', {
+        log.debug('🔍 Audit Log:', {
           event: entry.event_type,
           severity: entry.severity,
           user: entry.user_id,
@@ -120,7 +121,7 @@ class AuditLogger {
         })
       }
     } catch (error) {
-      console.error('Failed to log audit entry:', error)
+      log.error('Failed to log audit entry:', error)
       // Don't throw - audit logging failure shouldn't break the application
     }
   }
@@ -161,17 +162,17 @@ class AuditLogger {
           })))
 
         if (error) {
-          console.error('Failed to flush audit logs to database:', error)
+          log.error('Failed to flush audit logs to database:', error)
           // Put logs back in buffer to retry later
           this.logBuffer.unshift(...logsToFlush)
         }
       } else {
         // Fallback to file logging if database is unavailable
-        console.warn('Audit logs written to fallback (console) - database unavailable')
-        logsToFlush.forEach(log => console.log('AUDIT:', JSON.stringify(log)))
+        log.warn('Audit logs written to fallback (console) - database unavailable')
+        logsToFlush.forEach(log => log.debug('AUDIT:', JSON.stringify(log)))
       }
     } catch (error) {
-      console.error('Error flushing audit logs:', error)
+      log.error('Error flushing audit logs:', error)
       this.logBuffer.unshift(...logsToFlush)
     } finally {
       this.isFlushingLogs = false
@@ -312,7 +313,7 @@ class AuditLogger {
     const { data, count, error } = await query
 
     if (error) {
-      console.error('Failed to query audit logs:', error)
+      log.error('Failed to query audit logs:', error)
       return { data: [], count: 0 }
     }
 

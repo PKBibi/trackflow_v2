@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/resend'
@@ -119,7 +120,7 @@ export async function POST(
           emailSent = true
         }
       } catch (emailError) {
-        console.error('Email send error:', emailError)
+        log.error('Email send error:', emailError)
         // Don't fail the entire export if email fails
       }
 
@@ -180,7 +181,7 @@ export async function POST(
     }
 
   } catch (error) {
-    console.error('Scheduled export execution error:', error)
+    log.error('Scheduled export execution error:', error)
     return NextResponse.json({ 
       error: 'Failed to execute scheduled export',
       details: error instanceof Error ? error.message : 'Unknown error'

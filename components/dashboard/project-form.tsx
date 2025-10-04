@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -117,7 +118,7 @@ export function ProjectForm({ project, isOpen, onOpenChange, onSave, isLoading, 
       const clientsData = await clientsAPI.getAll()
       setClients(clientsData.filter(c => c.status === 'active'))
     } catch (err) {
-      console.error('Failed to load clients:', err)
+      log.error('Failed to load clients:', err)
     }
   }
 

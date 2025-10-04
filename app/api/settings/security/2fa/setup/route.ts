@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { twoFactorAuth } from '@/lib/auth/two-factor'
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status })
     }
 
-    console.error('Failed to start 2FA setup:', error)
+    log.error('Failed to start 2FA setup:', error)
     return NextResponse.json({ error: 'Failed to start 2FA setup' }, { status: 500 })
   }
 }

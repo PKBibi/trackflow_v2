@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * GDPR Compliance Automation
  * Handles data retention, deletion, anonymization, and export
@@ -507,7 +508,7 @@ export class GDPRComplianceManager {
 
     // Store schedule in database or register with job scheduler
     for (const task of tasks) {
-      console.log(`Scheduled: ${task.name} - ${task.schedule}`)
+      log.debug(`Scheduled: ${task.name} - ${task.schedule}`)
     }
   }
 

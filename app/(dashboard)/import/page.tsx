@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client';
 
 import { useState } from 'react';
@@ -179,7 +180,7 @@ export default function ImportPage() {
         reader.readAsBinaryString(uploadedFile);
       }
     } catch (error) {
-      console.error('Error parsing file:', error);
+      log.error('Error parsing file:', error);
       toast({
         title: 'Error parsing file',
         description: 'Failed to parse the uploaded file. Please check the format.',
@@ -351,7 +352,7 @@ export default function ImportPage() {
         
         // Show errors if any
         if (results.errors.length > 0) {
-          console.error('Import errors:', results.errors);
+          log.error('Import errors:', results.errors);
           setValidationErrors(results.errors);
         } else {
           // Move to success step if no errors
@@ -360,7 +361,7 @@ export default function ImportPage() {
       }
       
     } catch (error) {
-      console.error('Import error:', error);
+      log.error('Import error:', error);
       toast({
         title: 'Import failed',
         description: error instanceof Error ? error.message : 'Failed to import data. Please try again.',

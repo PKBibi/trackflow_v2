@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { fetchWithTeam } from '@/lib/api/fetch'
 import TeamSwitcher from '@/components/team/TeamSwitcher'
 'use client'
@@ -58,7 +59,7 @@ export default function ClientsPage() {
       setClients(clientsData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load clients')
-      console.error('Failed to load clients:', err)
+      log.error('Failed to load clients:', err)
     } finally {
       setLoading(false)
     }
@@ -89,7 +90,7 @@ export default function ClientsPage() {
       setIsFormOpen(false)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create client')
-      console.error('Failed to create client:', err)
+      log.error('Failed to create client:', err)
     } finally {
       setFormLoading(false)
     }
@@ -104,7 +105,7 @@ export default function ClientsPage() {
       setEditingClient(undefined)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update client')
-      console.error('Failed to update client:', err)
+      log.error('Failed to update client:', err)
     } finally {
       setFormLoading(false)
     }
@@ -121,7 +122,7 @@ export default function ClientsPage() {
       await loadClients()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete client')
-      console.error('Failed to delete client:', err)
+      log.error('Failed to delete client:', err)
     }
   }
 
@@ -136,7 +137,7 @@ export default function ClientsPage() {
       await loadClients()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to archive client')
-      console.error('Failed to archive client:', err)
+      log.error('Failed to archive client:', err)
     }
   }
 

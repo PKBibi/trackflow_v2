@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 // GraphQL feature flag gate and basic protections
 import { rateLimitPerUser } from '@/lib/validation/middleware'
 import { createClient } from '@/lib/supabase/server'
@@ -773,7 +774,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error('GraphQL Error:', error)
+    log.error('GraphQL Error:', error)
     return NextResponse.json({
       errors: [{ message: 'Internal server error' }]
     }, { status: 500 })

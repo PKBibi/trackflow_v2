@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ scheduledExports: scheduledExports || [] })
   } catch (error) {
-    console.error('Scheduled exports fetch error:', error)
+    log.error('Scheduled exports fetch error:', error)
     return NextResponse.json({ 
       error: 'Failed to fetch scheduled exports',
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -117,7 +118,7 @@ export async function POST(request: NextRequest) {
       message: 'Scheduled export created successfully'
     })
   } catch (error) {
-    console.error('Scheduled export creation error:', error)
+    log.error('Scheduled export creation error:', error)
     return NextResponse.json({ 
       error: 'Failed to create scheduled export',
       details: error instanceof Error ? error.message : 'Unknown error'

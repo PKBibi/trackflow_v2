@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { rateLimitPerUser } from '@/lib/validation/middleware'
 import { requireTeamRole } from '@/lib/auth/team'
 import { NextRequest, NextResponse } from 'next/server'
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (inviteError) {
-      console.error('Error creating invitation:', inviteError)
+      log.error('Error creating invitation:', inviteError)
       return NextResponse.json({ error: 'Failed to create invitation' }, { status: 500 })
     }
 
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
           `
         })
       } catch (emailError) {
-        console.error('Error sending invitation email:', emailError)
+        log.error('Error sending invitation email:', emailError)
         // Don't fail the request if email fails
       }
     }
@@ -153,7 +154,7 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error in POST /api/team/invite:', error)
+    log.error('Error in POST /api/team/invite:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -194,13 +195,13 @@ export async function GET(request: NextRequest) {
       .order('created_at', { ascending: false })
 
     if (error) {
-      console.error('Error fetching invitations:', error)
+      log.error('Error fetching invitations:', error)
       return NextResponse.json({ error: 'Failed to fetch invitations' }, { status: 500 })
     }
 
     return NextResponse.json({ invitations: invitations || [] })
   } catch (error) {
-    console.error('Error in GET /api/team/invite:', error)
+    log.error('Error in GET /api/team/invite:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

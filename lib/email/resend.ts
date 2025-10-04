@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { Resend } from 'resend';
 
 // Lazy initialization - only throw error when actually trying to use the service
@@ -45,7 +46,7 @@ export async function sendEmail({
 
     return { success: true, data: result };
   } catch (error) {
-    console.error('Failed to send email:', error);
+    log.error('Failed to send email:', error);
     return { success: false, error };
   }
 }

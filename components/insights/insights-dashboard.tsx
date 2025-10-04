@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -188,7 +189,7 @@ export default function InsightsDashboard() {
       document.body.removeChild(element)
 
     } catch (error) {
-      console.error('Failed to generate weekly summary:', error)
+      log.error('Failed to generate weekly summary:', error)
     } finally {
       setWeeklyLoading(false)
     }

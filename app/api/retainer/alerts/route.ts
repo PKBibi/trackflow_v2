@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email/resend'
@@ -16,13 +17,13 @@ export async function GET() {
       .rpc('get_retainer_alerts')
 
     if (error) {
-      console.error('Error fetching retainer alerts:', error)
+      log.error('Error fetching retainer alerts:', error)
       return NextResponse.json({ error: 'Failed to fetch alerts' }, { status: 500 })
     }
 
     return NextResponse.json({ alerts: alerts || [] })
   } catch (error) {
-    console.error('Error in GET /api/retainer/alerts:', error)
+    log.error('Error in GET /api/retainer/alerts:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
       .rpc('get_retainer_alerts')
 
     if (alertsError) {
-      console.error('Error fetching alerts:', alertsError)
+      log.error('Error fetching alerts:', alertsError)
       return NextResponse.json({ error: 'Failed to fetch alerts' }, { status: 500 })
     }
 
@@ -141,7 +142,7 @@ export async function POST(request: NextRequest) {
         results.alertsSent++
 
       } catch (error) {
-        console.error(`Error processing alert for ${alert.client_name}:`, error)
+        log.error(`Error processing alert for ${alert.client_name}:`, error)
         results.errors.push(`${alert.client_name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
     }
@@ -152,7 +153,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error in POST /api/retainer/alerts:', error)
+    log.error('Error in POST /api/retainer/alerts:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -184,13 +185,13 @@ export async function PUT() {
       .order('usage_percentage', { ascending: false })
 
     if (error) {
-      console.error('Error fetching retainer usage:', error)
+      log.error('Error fetching retainer usage:', error)
       return NextResponse.json({ error: 'Failed to fetch usage' }, { status: 500 })
     }
 
     return NextResponse.json({ usage: usage || [] })
   } catch (error) {
-    console.error('Error in PUT /api/retainer/alerts:', error)
+    log.error('Error in PUT /api/retainer/alerts:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { HttpError, isHttpError } from '@/lib/errors'
 import { requireTeamRole } from '@/lib/auth/team'
 import { z } from 'zod'
+import { log } from '@/lib/logger'
 
 // Mock database - replace with actual database queries
 // This would be imported from a shared location in production
-let clients = [
+const clients = [
   {
     id: '1',
     name: 'Acme Corp',
@@ -57,7 +58,7 @@ export async function GET(
       }
     });
   } catch (error) {
-    console.error('Client route error:', error)
+    log.apiError('GET /api/v1/clients/:id', error)
     if (isHttpError(error)) {
       return NextResponse.json(
         { error: error.message, code: error.code }, 
@@ -132,7 +133,7 @@ export async function PUT(
       message: 'Client updated successfully'
     });
   } catch (error) {
-    console.error('Client route error:', error)
+    log.apiError('PUT /api/v1/clients/:id', error)
     if (isHttpError(error)) {
       return NextResponse.json(
         { error: error.message, code: error.code }, 
@@ -185,7 +186,7 @@ export async function DELETE(
       }
     });
   } catch (error) {
-    console.error('Client route error:', error)
+    log.apiError('DELETE /api/v1/clients/:id', error)
     if (isHttpError(error)) {
       return NextResponse.json(
         { error: error.message, code: error.code }, 

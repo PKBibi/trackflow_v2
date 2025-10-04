@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -163,7 +164,7 @@ export default function SecuritySettingsPage() {
       setTwoFactorStatus(body.data)
       setTwoFactorEnabled(body.data?.enabled ?? false)
     } catch (error) {
-      console.error('Failed to load 2FA status:', error)
+      log.error('Failed to load 2FA status:', error)
       toast({
         title: 'Error',
         description: 'Unable to load two-factor status.',
@@ -252,7 +253,7 @@ export default function SecuritySettingsPage() {
       setVerificationCode('')
       setShowQrCode(true)
     } catch (error) {
-      console.error('Failed to start 2FA setup:', error)
+      log.error('Failed to start 2FA setup:', error)
       toast({
         title: 'Error',
         description: 'Failed to start two-factor setup. Please try again.',
@@ -312,7 +313,7 @@ export default function SecuritySettingsPage() {
       })
       await loadTwoFactorStatus()
     } catch (error) {
-      console.error('Failed to verify 2FA code:', error)
+      log.error('Failed to verify 2FA code:', error)
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Invalid verification code. Please try again.',
@@ -357,7 +358,7 @@ export default function SecuritySettingsPage() {
         description: 'Two-factor authentication has been disabled.',
       })
     } catch (error) {
-      console.error('Failed to disable 2FA:', error)
+      log.error('Failed to disable 2FA:', error)
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to disable two-factor authentication.',
@@ -448,7 +449,7 @@ export default function SecuritySettingsPage() {
         description: 'Store these new backup codes in a secure location.',
       })
     } catch (error) {
-      console.error('Failed to generate backup codes:', error)
+      log.error('Failed to generate backup codes:', error)
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to generate backup codes.',

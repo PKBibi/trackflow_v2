@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client';
 
 import { useState, useEffect, useRef, useCallback, ReactNode } from 'react';
@@ -188,7 +189,7 @@ export function VirtualTimeEntryList({ entries }: { entries: any[] }) {
         </div>
       )}
       onEndReached={() => {
-        console.log('Load more entries');
+        log.debug('Load more entries');
         // Load more entries
       }}
     />

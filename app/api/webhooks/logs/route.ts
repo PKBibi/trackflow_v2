@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { z, ZodError } from 'zod'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid parameters', details: error.issues }, { status: 400 })
     }
 
-    console.error('Failed to fetch webhook logs:', error)
+    log.error('Failed to fetch webhook logs:', error)
     return NextResponse.json({ error: 'Failed to fetch webhook logs' }, { status: 500 })
   }
 }

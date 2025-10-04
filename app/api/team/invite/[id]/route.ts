@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
@@ -33,13 +34,13 @@ export async function DELETE(
       .eq('team_id', currentUserMember.team_id)
 
     if (error) {
-      console.error('Error deleting invitation:', error)
+      log.error('Error deleting invitation:', error)
       return NextResponse.json({ error: 'Failed to cancel invitation' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error in DELETE /api/team/invite/[id]:', error)
+    log.error('Error in DELETE /api/team/invite/[id]:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -82,7 +83,7 @@ export async function POST(
       .single()
 
     if (error) {
-      console.error('Error resending invitation:', error)
+      log.error('Error resending invitation:', error)
       return NextResponse.json({ error: 'Failed to resend invitation' }, { status: 500 })
     }
 
@@ -91,7 +92,7 @@ export async function POST(
 
     return NextResponse.json({ success: true, invitation })
   } catch (error) {
-    console.error('Error in POST /api/team/invite/[id]/resend:', error)
+    log.error('Error in POST /api/team/invite/[id]/resend:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
@@ -43,13 +44,13 @@ export async function PUT(
       .single()
 
     if (error) {
-      console.error('Error updating team member:', error)
+      log.error('Error updating team member:', error)
       return NextResponse.json({ error: 'Failed to update team member' }, { status: 500 })
     }
 
     return NextResponse.json({ member: data })
   } catch (error) {
-    console.error('Error in PUT /api/team/members/[id]:', error)
+    log.error('Error in PUT /api/team/members/[id]:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
@@ -97,13 +98,13 @@ export async function DELETE(
       .eq('team_id', currentUserMember.team_id)
 
     if (error) {
-      console.error('Error deleting team member:', error)
+      log.error('Error deleting team member:', error)
       return NextResponse.json({ error: 'Failed to remove team member' }, { status: 500 })
     }
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error in DELETE /api/team/members/[id]:', error)
+    log.error('Error in DELETE /api/team/members/[id]:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

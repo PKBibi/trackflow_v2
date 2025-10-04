@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { rateLimitPerUser } from '@/lib/validation/middleware'
 import { requireTeamRole } from '@/lib/auth/team'
 import { NextRequest, NextResponse } from 'next/server'
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       .rpc('accept_team_invitation', { invitation_token: token })
 
     if (error) {
-      console.error('Error accepting invitation:', error)
+      log.error('Error accepting invitation:', error)
       return NextResponse.json({ 
         error: error.message || 'Failed to accept invitation' 
       }, { status: 400 })
@@ -46,7 +47,7 @@ export async function POST(request: NextRequest) {
       team_id: data.team_id
     })
   } catch (error) {
-    console.error('Error in POST /api/team/accept:', error)
+    log.error('Error in POST /api/team/accept:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

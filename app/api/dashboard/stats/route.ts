@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveTeam } from '@/lib/auth/team'
@@ -131,7 +132,7 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Dashboard stats error:', error)
+    log.error('Dashboard stats error:', error)
     return NextResponse.json({ 
       error: 'Failed to fetch dashboard statistics',
       details: error instanceof Error ? error.message : 'Unknown error'

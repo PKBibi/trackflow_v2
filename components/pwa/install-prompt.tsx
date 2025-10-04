@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -80,7 +81,7 @@ export function InstallPrompt() {
     const { outcome } = await deferredPrompt.userChoice
     
     if (outcome === 'accepted') {
-      console.log('User accepted the install prompt')
+      log.debug('User accepted the install prompt')
       // Track installation
       if (typeof window !== 'undefined' && (window as any).gtag) {
         (window as any).gtag('event', 'pwa_install', {

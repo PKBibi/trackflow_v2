@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Production-grade encryption using AWS KMS or local encryption
  * Provides envelope encryption for maximum security
@@ -38,7 +39,7 @@ class AWSKMSProvider implements EncryptionProvider {
         }
       })
     } catch (error) {
-      console.warn('AWS KMS client not available, falling back to local encryption')
+      log.warn('AWS KMS client not available, falling back to local encryption')
     }
   }
 
@@ -265,7 +266,7 @@ export class EnvelopeEncryption {
 
       return Buffer.from(JSON.stringify(envelope)).toString('base64')
     } catch (error) {
-      console.error('Envelope encryption failed:', error)
+      log.error('Envelope encryption failed:', error)
       throw new Error('Failed to encrypt data')
     }
   }
@@ -299,7 +300,7 @@ export class EnvelopeEncryption {
 
       return decrypted.toString('utf8')
     } catch (error) {
-      console.error('Envelope decryption failed:', error)
+      log.error('Envelope decryption failed:', error)
       throw new Error('Failed to decrypt data')
     }
   }
@@ -348,7 +349,7 @@ export class EnvelopeEncryption {
             ? JSON.parse(plaintext)
             : plaintext as any
         } catch (error) {
-          console.error(`Failed to decrypt field ${String(field)}:`, error)
+          log.error(`Failed to decrypt field ${String(field)}:`, error)
           // Keep original value if decryption fails
         }
       }

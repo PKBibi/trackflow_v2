@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client'
 
 import { useEffect, useState } from 'react'
@@ -298,7 +299,7 @@ export default function PricingPage() {
                       }
                     } catch (error) {
                       // Don't block the user flow if analytics fails
-                      console.warn('Analytics tracking failed:', error);
+                      log.warn('Analytics tracking failed:', error);
                       if (plan.name === 'Agency Starter') {
                         if (auth) startCheckout('pro'); else window.location.href = '/signup'
                       } else if (plan.name === 'Agency Growth') {

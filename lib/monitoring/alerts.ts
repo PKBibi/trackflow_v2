@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 // Monitoring and Alerting System
 import { createClient } from '@/lib/supabase/server'
 import { auditLogger } from '@/lib/audit/logger'
@@ -199,7 +200,7 @@ class MonitoringSystem {
           this.lastAlertTime.set(rule.name, Date.now())
         }
       } catch (error) {
-        console.error(`Error checking rule ${rule.name}:`, error)
+        log.error(`Error checking rule ${rule.name}:`, error)
       }
     }
   }
@@ -216,7 +217,7 @@ class MonitoringSystem {
       try {
         await this.sendToChannel(alert, channel)
       } catch (error) {
-        console.error(`Failed to send alert to ${channel}:`, error)
+        log.error(`Failed to send alert to ${channel}:`, error)
       }
     }
     
@@ -239,7 +240,7 @@ class MonitoringSystem {
   private async sendToChannel(alert: Alert, channel: AlertChannel) {
     switch (channel) {
       case 'console':
-        console.log(`[ALERT] [${alert.severity.toUpperCase()}] ${alert.message}`, alert.details)
+        log.debug(`[ALERT] [${alert.severity.toUpperCase()}] ${alert.message}`, alert.details)
         break
         
       case 'email':
@@ -275,7 +276,7 @@ class MonitoringSystem {
     }
     
     // Send via email service (SendGrid, AWS SES, etc.)
-    console.log('Email alert:', emailPayload)
+    log.debug('Email alert:', emailPayload)
   }
 
   /**
@@ -314,7 +315,7 @@ class MonitoringSystem {
         body: JSON.stringify(payload)
       })
     } catch (error) {
-      console.error('Failed to send Slack alert:', error)
+      log.error('Failed to send Slack alert:', error)
     }
   }
 
@@ -336,7 +337,7 @@ class MonitoringSystem {
         body: JSON.stringify(alert)
       })
     } catch (error) {
-      console.error('Failed to send webhook alert:', error)
+      log.error('Failed to send webhook alert:', error)
     }
   }
 

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -39,7 +40,7 @@ export function PushNotificationManager() {
           setSettings(savedSettings)
         }
       } catch (error) {
-        console.error('Failed to load notification settings:', error)
+        log.error('Failed to load notification settings:', error)
       }
     }
     loadSettings()
@@ -52,7 +53,7 @@ export function PushNotificationManager() {
         const subscription = await registration.pushManager.getSubscription()
         setIsSubscribed(!!subscription)
       } catch (error) {
-        console.error('Error checking subscription:', error)
+        log.error('Error checking subscription:', error)
       }
     }
   }
@@ -83,7 +84,7 @@ export function PushNotificationManager() {
         })
       }
     } catch (error) {
-      console.error('Error requesting permission:', error)
+      log.error('Error requesting permission:', error)
       toast({
         title: 'Error',
         description: 'Failed to request notification permissions.',
@@ -110,7 +111,7 @@ export function PushNotificationManager() {
         const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
         
         if (!vapidPublicKey) {
-          console.error('VAPID public key not found')
+          log.error('VAPID public key not found')
           return
         }
 
@@ -133,7 +134,7 @@ export function PushNotificationManager() {
         description: 'You will now receive push notifications from TrackFlow.',
       })
     } catch (error) {
-      console.error('Error subscribing to notifications:', error)
+      log.error('Error subscribing to notifications:', error)
       toast({
         title: 'Subscription Failed',
         description: 'Failed to subscribe to push notifications.',
@@ -165,7 +166,7 @@ export function PushNotificationManager() {
         description: 'You will no longer receive push notifications.',
       })
     } catch (error) {
-      console.error('Error unsubscribing:', error)
+      log.error('Error unsubscribing:', error)
       toast({
         title: 'Error',
         description: 'Failed to unsubscribe from notifications.',
@@ -193,7 +194,7 @@ export function PushNotificationManager() {
         throw new Error('Failed to save subscription')
       }
     } catch (error) {
-      console.error('Error saving subscription:', error)
+      log.error('Error saving subscription:', error)
       throw error
     }
   }
@@ -208,7 +209,7 @@ export function PushNotificationManager() {
         body: JSON.stringify({ subscription })
       })
     } catch (error) {
-      console.error('Error removing subscription:', error)
+      log.error('Error removing subscription:', error)
     }
   }
 
@@ -221,7 +222,7 @@ export function PushNotificationManager() {
       const { safeLocalStorage } = await import('@/lib/utils/encryption')
       await safeLocalStorage.setItem('notification-settings', newSettings)
     } catch (error) {
-      console.error('Failed to save notification settings:', error)
+      log.error('Failed to save notification settings:', error)
     }
 
     // Update settings on server if subscribed
@@ -235,7 +236,7 @@ export function PushNotificationManager() {
           body: JSON.stringify(newSettings)
         })
       } catch (error) {
-        console.error('Error updating settings:', error)
+        log.error('Error updating settings:', error)
       }
     }
   }

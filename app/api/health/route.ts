@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 // Health Check API Endpoint
 import { NextRequest, NextResponse } from 'next/server'
 import { getHealthStatus } from '@/lib/monitoring/alerts'
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Health check error:', error)
+    log.error('Health check error:', error)
     return NextResponse.json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),

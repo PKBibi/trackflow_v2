@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Distributed rate limiting using Redis with sliding window algorithm
  * Provides accurate rate limiting across multiple instances
@@ -78,7 +79,7 @@ export class DistributedRateLimiter {
   private async initializeRedis() {
     // Only initialize Redis if configuration is available
     if (!process.env.REDIS_URL) {
-      console.warn('Redis URL not configured, rate limiting will use in-memory fallback')
+      log.warn('Redis URL not configured, rate limiting will use in-memory fallback')
       return
     }
 
@@ -86,10 +87,10 @@ export class DistributedRateLimiter {
       const redis = await this.createRedisClient()
       if (redis) {
         this.redis = redis
-        console.log('Redis connected for distributed rate limiting')
+        log.debug('Redis connected for distributed rate limiting')
       }
     } catch (error) {
-      console.error('Failed to initialize Redis:', error)
+      log.error('Failed to initialize Redis:', error)
     }
   }
 
@@ -110,7 +111,7 @@ export class DistributedRateLimiter {
         await client.connect()
         return client as any
       } catch (error) {
-        console.error('No Redis client available:', error)
+        log.error('No Redis client available:', error)
         return null
       }
     }
@@ -146,7 +147,7 @@ export class DistributedRateLimiter {
           retryAfter: result[3] > 0 ? result[3] : undefined
         }
       } catch (error) {
-        console.error('Redis rate limit check failed:', error)
+        log.error('Redis rate limit check failed:', error)
         // Fall through to in-memory implementation
       }
     }
@@ -210,7 +211,7 @@ export class DistributedRateLimiter {
       try {
         await this.redis.del(key)
       } catch (error) {
-        console.error('Failed to reset rate limit:', error)
+        log.error('Failed to reset rate limit:', error)
       }
     }
 
@@ -228,7 +229,7 @@ export class DistributedRateLimiter {
       try {
         return await this.redis.ttl(key)
       } catch (error) {
-        console.error('Failed to get TTL:', error)
+        log.error('Failed to get TTL:', error)
       }
     }
 
@@ -434,7 +435,7 @@ export function rateLimitMiddleware(options?: Partial<RateLimitOptions>) {
 
       next()
     } catch (error) {
-      console.error('Rate limiting error:', error)
+      log.error('Rate limiting error:', error)
       next() // Don't block on rate limiting errors
     }
   }

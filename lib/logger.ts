@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * Production-ready logging utility
  *
@@ -44,21 +45,21 @@ class Logger {
       // Development: use console with colors
       switch (logEntry.level) {
         case 'debug':
-          console.debug('🐛', logEntry.message, logEntry.context || '');
+          log.debug('🐛', logEntry.message, logEntry.context || '');
           break;
         case 'info':
-          console.info('ℹ️', logEntry.message, logEntry.context || '');
+          log.debug('ℹ️', logEntry.message, logEntry.context || '');
           break;
         case 'warn':
-          console.warn('⚠️', logEntry.message, logEntry.context || '');
+          log.warn('⚠️', logEntry.message, logEntry.context || '');
           break;
         case 'error':
-          console.error('❌', logEntry.message, logEntry.context || '');
+          log.error('❌', logEntry.message, logEntry.context || '');
           break;
       }
     } else {
       // Production: structured JSON logging
-      console.log(JSON.stringify(logEntry));
+      log.debug(JSON.stringify(logEntry));
 
       // Send errors to external monitoring if configured
       if (logEntry.level === 'error' && typeof window === 'undefined') {

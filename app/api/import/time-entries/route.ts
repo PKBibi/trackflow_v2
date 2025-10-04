@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveTeam } from '@/lib/auth/team'
@@ -207,7 +208,7 @@ export async function POST(request: NextRequest) {
         results.successful++
 
       } catch (error) {
-        console.error(`Error processing entry ${i + 1}:`, error)
+        log.error(`Error processing entry ${i + 1}:`, error)
         results.errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`)
         results.failed++
       }
@@ -220,7 +221,7 @@ export async function POST(request: NextRequest) {
         .insert(processedEntries)
 
       if (insertError) {
-        console.error('Bulk insert error:', insertError)
+        log.error('Bulk insert error:', insertError)
         return NextResponse.json({ 
           error: 'Failed to import entries', 
           details: insertError.message 
@@ -234,7 +235,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Import error:', error)
+    log.error('Import error:', error)
     return NextResponse.json({ 
       error: 'Import failed', 
       details: error instanceof Error ? error.message : 'Unknown error'

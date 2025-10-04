@@ -1,6 +1,7 @@
+import { log } from '@/lib/logger';
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Bell, Mail, MessageSquare, Smartphone, Globe, Clock, Calendar, DollarSign, Users, FileText, AlertCircle, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -119,7 +120,7 @@ export default function NotificationSettingsPage() {
         setSettings(data)
       }
     } catch (error) {
-      console.error('Error loading notification settings:', error)
+      log.error('Error loading notification settings:', error)
       toast({
         title: 'Error',
         description: 'Failed to load notification settings',
@@ -159,7 +160,7 @@ export default function NotificationSettingsPage() {
         description: 'Your notification preferences have been updated'
       })
     } catch (error) {
-      console.error('Error saving settings:', error)
+      log.error('Error saving settings:', error)
       toast({
         title: 'Error',
         description: 'Failed to save notification settings',
@@ -184,7 +185,7 @@ export default function NotificationSettingsPage() {
         description: `A test ${type} notification has been sent`
       })
     } catch (error) {
-      console.error('Error sending test notification:', error)
+      log.error('Error sending test notification:', error)
       toast({
         title: 'Error',
         description: 'Failed to send test notification',

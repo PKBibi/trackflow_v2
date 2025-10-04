@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -83,7 +84,7 @@ export default function APIKeysPage() {
       const body = await response.json()
       setApiKeys(body.data || [])
     } catch (error) {
-      console.error('Error loading API keys:', error)
+      log.error('Error loading API keys:', error)
       toast({
         title: 'Error',
         description: 'Failed to load API keys',
@@ -108,7 +109,7 @@ export default function APIKeysPage() {
       const body = await response.json()
       setUsage(body.data || [])
     } catch (error) {
-      console.error('Error loading usage stats:', error)
+      log.error('Error loading usage stats:', error)
     }
   }
 
@@ -152,7 +153,7 @@ export default function APIKeysPage() {
         description: 'Your new API key has been created successfully'
       })
     } catch (error) {
-      console.error('Error creating API key:', error)
+      log.error('Error creating API key:', error)
       toast({
         title: 'Error',
         description: 'Failed to create API key',
@@ -208,7 +209,7 @@ export default function APIKeysPage() {
         description: 'Your API key has been regenerated'
       })
     } catch (error) {
-      console.error('Error regenerating key:', error)
+      log.error('Error regenerating key:', error)
       toast({
         title: 'Error',
         description: 'Failed to regenerate API key',
@@ -251,7 +252,7 @@ export default function APIKeysPage() {
         description: `API key ${newStatus === 'active' ? 'activated' : 'deactivated'}`
       })
     } catch (error) {
-      console.error('Error updating key status:', error)
+      log.error('Error updating key status:', error)
       toast({
         title: 'Error',
         description: 'Failed to update API key status',
@@ -291,7 +292,7 @@ export default function APIKeysPage() {
         description: 'API key has been deleted'
       })
     } catch (error) {
-      console.error('Error deleting key:', error)
+      log.error('Error deleting key:', error)
       toast({
         title: 'Error',
         description: 'Failed to delete API key',

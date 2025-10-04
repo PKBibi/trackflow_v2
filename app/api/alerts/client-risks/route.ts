@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveTeam } from '@/lib/auth/team'
@@ -312,7 +313,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Client risk analysis error:', error)
+    log.error('Client risk analysis error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

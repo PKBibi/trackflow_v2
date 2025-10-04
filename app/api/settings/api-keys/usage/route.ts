@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthenticatedUser } from '@/lib/auth/api-key'
 import { createAdminClient } from '@/lib/supabase/admin'
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status })
     }
 
-    console.error('Failed to load API usage:', error)
+    log.error('Failed to load API usage:', error)
     return NextResponse.json({ error: 'Failed to load API usage' }, { status: 500 })
   }
 }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client'
 
 import { useState } from 'react'
@@ -89,7 +90,7 @@ export default function SignupPage() {
           })
         } catch (emailError) {
           // Don't block signup if email fails
-          console.warn('Failed to send welcome email:', emailError)
+          log.warn('Failed to send welcome email:', emailError)
         }
       }
 

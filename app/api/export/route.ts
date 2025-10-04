@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { requirePlan } from '@/lib/auth/plan'
 import { NextRequest, NextResponse } from 'next/server';
 import { format } from 'date-fns';
@@ -156,7 +157,7 @@ export async function POST(request: NextRequest) {
         return exportAsCSV(data, dataType, viewType);
     }
   } catch (error) {
-    console.error('Export error:', error);
+    log.error('Export error:', error);
     return NextResponse.json(
       { error: 'Failed to export data' },
       { status: 500 }

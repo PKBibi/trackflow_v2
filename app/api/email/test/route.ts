@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { rateLimitPerUser } from '@/lib/validation/middleware'
 import { NextRequest, NextResponse } from 'next/server';
 import { sendEmail, emailTemplates } from '@/lib/email/resend';
@@ -71,7 +72,7 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error) {
-    console.error('Email test error:', error);
+    log.error('Email test error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

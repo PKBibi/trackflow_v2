@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { requirePlan } from '@/lib/auth/plan'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
       total: history?.length || 0
     })
   } catch (error) {
-    console.error('Export history fetch error:', error)
+    log.error('Export history fetch error:', error)
     return NextResponse.json({ 
       error: 'Failed to fetch export history',
       details: error instanceof Error ? error.message : 'Unknown error'

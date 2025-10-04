@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -233,7 +234,7 @@ export default function DataExportPage() {
         setScheduledExports(data.scheduledExports || []);
       }
     } catch (error) {
-      console.error('Failed to load scheduled exports:', error);
+      log.error('Failed to load scheduled exports:', error);
     } finally {
       setIsLoadingScheduled(false);
     }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 /**
  * OpenTelemetry distributed tracing implementation
  * NOTE: OpenTelemetry packages not installed - this is a stub for now
@@ -6,7 +7,7 @@
 
 // Stub exports to maintain compatibility
 export function initializeTracing() {
-  console.warn('OpenTelemetry tracing not configured - packages not installed')
+  log.warn('OpenTelemetry tracing not configured - packages not installed')
 }
 
 export function startSpan(name: string, options?: any) {

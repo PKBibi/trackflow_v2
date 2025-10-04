@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { HttpError } from '@/lib/errors'
@@ -40,7 +41,7 @@ const ENCRYPTION_KEY = crypto
   .digest()
 
 if (!process.env.WEBHOOK_SECRET_KEY) {
-  console.warn(
+  log.warn(
     'WEBHOOK_SECRET_KEY environment variable is not set. Webhook secrets cannot be persisted securely.',
   )
 }
@@ -244,7 +245,7 @@ export async function sendWebhookEvent(
               .eq('id', sub.id)
           }
         } catch (err) {
-          console.error('Webhook delivery failed', err)
+          log.error('Webhook delivery failed', err)
           const durationMs = Date.now() - attemptStartedAt
 
           await Promise.all([

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getActiveTeam } from '@/lib/auth/team'
@@ -295,7 +296,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Capacity planning analysis error:', error)
+    log.error('Capacity planning analysis error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

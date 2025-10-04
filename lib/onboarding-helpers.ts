@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { format } from 'date-fns';
 
 export interface OnboardingData {
@@ -114,7 +115,7 @@ export const saveOnboardingData = async (data: OnboardingData): Promise<boolean>
     
     return true;
   } catch (error) {
-    console.error('Failed to save onboarding data:', error);
+    log.error('Failed to save onboarding data:', error);
     return false;
   }
 };

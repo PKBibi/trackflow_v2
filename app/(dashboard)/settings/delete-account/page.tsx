@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client'
 
 import { useState } from 'react'
@@ -84,7 +85,7 @@ export default function DeleteAccountPage() {
         description: 'Check your email for the verification code'
       })
     } catch (error) {
-      console.error('Error sending verification code:', error)
+      log.error('Error sending verification code:', error)
       toast({
         title: 'Error',
         description: 'Failed to send verification code',
@@ -147,7 +148,7 @@ export default function DeleteAccountPage() {
       // Redirect to homepage
       router.push('/')
     } catch (error: any) {
-      console.error('Error deleting account:', error)
+      log.error('Error deleting account:', error)
       toast({
         title: 'Error',
         description: error.message || 'Failed to delete account',

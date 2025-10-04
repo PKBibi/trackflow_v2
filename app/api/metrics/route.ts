@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { z, ZodError } from 'zod'
 import { createClient } from '@/lib/supabase/server'
@@ -172,7 +173,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response, { headers: cacheHeaders(true, 30) })
   } catch (error) {
-    console.error('Metrics collection failed:', error)
+    log.error('Metrics collection failed:', error)
 
     if (error instanceof HttpError) {
       return NextResponse.json({ error: error.message }, { status: error.status })
@@ -237,7 +238,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Custom metric logging failed:', error)
+    log.error('Custom metric logging failed:', error)
 
     if (error instanceof HttpError) {
       return NextResponse.json({ error: error.message }, { status: error.status })

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -71,7 +72,7 @@ export function RetainerAlerts() {
         setUsage(usageData.usage || [])
       }
     } catch (error) {
-      console.error('Failed to load retainer data:', error)
+      log.error('Failed to load retainer data:', error)
       toastUtils.error({
         title: 'Failed to load retainer data',
         description: 'Please try refreshing the page',

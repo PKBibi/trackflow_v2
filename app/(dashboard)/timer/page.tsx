@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
@@ -150,7 +151,7 @@ export default function TimerPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
-      console.error('Failed to load initial data:', err);
+      log.error('Failed to load initial data:', err);
     } finally {
       setLoading(false);
     }
@@ -257,7 +258,7 @@ export default function TimerPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
-      console.error('Failed to load guest data:', err);
+      log.error('Failed to load guest data:', err);
     } finally {
       setLoading(false);
     }
@@ -269,7 +270,7 @@ export default function TimerPage() {
       const entries = await timeEntriesAPI.getToday();
       setTodayEntries(entries);
     } catch (err) {
-      console.error('Failed to reload today entries:', err);
+      log.error('Failed to reload today entries:', err);
     }
   };
 
@@ -376,7 +377,7 @@ export default function TimerPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start timer');
-      console.error('Failed to start timer:', err);
+      log.error('Failed to start timer:', err);
     }
   };
 
@@ -449,7 +450,7 @@ export default function TimerPage() {
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to stop timer');
-      console.error('Failed to stop timer:', err);
+      log.error('Failed to stop timer:', err);
     }
   };
 
@@ -484,7 +485,7 @@ export default function TimerPage() {
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to toggle timer');
-      console.error('Failed to toggle timer:', err);
+      log.error('Failed to toggle timer:', err);
     }
   };
 
@@ -499,7 +500,7 @@ export default function TimerPage() {
           localStorage.removeItem(GUEST_RUNNING_KEY);
         }
       } catch (err) {
-        console.error('Failed to delete timer entry:', err);
+        log.error('Failed to delete timer entry:', err);
       }
     }
     

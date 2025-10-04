@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { rateLimitPerUser } from '@/lib/validation/middleware'
 import { requireTeamRole } from '@/lib/auth/team'
 import { NextRequest, NextResponse } from 'next/server'
@@ -50,7 +51,7 @@ export async function GET(request: NextRequest) {
       .order('joined_at', { ascending: true })
 
     if (error) {
-      console.error('Error fetching team members:', error)
+      log.error('Error fetching team members:', error)
       return NextResponse.json({ error: 'Failed to fetch team members' }, { status: 500 })
     }
 
@@ -74,7 +75,7 @@ export async function GET(request: NextRequest) {
       team_id: userMembership.team_id
     })
   } catch (error) {
-    console.error('Error in GET /api/team/members:', error)
+    log.error('Error in GET /api/team/members:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

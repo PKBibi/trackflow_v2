@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 // Redis-based rate limiting for production
 import { HttpError } from '@/lib/errors'
 
@@ -16,7 +17,7 @@ async function getRedisClient(): Promise<any | null> {
         token: process.env.UPSTASH_REDIS_REST_TOKEN,
       })
     } catch (e) {
-      console.warn('Redis client not available, rate limiting will use in-memory fallback')
+      log.warn('Redis client not available, rate limiting will use in-memory fallback')
       return null
     }
   }
@@ -56,7 +57,7 @@ export class RedisRateLimiter {
         return this.fallbackLimit(key, maxRequests, windowMs, resetTime, now)
       }
     } catch (error) {
-      console.error('Rate limiting error:', error)
+      log.error('Rate limiting error:', error)
       // Fallback to memory-based limiting on Redis errors
       return this.fallbackLimit(key, maxRequests, windowMs, resetTime, now)
     }
@@ -173,7 +174,7 @@ export async function enhancedRateLimit(
       
       if (burstResult.success) {
         // Allow burst request but log it
-        console.warn(`Burst rate limit used for user ${userId} in context ${context}`)
+        log.warn(`Burst rate limit used for user ${userId} in context ${context}`)
         return
       }
     }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -54,7 +55,7 @@ export default function InvoicesPage() {
       setUnbilledPreviews(unbilledData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load invoice data')
-      console.error('Failed to load invoice data:', err)
+      log.error('Failed to load invoice data:', err)
     } finally {
       setLoading(false)
     }

@@ -1,7 +1,8 @@
+import { log } from '@/lib/logger';
 import { fetchWithTeam } from '@/lib/api/fetch'
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -63,13 +64,7 @@ export default function ProjectsPage() {
   const [priorityFilter, setPriorityFilter] = useState<string>('')
   const [showFilters, setShowFilters] = useState(false)
 
-  // Load data on component mount
-  useEffect(() => {
-    loadProjectData()
-    loadClients()
-  }, [])
-
-  const loadProjectData = async () => {
+  const loadProjectData = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -86,27 +81,33 @@ export default function ProjectsPage() {
       setSummary(summaryData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load project data')
-      console.error('Failed to load project data:', err)
+      log.error('Failed to load project data:', err)
     } finally {
       setLoading(false)
     }
-  }
+  }, [statusFilter, priorityFilter])
 
-  const loadClients = async () => {
+  const loadClients = useCallback(async () => {
     try {
       const clientsData = await clientsAPI.getAll()
       setClients(clientsData.filter(c => c.status === 'active'))
     } catch (err) {
-      console.error('Failed to load clients:', err)
+      log.error('Failed to load clients:', err)
     }
-  }
+  }, [])
+
+  // Load data on component mount
+  useEffect(() => {
+    loadProjectData()
+    loadClients()
+  }, [loadProjectData, loadClients])
 
   // Reload data when filters change
   useEffect(() => {
     if (!loading) {
       loadProjectData()
     }
-  }, [statusFilter, priorityFilter])
+  }, [statusFilter, priorityFilter, loadProjectData, loading])
 
   const handleCreateProject = async (projectData: Project) => {
     try {

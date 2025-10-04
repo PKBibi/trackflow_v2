@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { WebClient } from '@slack/web-api'
 import { IncomingWebhook } from '@slack/webhook'
 
@@ -40,7 +41,7 @@ export class SlackService {
    */
   async sendWebhookNotification(notification: SlackNotification) {
     if (!this.webhook) {
-      console.warn('[Slack] Webhook not configured; skipping send.'); return;
+      log.warn('[Slack] Webhook not configured; skipping send.'); return;
     }
 
     return await this.webhook.send(notification)
@@ -51,7 +52,7 @@ export class SlackService {
    */
   async sendMessage(channel: string, text: string, options: any = {}) {
     if (!this.client) {
-      console.warn('[Slack] Client not configured; skipping send.'); return { ok: false } as any;
+      log.warn('[Slack] Client not configured; skipping send.'); return { ok: false } as any;
     }
 
     return await this.client.chat.postMessage({

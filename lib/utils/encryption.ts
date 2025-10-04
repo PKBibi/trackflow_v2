@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 // Client-side encryption utility for localStorage data
 // Uses Web Crypto API for secure encryption/decryption
 
@@ -76,7 +77,7 @@ class EncryptedStorage {
       // Convert to base64 for storage
       return btoa(String.fromCharCode(...combined))
     } catch (error) {
-      console.error('Encryption failed:', error)
+      log.error('Encryption failed:', error)
       return data // Fallback to unencrypted if encryption fails
     }
   }
@@ -100,7 +101,7 @@ class EncryptedStorage {
       
       return new TextDecoder().decode(decryptedData)
     } catch (error) {
-      console.error('Decryption failed:', error)
+      log.error('Decryption failed:', error)
       return encryptedData // Fallback to returning as-is if decryption fails
     }
   }
@@ -170,7 +171,7 @@ export const safeLocalStorage = {
         await secureStorage.setItem(key, value)
         return
       } catch (error) {
-        console.warn('Falling back to plain storage for key:', key, error)
+        log.warn('Falling back to plain storage for key:', key, error)
       }
     } else {
       // Non-sensitive data can remain unencrypted
@@ -196,7 +197,7 @@ export const safeLocalStorage = {
       try {
         return await secureStorage.getItem<T>(key)
       } catch (error) {
-        console.warn('Falling back to plain storage for key:', key, error)
+        log.warn('Falling back to plain storage for key:', key, error)
         const item = localStorage.getItem(key)
         return item ? JSON.parse(item) : null
       }

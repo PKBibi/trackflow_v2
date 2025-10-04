@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -75,7 +76,7 @@ export function ActivitySelector({
           setRecentActivities(stored)
         }
       } catch (error) {
-        console.error('Failed to load recent activities:', error)
+        log.error('Failed to load recent activities:', error)
       }
     }
     
@@ -97,7 +98,7 @@ export function ActivitySelector({
       const { safeLocalStorage } = await import('@/lib/utils/encryption')
       await safeLocalStorage.setItem('recentActivities', newRecent)
     } catch (error) {
-      console.error('Failed to save recent activities:', error)
+      log.error('Failed to save recent activities:', error)
     }
   };
 

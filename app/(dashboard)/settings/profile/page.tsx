@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -81,7 +82,7 @@ export default function ProfileSettingsPage() {
         company: ''
       })
     } catch (error) {
-      console.error('Error loading profile:', error)
+      log.error('Error loading profile:', error)
       toast({
         title: 'Error',
         description: 'Failed to load profile',
@@ -124,7 +125,7 @@ export default function ProfileSettingsPage() {
         description: 'Avatar uploaded successfully'
       })
     } catch (error) {
-      console.error('Error uploading avatar:', error)
+      log.error('Error uploading avatar:', error)
       toast({
         title: 'Error',
         description: 'Failed to upload avatar',
@@ -155,7 +156,7 @@ export default function ProfileSettingsPage() {
         description: 'Profile updated successfully'
       })
     } catch (error) {
-      console.error('Error saving profile:', error)
+      log.error('Error saving profile:', error)
       toast({
         title: 'Error',
         description: 'Failed to update profile',

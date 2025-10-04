@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { HttpError, isHttpError } from '@/lib/errors'
 import { createClient } from '@/lib/supabase/server'
@@ -108,7 +109,7 @@ export async function GET(request: NextRequest) {
       stats
     });
   } catch (error) {
-    console.error('Clients route error:', error)
+    log.error('Clients route error:', error)
     if (isHttpError(error)) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
     }
@@ -228,7 +229,7 @@ export async function POST(request: NextRequest) {
       message: 'Client created successfully'
     }, { status: 201 });
   } catch (error) {
-    console.error('Clients route error:', error)
+    log.error('Clients route error:', error)
     
     // Log the error if it's a security issue
     if (error instanceof HttpError && error.status === 401) {
@@ -314,7 +315,7 @@ export async function PUT(request: NextRequest) {
       updatedIds: ids
     });
   } catch (error) {
-    console.error('Clients route error:', error)
+    log.error('Clients route error:', error)
     if (isHttpError(error)) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
     }
@@ -404,7 +405,7 @@ export async function DELETE(request: NextRequest) {
       deletedIds: ids
     });
   } catch (error) {
-    console.error('Clients route error:', error)
+    log.error('Clients route error:', error)
     if (isHttpError(error)) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
     }

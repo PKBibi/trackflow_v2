@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { HttpError, isHttpError } from '@/lib/errors'
 import { createClient } from '@/lib/supabase/server'
@@ -52,7 +53,7 @@ export async function GET(
 
     return NextResponse.json({ data: formattedEntry })
   } catch (error) {
-    console.error('Time entry route error:', error)
+    log.error('Time entry route error:', error)
     if (isHttpError(error)) {
       return NextResponse.json(
         { error: error.message, code: error.code },
@@ -152,7 +153,7 @@ export async function PUT(
       message: 'Time entry updated successfully'
     })
   } catch (error) {
-    console.error('Time entry route error:', error)
+    log.error('Time entry route error:', error)
     if (isHttpError(error)) {
       return NextResponse.json(
         { error: error.message, code: error.code },
@@ -219,7 +220,7 @@ export async function DELETE(
       message: 'Time entry deleted successfully'
     })
   } catch (error) {
-    console.error('Time entry route error:', error)
+    log.error('Time entry route error:', error)
     if (isHttpError(error)) {
       return NextResponse.json(
         { error: error.message, code: error.code },

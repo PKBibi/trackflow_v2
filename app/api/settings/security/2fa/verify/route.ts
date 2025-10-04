@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { twoFactorAuth } from '@/lib/auth/two-factor'
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status })
     }
 
-    console.error('Failed to verify 2FA code:', error)
+    log.error('Failed to verify 2FA code:', error)
     return NextResponse.json({ error: 'Failed to verify 2FA code' }, { status: 500 })
   }
 }

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { HttpError, isHttpError } from '@/lib/errors'
 import { createClient } from '@/lib/supabase/server'
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
     
     // Get project statistics (time entries and amounts)
     const projectIds = projects?.map(p => p.id) || []
-    let projectStats: any = {}
+    const projectStats: any = {}
     
     if (projectIds.length > 0) {
       const { data: timeEntries } = await supabase
@@ -129,7 +130,7 @@ export async function GET(request: NextRequest) {
       }
     });
   } catch (error) {
-    console.error('Projects route error:', error)
+    log.error('Projects route error:', error)
     if (isHttpError(error)) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
     }
@@ -220,7 +221,7 @@ export async function POST(request: NextRequest) {
       message: 'Project created successfully'
     }, { status: 201 });
   } catch (error) {
-    console.error('Projects route error:', error)
+    log.error('Projects route error:', error)
     if (isHttpError(error)) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
     }
@@ -302,7 +303,7 @@ export async function PUT(request: NextRequest) {
       updatedIds: ids
     });
   } catch (error) {
-    console.error('Projects route error:', error)
+    log.error('Projects route error:', error)
     if (isHttpError(error)) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
     }
@@ -394,7 +395,7 @@ export async function DELETE(request: NextRequest) {
       deletedIds: ids
     });
   } catch (error) {
-    console.error('Projects route error:', error)
+    log.error('Projects route error:', error)
     if (isHttpError(error)) {
       return NextResponse.json({ error: error.message, code: error.code }, { status: error.status })
     }

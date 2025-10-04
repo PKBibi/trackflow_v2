@@ -1,8 +1,9 @@
+import { log } from '@/lib/logger';
 import * as Sentry from '@sentry/nextjs';
 
 // Enhanced error logging with context
 export function logError(error: Error | string, context?: Record<string, any>) {
-  console.error('Error logged:', error, context);
+  log.error('Error logged:', error, context);
 
   if (typeof error === 'string') {
     error = new Error(error);
@@ -149,7 +150,7 @@ export function trackBusinessEvent(event: string, value?: number, metadata?: Rec
 // Development-only logging
 export function devLog(message: string, data?: any) {
   if (process.env.NODE_ENV === 'development') {
-    console.log(`[DEV] ${message}`, data);
+    log.debug(`[DEV] ${message}`, data);
   }
 }
 
@@ -159,7 +160,7 @@ export function alertCriticalError(error: Error, context?: Record<string, any>) 
 
   // In production, this could trigger PagerDuty, Slack alerts, etc.
   if (process.env.NODE_ENV === 'production') {
-    console.error('CRITICAL ERROR:', error, context);
+    log.error('CRITICAL ERROR:', error, context);
   }
 }
 

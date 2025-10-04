@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { getAuthenticatedUser, hashApiKey } from '@/lib/auth/api-key'
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status })
     }
 
-    console.error('Failed to list API keys:', error)
+    log.error('Failed to list API keys:', error)
     return NextResponse.json({ error: 'Failed to load API keys' }, { status: 500 })
   }
 }
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: error.status })
     }
 
-    console.error('Failed to create API key:', error)
+    log.error('Failed to create API key:', error)
     return NextResponse.json({ error: 'Failed to create API key' }, { status: 500 })
   }
 }

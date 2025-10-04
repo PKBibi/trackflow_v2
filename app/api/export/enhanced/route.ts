@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { requirePlan } from '@/lib/auth/plan'
 import { getActiveTeam } from '@/lib/auth/team'
 import { NextRequest, NextResponse } from 'next/server'
@@ -265,7 +266,7 @@ export async function POST(request: NextRequest) {
     }
 
   } catch (error) {
-    console.error('Export error:', error)
+    log.error('Export error:', error)
     return NextResponse.json({ 
       error: 'Export failed', 
       details: error instanceof Error ? error.message : 'Unknown error'

@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 import { NextRequest, NextResponse } from 'next/server'
 import { z, ZodError, ZodSchema } from 'zod'
 import { HttpError } from '@/lib/errors'
@@ -78,7 +79,7 @@ export function validateInput<T>(schema: ZodSchema<T>) {
         )
       }
       
-      console.error('Validation middleware error:', error)
+      log.error('Validation middleware error:', error)
       return NextResponse.json(
         { error: 'Internal server error', code: 'INTERNAL_ERROR' },
         { status: 500 }
@@ -117,7 +118,7 @@ export async function rateLimitPerUser(
         })
         return
       } catch (error) {
-        console.error('Redis rate limiting failed, falling back to memory:', error)
+        log.error('Redis rate limiting failed, falling back to memory:', error)
       }
     }
     

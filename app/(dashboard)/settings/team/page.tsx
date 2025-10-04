@@ -1,3 +1,4 @@
+import { log } from '@/lib/logger';
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -85,7 +86,7 @@ export default function TeamManagementPage() {
       const data = await response.json();
       setPlan(data.plan || 'free');
     } catch (error) {
-      console.error('Failed to load plan:', error);
+      log.error('Failed to load plan:', error);
     }
   };
   
@@ -110,7 +111,7 @@ export default function TeamManagementPage() {
         setPendingInvites(invitations);
       }
     } catch (error) {
-      console.error('Failed to load team data:', error);
+      log.error('Failed to load team data:', error);
       toast({
         title: 'Error',
         description: 'Failed to load team data',
